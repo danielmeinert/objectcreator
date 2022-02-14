@@ -1,0 +1,40 @@
+{
+"template_type" : "path_tile",
+"json":{ 
+    "id": "round1x1in",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+        "price": 1,
+        "removalPrice": -1,
+	"cursor": "CURSOR_PATH_DOWN",
+        "tiles": [
+            {
+                "x": 0,
+                "y": 0,
+                "clearance": 8,
+                "hasSupports": false,
+                "corners": 2,
+		"walls": 15
+            }
+        ]
+    },
+    "images": [
+	{ "path": "images/00.png"},
+	{ "path": "images/01.png"},
+	{ "path": "images/02.png"},
+	{ "path": "images/03.png"},
+	{ "path": "images/00.png"},
+	{ "path": "images/01.png"},
+	{ "path": "images/02.png"},
+	{ "path": "images/03.png"}
+    ],
+    "strings": {
+        "name": {
+            "en-GB": "Round 1x1 Inside"
+        }
+    }
+}
+}

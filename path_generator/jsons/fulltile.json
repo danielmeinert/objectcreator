@@ -1,0 +1,36 @@
+{ 
+    "id": "",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+        "price": 1,
+        "removalPrice": -1,
+	"cursor": "CURSOR_PATH_DOWN",
+        "tiles": [
+            {
+                "x": 0,
+                "y": 0,
+                "clearance": 8,
+                "hasSupports": false,
+                "walls": 15
+            }
+        ]
+    },
+    "images": [
+  	{ "path": "images/00.png", "x": -32, "y": 17 },
+	{ "path": "images/00.png", "x": -32, "y": 17 },
+	{ "path": "images/00.png", "x": -32, "y": 17 },
+	{ "path": "images/00.png", "x": -32, "y": 17 },
+	{ "path": "images/00.png", "x": -32, "y": -8 },
+	{ "path": "images/00.png", "x": -32, "y": -8 },	
+	{ "path": "images/00.png", "x": -32, "y": -8 },
+	{ "path": "images/00.png", "x": -32, "y": -8 }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": ""
+        }
+    }
+}

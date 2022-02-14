@@ -1,0 +1,51 @@
+{
+"template_type" : "path_tile",
+"json":{  
+    "id": "round2x1outright",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+        "price": 1,
+        "removalPrice": -1,
+	"cursor": "CURSOR_PATH_DOWN",
+        "tiles": [
+            {
+                "x": 0,
+                "y": 0,
+                "clearance": 8,
+                "hasSupports": false,
+                "walls": 15,
+		"corners": 13
+            },
+	    {
+                "x": 0,
+                "y": 32,
+                "clearance": 8,
+                "hasSupports": false,
+                "walls": 15
+            }
+        ]
+    },
+    "images": [
+	{ "path": "images/00.png"},
+	{ "path": "images/01.png"},
+	{ "path": "images/02.png"},
+	{ "path": "images/03.png"},
+	{ "path": "images/04.png"},
+	{ "path": "images/05.png"},
+	{ "path": "images/06.png"},
+	{ "path": "images/07.png"},
+	{ "path": "images/08.png"},
+	{ "path": "images/09.png"},
+	{ "path": "images/10.png"},
+	{ "path": "images/11.png"}
+    ],
+    "strings": {
+        "name": {
+            "en-GB": "Round 2x1 Outside Right"
+        }
+    }
+}
+}

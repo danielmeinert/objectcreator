@@ -1,0 +1,84 @@
+{ 
+    "id": "tols.rndgrndtxt",
+    "authors": ["Tolsimir"],
+    "version": "1.0",
+    "originalId": "00000002|TOLSRDGT|00000000",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+        "price": 1,
+        "removalPrice": -1,
+        "cursor": "CURSOR_DIG_DOWN",
+        "hasPrimaryColour": true,
+        "tiles": [
+            {
+                "x": 0,
+                "y": 0,
+                "clearance": 16,
+                "hasSupports": false,
+                "walls": 9
+            },
+            {
+                "x": 0,
+                "y": 32,
+                "clearance": 16,
+                "hasSupports": false,
+                "walls": 3
+            },
+            {
+                "x": 32,
+                "y": 0,
+                "clearance": 16,
+                "hasSupports": false,
+                "walls": 12
+            },
+            {
+                "x": 32,
+                "y": 32,
+                "clearance": 16,
+                "hasSupports": false,
+                "walls": 6
+            }
+        ]
+    },
+    "images": [
+  { "path": "images/00.png", "x": -32, "y": 0 },
+{ "path": "images/01.png", "x": -32, "y": 0 },
+{ "path": "images/02.png", "x": -32, "y": 0 },
+{ "path": "images/03.png", "x": -32, "y": 0 },
+{ "path": "images/04.png", "x": -32, "y": -16 },
+{ "path": "images/05.png", "x": -32, "y": -16 },
+{ "path": "images/06.png", "x": -32, "y": -16 },
+{ "path": "images/07.png", "x": -32, "y": -16 },
+{ "path": "images/08.png", "x": -32, "y": -16 },
+{ "path": "images/09.png", "x": -32, "y": -16 },
+{ "path": "images/10.png", "x": -32, "y": -16 },
+{ "path": "images/11.png", "x": -32, "y": -16 },
+{ "path": "images/12.png", "x": -32, "y": -16 },
+{ "path": "images/13.png", "x": -32, "y": -16 },
+{ "path": "images/14.png", "x": -32, "y": -16 },
+{ "path": "images/15.png", "x": -32, "y": -16 },
+{ "path": "images/16.png", "x": -32, "y": -16 },
+{ "path": "images/17.png", "x": -32, "y": -16 },
+{ "path": "images/18.png", "x": -32, "y": -16 },
+{ "path": "images/19.png", "x": -32, "y": -16 }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": "Curved Ground Texture by Tolsimir",
+            "de-DE": "Curved Ground Texture by Tolsimir",
+            "hu-HU": "Curved Ground Texture by Tolsimir",
+            "pt-BR": "Curved Ground Texture by Tolsimir",
+            "nl-NL": "Curved Ground Texture by Tolsimir",
+            "fr-FR": "Curved Ground Texture by Tolsimir",
+            "ja-JP": "Curved Ground Texture by Tolsimir",
+            "tr-TR": "Curved Ground Texture by Tolsimir",
+            "pl-PL": "Curved Ground Texture by Tolsimir",
+            "ko-KR": "Curved Ground Texture by Tolsimir",
+            "eo-OO": "Curved Ground Texture by Tolsimir",
+            "es-ES": "Curved Ground Texture by Tolsimir",
+            "it-IT": "Curved Ground Texture by Tolsimir",
+            "sv-SE": "Curved Ground Texture by Tolsimir"
+        }
+    }
+}
