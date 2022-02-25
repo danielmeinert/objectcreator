@@ -6,7 +6,7 @@ Created on Sat Sep 25 13:47:57 2021
 """
 import numpy as np
 
-
+remap_lookup = np.load('remap_mapping.npy')
 
 rct_data = np.array([
    # [[0,0,0],# Blacks

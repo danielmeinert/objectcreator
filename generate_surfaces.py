@@ -48,7 +48,6 @@ def generateMixedSurface(top_name, bottom_name, folder):
         
         top = spr.pasteOnMask(mask, top)
         fin = spr.mergeSprites(top, bottom, palette= pal.save_colors)
-        fin = spr.removeBlackPixels(fin)
         
         fin.save(f'{merge_folder}/images/{im_name}')
      

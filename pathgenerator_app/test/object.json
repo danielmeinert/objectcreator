@@ -1,5 +1,5 @@
 {
-  "id": "tols.scenery_large.test_round2x1inleft",
+  "id": "tols.scenery_large.ad_round2x2in",
   "authors": [
     "Tolsimir"
   ],
@@ -17,17 +17,25 @@
         "clearance": 8,
         "hasSupports": false,
         "walls": 15,
-        "corners": 2
+        "corners": 6
       },
       {
         "x": 32,
         "y": 0,
         "clearance": 8,
         "hasSupports": false,
+        "walls": 15
+      },
+      {
+        "x": 32,
+        "y": 32,
+        "clearance": 8,
+        "hasSupports": false,
         "walls": 15,
-        "corners": 7
+        "corners": 3
       }
-    ]
+    ],
+    "hasPrimaryColour": true
   },
   "images": [
     {
@@ -53,7 +61,7 @@
     {
       "path": "images/04.png",
       "x": -32,
-      "y": -8
+      "y": -7
     },
     {
       "path": "images/05.png",
@@ -67,8 +75,8 @@
     },
     {
       "path": "images/07.png",
-      "x": -26,
-      "y": 10
+      "x": -22,
+      "y": 12
     },
     {
       "path": "images/08.png",
@@ -77,23 +85,43 @@
     },
     {
       "path": "images/09.png",
-      "x": -30,
+      "x": -32,
       "y": -8
     },
     {
       "path": "images/10.png",
-      "x": -9,
+      "x": -10,
       "y": -8
     },
     {
       "path": "images/11.png",
       "x": -32,
       "y": 4
+    },
+    {
+      "path": "images/12.png",
+      "x": -32,
+      "y": 3
+    },
+    {
+      "path": "images/13.png",
+      "x": -22,
+      "y": -8
+    },
+    {
+      "path": "images/14.png",
+      "x": 3,
+      "y": -7
+    },
+    {
+      "path": "images/15.png",
+      "x": -6,
+      "y": 12
     }
   ],
   "strings": {
     "name": {
-      "en-GB": "asd"
+      "en-GB": "ad Round 2x2 Inside ad"
     }
   }
 }

@@ -21,46 +21,45 @@ class pathTemplate:
         self.num_tiles = num_tiles
         self.name = data['strings']['name']['en-GB']
 
-
     @classmethod
     def fromFile(cls, path: str):
         """Instantiates a new object from a .template file."""
         with TemporaryDirectory() as temp:
             unpack_archive(filename=path, extract_dir=temp, format='zip')
             # Raises error on incorrect object structure or missing json:
-            
-            try:    
+
+            try:
                 data_raw = load(fp=open(f'{temp}/object.json'))
             except:
-                print(f'Warning: template file {path} corrupted. Skipped loading.')
+                print(
+                    f'Warning: template file {path} corrupted. Skipped loading.')
                 return
-            
+
             if data_raw["template_type"] != "path_tile":
                 return
-            
+
             data = data_raw['json']
-            
+
             num_tiles = len(data['properties']['tiles'])
             preview_skip = 0 if num_tiles == 1 else 4
             i = 0
             images = {}
             for im in data['images']:
                 if i < preview_skip:
-                    images[im['path']] = Image.new('RGBA', (1,1))
-                    i = i +1
+                    images[im['path']] = Image.new('RGBA', (1, 1))
+                    i = i + 1
                     continue
-                
-                images[im['path']] = Image.open(f'{temp}/{im["path"]}').convert('RGBA')
-        
-        return cls(data=data, images=images,num_tiles = num_tiles)
 
+                images[im['path']] = Image.open(
+                    f'{temp}/{im["path"]}').convert('RGBA')
 
+        return cls(data=data, images=images, num_tiles=num_tiles)
 
     def save(self, path: str):
         """Saves an object as .parkobj file to specified path."""
         with TemporaryDirectory() as temp:
             with open(f'{temp}/object.json', mode='w') as file:
-                dump(obj=self.data, fp=file,indent=2)
+                dump(obj=self.data, fp=file, indent=2)
             mkdir(f'{temp}/images')
             for name, image in self.images.items():
                 image.save(f'{temp}/{name}')

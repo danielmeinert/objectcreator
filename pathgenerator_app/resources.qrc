@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="images">
+    <file>res/remap.png</file>
+    <file>res/colors.png</file>
+  </qresource>
+</RCC>

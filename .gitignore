@@ -1,12 +1,8 @@
-*.parkobj
-*.DAT
-*.png
-*.tmp
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.png
 
 # C extensions
 *.so
