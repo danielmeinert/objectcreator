@@ -7,10 +7,10 @@ Created on Sun Jan 16 19:57:16 2022
 
 from PIL import Image
 
-import sprites as spr
-import objects as obj
+import rctobject.sprites as spr
+import rctobject.objects as obj
+import rctobject.palette as pal
 import template as templ
-import palette as pal
 from json import load
 from os import listdir
 from copy import deepcopy
@@ -58,18 +58,17 @@ class pathObject:
             preview_skip = 0
         else:
             preview_skip = 4
-        i = 0
+
         sprites = {}
         rot = 0
-        for im in data['images']:
+        for i, im in enumerate(data['images']):
             if i < preview_skip:
                 sprites[im['path']] = spr.sprite(template.images[im['path']])
-                i += 1
                 continue
 
             mask = template.images[im['path']]
 
-            image = spr.pasteOnMask(mask, base[rot])
+            image = spr.pasteOnMask(mask, base[rot].image)
 
             bbox = image.getbbox()
 
@@ -84,8 +83,6 @@ class pathObject:
             sprites[im['path']] = spr.sprite(image, (x, y))
             rot = (rot + 1) % 4
 
-            i += 1
-
         self.object = obj.RCTObject(data, sprites)
 
         # Create preview thumbnails for multile objects
@@ -94,7 +91,7 @@ class pathObject:
 
     def save(self, filepath: str = None, no_zip: bool = False):
         if self.object:
-            self.object.save(filepath, no_zip)
+            self.object.save(filepath, no_zip=no_zip)
 
 
 class pathGenerator:
@@ -160,6 +157,17 @@ class pathGenerator:
         else:
             self.settings['name']['en-GB']['pre'] = prefix
 
+    def fixBaseToMask(self):
+        if self.base.image.size != (1, 1):
+            mask = self.templates['Fulltile'].images['images/00.png'].copy()
+            image = self.base.image.crop(
+                (-32-self.base.x, -self.base.y, -self.base.x+32, -self.base.y+31))
+            mask.paste(image, mask)
+
+            self.base.image = mask
+            self.base.x = -32
+            self.base.y = 0
+
     def generate(self, output_folder: str):
 
         self.settings['hasPrimaryColour'] = self.base.checkPrimaryColor()
@@ -175,6 +183,7 @@ class pathGenerator:
             return 'No object ID given!'
 
         else:
+            self.fixBaseToMask()
             obj = pathObject(self.base)
 
             for name in self.selected_templates:

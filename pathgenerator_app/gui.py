@@ -5,11 +5,12 @@ Created on Thu Feb  3 23:48:10 2022
 @author: Daniel
 """
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
 import sys
+import io
 from os import getcwd
 
 import generate_path as gen
@@ -22,10 +23,13 @@ class Ui(QMainWindow):
         uic.loadUi('pathgenerator.ui', self)
 
         self.generator = generator
+        self.loadFrame()
 
         # Define Widgets
         self.buttonLoadBase = self.findChild(
             QPushButton, "pushButton_loadImageButton")
+        self.buttonFixToMask = self.findChild(
+            QPushButton, "pushButton_fixToMask")
         self.buttonResetBase = self.findChild(
             QPushButton, "pushButton_resetBase")
         self.buttonChangeOutputFolder = self.findChild(
@@ -42,8 +46,13 @@ class Ui(QMainWindow):
             QPushButton, "pushButton_colorsInvert")
         self.buttonRemapTo = self.findChild(
             QPushButton, "pushButton_remapTo")
+        self.buttonIncrBrightness = self.findChild(
+            QPushButton, "pushButton_incrBrightness")
+        self.buttonDecrBrightness = self.findChild(
+            QPushButton, "pushButton_decrBrightness")
         self.buttonImportTemplate = self.findChild(
             QPushButton, "pushButton_importTemplate")
+
         self.checkboxAutoNaming = self.findChild(
             QCheckBox, "checkBox_autoNaming")
         self.checkboxAutoRotation = self.findChild(
@@ -86,7 +95,20 @@ class Ui(QMainWindow):
                 lambda state, color=color: self.clickBoxColorPanel(state, color))
             self.checkboxesColorPanel[color].setToolTip(color)
 
-        #self.scrollAreaTemplate = self.findChild(QScrollArea, "scrollArea")
+        # Sprite control buttons
+        self.buttonSpriteLeft = self.findChild(
+            QToolButton, "toolButton_left")
+        self.buttonSpriteDown = self.findChild(
+            QToolButton, "toolButton_down")
+        self.buttonSpriteRight = self.findChild(
+            QToolButton, "toolButton_right")
+        self.buttonSpriteUp = self.findChild(
+            QToolButton, "toolButton_up")
+        self.buttonSpriteLeftRight = self.findChild(
+            QToolButton, "toolButton_leftright")
+        self.buttonSpriteUpDown = self.findChild(
+            QToolButton, "toolButton_updown")
+
         self.listwidgetTemplateList = self.findChild(
             QListWidget, "listWidget_templateList")
 
@@ -99,7 +121,7 @@ class Ui(QMainWindow):
         self.labelSuffix.hide()
         self.labelPrefix.setText('')
 
-        self.lineeditOutputFolder.setText(getcwd())
+        self.lineeditOutputFolder.setText(f'{getcwd()}\\output')
 
         self.comboboxRemapToColor.addItems(
             list(self.generator.current_palette.color_dict))
@@ -110,6 +132,7 @@ class Ui(QMainWindow):
 
         # Add functions
         self.buttonLoadBase.clicked.connect(self.clickLoadBase)
+        self.buttonFixToMask.clicked.connect(self.clickFixToMask)
         self.buttonResetBase.clicked.connect(self.clickResetBase)
         self.buttonSelectAllTemplates.clicked.connect(
             self.listwidgetTemplateList.selectAll)
@@ -123,12 +146,32 @@ class Ui(QMainWindow):
         self.buttonColorsInvert.clicked.connect(self.clickColorsInvert)
         self.buttonColorsAll.clicked.connect(self.clickColorsAll)
         self.buttonRemapTo.clicked.connect(self.clickRemapTo)
+        self.buttonIncrBrightness.clicked.connect(self.clickIncrBrightness)
+        self.buttonDecrBrightness.clicked.connect(self.clickDecrBrightness)
 
         self.checkboxAutoNaming.stateChanged.connect(self.clickBoxAutoNaming)
         self.checkboxAutoRotation.stateChanged.connect(
             self.clickBoxAutoRotation)
         self.lineeditPrefix.textChanged.connect(self.updateDisplayName)
         self.lineeditSuffix.textChanged.connect(self.updateDisplayName)
+
+        self.buttonSpriteLeft.clicked.connect(
+            lambda x: self.clickSpriteControl('left'))
+        self.buttonSpriteDown.clicked.connect(
+            lambda x: self.clickSpriteControl('down'))
+        self.buttonSpriteRight.clicked.connect(
+            lambda x: self.clickSpriteControl('right'))
+        self.buttonSpriteUp.clicked.connect(
+            lambda x: self.clickSpriteControl('up'))
+        self.buttonSpriteLeftRight.clicked.connect(
+            lambda x: self.clickSpriteControl('leftright'))
+        self.buttonSpriteUpDown.clicked.connect(
+            lambda x: self.clickSpriteControl('updown'))
+
+        self.buttonSpriteLeft.setAutoRepeat(True)
+        self.buttonSpriteDown.setAutoRepeat(True)
+        self.buttonSpriteRight.setAutoRepeat(True)
+        self.buttonSpriteUp.setAutoRepeat(True)
 
         self.show()
 
@@ -141,6 +184,11 @@ class Ui(QMainWindow):
         if filepath:
             self.generator.loadBase(filepath)
 
+        self.updatePreview()
+
+    def clickFixToMask(self):
+
+        self.generator.fixBaseToMask()
         self.updatePreview()
 
     def clickResetBase(self):
@@ -218,6 +266,38 @@ class Ui(QMainWindow):
 
         self.updatePreview()
 
+    def clickIncrBrightness(self):
+        for color, selected in self.generator.selected_colors.items():
+            if selected:
+                self.generator.base.changeBrightnessColor(1, color)
+
+        self.updatePreview()
+
+    def clickDecrBrightness(self):
+        for color, selected in self.generator.selected_colors.items():
+            if selected:
+                self.generator.base.changeBrightnessColor(-1, color)
+
+        self.updatePreview()
+
+    def clickSpriteControl(self, direction: str):
+        if direction == 'left':
+            self.generator.base.x -= 1
+        elif direction == 'right':
+            self.generator.base.x += 1
+        elif direction == 'up':
+            self.generator.base.y -= 1
+        elif direction == 'down':
+            self.generator.base.y += 1
+        elif direction == 'leftright':
+            self.generator.base.image = self.generator.base.image.transpose(
+                Image.FLIP_LEFT_RIGHT)
+        elif direction == 'updown':
+            self.generator.base.image = self.generator.base.image.transpose(
+                Image.FLIP_TOP_BOTTOM)
+
+        self.updatePreview()
+
     # Auxiliary functions
 
     def linkGenerator(self, pathgenerator):
@@ -227,6 +307,7 @@ class Ui(QMainWindow):
         canvas = Image.new('RGBA', (172, 132))
         canvas.paste(
             self.generator.base.show(), (86+self.generator.base.x, 50+self.generator.base.y), self.generator.base.image)
+        canvas.paste(self.frame_image, self.frame_image)
 
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -239,12 +320,14 @@ class Ui(QMainWindow):
         else:
             self.labelDisplayName.setText(self.lineeditPrefix.text())
 
+    def loadFrame(self):
+        img = QtGui.QImage(":/images/res/frame.png")
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QBuffer.ReadWrite)
+        img.save(buffer, "PNG")
+        self.frame_image = Image.open(io.BytesIO(buffer.data()))
+        buffer.close()
+
     def loadTemplates(self):
         for name in self.generator.templates.keys():
             self.listwidgetTemplateList.addItem(name)
-
-
-app = QApplication(sys.argv)
-generator = gen.pathGenerator()
-window = Ui(generator)
-app.exec_()

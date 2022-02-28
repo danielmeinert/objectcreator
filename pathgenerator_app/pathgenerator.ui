@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Object Generator</string>
+   <string>Path Generator</string>
   </property>
   <property name="toolTip">
    <string notr="true"/>
@@ -44,10 +44,10 @@
    <widget class="QGroupBox" name="groupBox_Settings">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>9</y>
-      <width>331</width>
-      <height>351</height>
+      <x>340</x>
+      <y>10</y>
+      <width>271</width>
+      <height>591</height>
      </rect>
     </property>
     <property name="title">
@@ -56,8 +56,8 @@
     <widget class="QCheckBox" name="checkBox_autoRotation">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>60</y>
+       <x>130</x>
+       <y>140</y>
        <width>141</width>
        <height>17</height>
       </rect>
@@ -73,7 +73,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>290</y>
+       <y>230</y>
        <width>191</width>
        <height>20</height>
       </rect>
@@ -86,7 +86,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>260</y>
+       <y>200</y>
        <width>191</width>
        <height>20</height>
       </rect>
@@ -99,7 +99,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>230</y>
+       <y>170</y>
        <width>141</width>
        <height>16</height>
       </rect>
@@ -112,7 +112,7 @@
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>230</y>
+       <y>170</y>
        <width>141</width>
        <height>17</height>
       </rect>
@@ -128,7 +128,7 @@
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>200</y>
+       <y>110</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -150,7 +150,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>200</y>
+       <y>110</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -163,7 +163,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>170</y>
+       <y>80</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -176,7 +176,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>170</y>
+       <y>80</y>
        <width>141</width>
        <height>20</height>
       </rect>
@@ -189,7 +189,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>140</y>
+       <y>50</y>
        <width>141</width>
        <height>20</height>
       </rect>
@@ -202,7 +202,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>140</y>
+       <y>50</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -215,7 +215,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>110</y>
+       <y>20</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -228,7 +228,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>110</y>
+       <y>20</y>
        <width>141</width>
        <height>20</height>
       </rect>
@@ -237,27 +237,11 @@
       <string notr="true">Your name, for collaborations separate by comma</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_loadImageButton">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Load your base path texture. Sprite should have shape 64px*31px , else it will be cropped from the top left corner</string>
-     </property>
-     <property name="text">
-      <string>Load Base Image</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_prefix">
      <property name="geometry">
       <rect>
        <x>220</x>
-       <y>260</y>
+       <y>200</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -270,7 +254,7 @@
      <property name="geometry">
       <rect>
        <x>220</x>
-       <y>290</y>
+       <y>230</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -282,10 +266,10 @@
     <widget class="QLabel" name="label_displayName">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>326</y>
-       <width>301</width>
-       <height>20</height>
+       <x>10</x>
+       <y>266</y>
+       <width>251</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -301,15 +285,73 @@
       <enum>QFrame::Raised</enum>
      </property>
      <property name="text">
-      <string>Display name</string>
+      <string>Display Name</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="listWidget_templateList">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>251</width>
+       <height>171</height>
+      </rect>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_importTemplate">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>480</y>
+       <width>91</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Import Template</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_selectAllTemplates">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>480</y>
+       <width>61</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Select All</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_clearAllTemplates">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>480</y>
+       <width>61</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Clear All</string>
      </property>
     </widget>
    </widget>
    <widget class="QPushButton" name="pushButton_generate">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>20</y>
+      <x>100</x>
+      <y>550</y>
       <width>141</width>
       <height>23</height>
      </rect>
@@ -321,8 +363,8 @@
    <widget class="QLineEdit" name="lineEdit_outputFolder">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>100</y>
+      <x>350</x>
+      <y>540</y>
       <width>201</width>
       <height>20</height>
      </rect>
@@ -331,8 +373,8 @@
    <widget class="QPushButton" name="pushButton_changeOutputFolder">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>100</y>
+      <x>560</x>
+      <y>540</y>
       <width>31</width>
       <height>23</height>
      </rect>
@@ -341,45 +383,11 @@
      <string>...</string>
     </property>
    </widget>
-   <widget class="QLabel" name="sprite_view">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>140</y>
-      <width>172</width>
-      <height>132</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLabel {
-
-	background-color: rgb(0, 0, 0);
-}</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::WinPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <property name="lineWidth">
-     <number>1</number>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_OutputFolder">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>80</y>
+      <x>350</x>
+      <y>520</y>
       <width>111</width>
       <height>16</height>
      </rect>
@@ -388,242 +396,386 @@
      <string>Output Folder</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget_templateList">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>380</y>
-      <width>331</width>
-      <height>191</height>
-     </rect>
-    </property>
-    <property name="editTriggers">
-     <set>QAbstractItemView::NoEditTriggers</set>
-    </property>
-    <property name="selectionMode">
-     <enum>QAbstractItemView::MultiSelection</enum>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_selectAllTemplates">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>580</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Select All</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_clearAllTemplates">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>580</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Clear All</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_importTemplate">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>580</y>
-      <width>91</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Import Template</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_GenerateReturn">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>50</y>
+      <x>50</x>
+      <y>580</y>
       <width>251</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+
+	background-color: rgb(230,230, 230);
+}</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
     </property>
     <property name="text">
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_resetBase">
+   <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>250</y>
-      <width>61</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Reset</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_selectedColor">
-    <property name="geometry">
-     <rect>
-      <x>350</x>
-      <y>280</y>
-      <width>271</width>
-      <height>201</height>
+      <x>10</x>
+      <y>10</y>
+      <width>321</width>
+      <height>511</height>
      </rect>
     </property>
     <property name="title">
-     <string>Selected colors for color actions</string>
+     <string>Sprite</string>
     </property>
-    <widget class="QPushButton" name="pushButton_colorsAll">
+    <widget class="QGroupBox" name="groupBox_selectedColor">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>170</y>
-       <width>61</width>
-       <height>23</height>
+       <x>20</x>
+       <y>160</y>
+       <width>271</width>
+       <height>201</height>
       </rect>
      </property>
-     <property name="text">
-      <string>All Colors</string>
+     <property name="title">
+      <string>Selected colors for color actions</string>
      </property>
+     <widget class="QPushButton" name="pushButton_colorsAll">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>170</y>
+        <width>61</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>All Colors</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="widget_colorPanel" native="true">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>140</y>
+        <width>234</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="image_colorPanel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>234</width>
+        <height>120</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="resources.qrc">:/images/res/colors.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_colorsInvert">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>170</y>
+        <width>61</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Invert</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_colorPanelPrimaryRemap">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>20</y>
+        <width>13</width>
+        <height>120</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="resources.qrc">:/images/res/remap.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_primaryRemap">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>144</y>
+        <width>16</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
     </widget>
-    <widget class="QWidget" name="widget_colorPanel" native="true">
+    <widget class="QLabel" name="sprite_view">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>234</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-     </layout>
-    </widget>
-    <widget class="QLabel" name="image_colorPanel">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
+       <x>20</x>
        <y>20</y>
-       <width>234</width>
-       <height>120</height>
+       <width>172</width>
+       <height>132</height>
       </rect>
+     </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::DefaultContextMenu</enum>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+
+	background-color: rgb(0, 0, 0);
+}</string>
      </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::WinPanel</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="lineWidth">
+      <number>1</number>
      </property>
      <property name="text">
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/res/colors.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/res/frame.png</pixmap>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_colorsInvert">
+    <widget class="QPushButton" name="pushButton_resetBase">
      <property name="geometry">
       <rect>
-       <x>80</x>
-       <y>170</y>
-       <width>61</width>
+       <x>210</x>
+       <y>140</y>
+       <width>81</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_decrBrightness">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>400</y>
+       <width>71</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Invert</string>
+      <string>- Brightness</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_colorPanelPrimaryRemap">
+    <widget class="QPushButton" name="pushButton_incrBrightness">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>30</x>
+       <y>400</y>
+       <width>71</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>+ Brightness</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_loadImageButton">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
        <y>20</y>
-       <width>13</width>
-       <height>120</height>
+       <width>81</width>
+       <height>23</height>
       </rect>
      </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+     <property name="toolTip">
+      <string>Load your base path texture</string>
      </property>
      <property name="text">
-      <string/>
-     </property>
-     <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/res/remap.png</pixmap>
+      <string>Load Base</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_primaryRemap">
+    <widget class="QPushButton" name="pushButton_remapTo">
      <property name="geometry">
       <rect>
-       <x>250</x>
-       <y>144</y>
-       <width>16</width>
-       <height>16</height>
+       <x>30</x>
+       <y>370</y>
+       <width>71</width>
+       <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string/>
+      <string>Remap to</string>
      </property>
     </widget>
+    <widget class="QComboBox" name="comboBox_remapToColor">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>370</y>
+       <width>91</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_fixToMask">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>110</y>
+       <width>81</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fix To Mask</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="image_control" native="true">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>50</y>
+       <width>81</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>101</width>
+       <height>71</height>
+      </size>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="0">
+       <widget class="QToolButton" name="toolButton_left">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::LeftArrow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QToolButton" name="toolButton_down">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::DownArrow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QToolButton" name="toolButton_right">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::RightArrow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QToolButton" name="toolButton_up">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::UpArrow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QToolButton" name="toolButton_updown">
+        <property name="toolTip">
+         <string>Mirror Up Down</string>
+        </property>
+        <property name="text">
+         <string>UD</string>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::NoArrow</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QToolButton" name="toolButton_leftright">
+        <property name="toolTip">
+         <string>Mirror Left Right</string>
+        </property>
+        <property name="text">
+         <string>LR</string>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::DelayedPopup</enum>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::NoArrow</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="pushButton_remapTo">
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>490</y>
-      <width>61</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Remap to</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_remapToColor">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>490</y>
-      <width>91</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <zorder>groupBox_selectedColor</zorder>
+   <zorder>groupBox</zorder>
    <zorder>groupBox_Settings</zorder>
    <zorder>pushButton_generate</zorder>
    <zorder>lineEdit_outputFolder</zorder>
    <zorder>pushButton_changeOutputFolder</zorder>
-   <zorder>sprite_view</zorder>
    <zorder>label_OutputFolder</zorder>
-   <zorder>listWidget_templateList</zorder>
-   <zorder>pushButton_selectAllTemplates</zorder>
-   <zorder>pushButton_clearAllTemplates</zorder>
-   <zorder>pushButton_importTemplate</zorder>
    <zorder>label_GenerateReturn</zorder>
-   <zorder>pushButton_resetBase</zorder>
-   <zorder>pushButton_remapTo</zorder>
-   <zorder>comboBox_remapToColor</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

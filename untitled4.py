@@ -7,10 +7,9 @@ Created on Wed Jul 21 16:41:33 2021
 
 import numpy as np
 from PIL import Image
-import brightness as br
-import palette as pal
-import sprites as spr
-import objects as obj
+import rctobject.palette as pal
+import rctobject.sprites as spr
+import rctobject.objects as obj
 
 #top = Image.open('top.png')
 #top = top.convert('RGB')

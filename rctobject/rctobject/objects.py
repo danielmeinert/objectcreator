@@ -19,7 +19,7 @@ from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
 import numpy as np
 from numpy.linalg import matrix_power
-import sprites as spr
+import rctobject.sprites as spr
 
 
 class RCTObject:
@@ -126,12 +126,8 @@ class RCTObject:
         return (width, height)
 
     def updateImageOffsets(self):
-        preview_skip = 0 if self.data['objectType'] != 'scenery_large' else 4
-        i = 0
+
         for im in self.data['images']:
-            if i < preview_skip:
-                i = i + 1
-                continue
             im['x'] = self.sprites[im['path']].x
             im['y'] = self.sprites[im['path']].y
 
@@ -213,4 +209,5 @@ class RCTObject:
             self.sprites[im['path']] = spr.sprite(image, (x, y))
             self.rotateObject()
 
+        self.rotateObject()
         self.rotateObject()

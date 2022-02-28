@@ -6,7 +6,7 @@ Created on Wed Jul 21 11:56:19 2021
 """
 import numpy as np
 from PIL import Image
-from palette_data import *
+from rctobject.palette_data import *
 
 
 class Palette(np.ndarray):
