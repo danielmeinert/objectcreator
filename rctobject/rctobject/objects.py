@@ -12,14 +12,18 @@ Created 09/26/2021; 16:58:33
 @author: Drew
 """
 
-from json import load, dump
+from json import load, dump, loads
 from os import mkdir, replace
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
+from subprocess import run
 import numpy as np
 from numpy.linalg import matrix_power
 import rctobject.sprites as spr
+import rctobject.datloader as dat
+
+OPENRCTPATH = 'C:\\Users\\puvlh\\Documents\\OpenRCT2\\bin'
 
 
 class RCTObject:
@@ -52,19 +56,41 @@ class RCTObject:
             data = load(fp=open(f'{temp}/object.json'))
             sprites = {im['path']: spr.sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+
         return cls(data=data, sprites=sprites)
 
-    # @classmethod
-    # def from_dat(cls, path: str):
-    #     """TODO: Instantiates a new object from a .DAT file."""
-    #     raise NotImplementedError
+    @classmethod
+    def from_dat(cls, path: str):
+        """TODO: Instantiates a new object from a .DAT file."""
 
-    def save(self, path: str, name: str = None, no_zip: bool = False):
+        data = dat.read_dat_info(path)
+        dat_id = data['originalId'].split('|')[1].replace(' ', '')
+        with TemporaryDirectory() as temp:
+            result = run([f'{OPENRCTPATH}/openrct2', 'sprite',
+                         'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
+            string = result.stdout
+            string = string[string.find('{'):].replace(f'{temp}/', '')
+            string = string.replace('\\', '/')
+            i = -1
+            while string[i] != ',':
+                i -= 1
+
+            data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
+
+            sprites = {im['path']: spr.sprite.fromFile(
+                f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+
+        return cls(data=data, sprites=sprites)
+
+    def save(self, path: str, name: str = None, include_originalId: bool = False, no_zip: bool = False):
         """Saves an object as .parkobj file to specified path."""
 
         # Bring object in default rotation
         self.rotateObject(-self.rotation)
         self.updateImageOffsets()
+
+        if not include_originalId:
+            self.data.pop('originalId')
 
         if name:
             filename = path + '/' + name
@@ -77,7 +103,8 @@ class RCTObject:
                 dump(obj=self.data, fp=file, indent=2)
             for name, sprite in self.sprites.items():
                 sprite.save(f'{temp}/{name}')
-            make_archive(base_name=f'{filename}', root_dir=temp, format='zip')
+            make_archive(base_name=f'{filename}',
+                         root_dir=temp, format='zip')
 
             replace(f'{filename}.zip', f'{filename}.parkobj')
             if no_zip:
@@ -95,7 +122,7 @@ class RCTObject:
 
     def setTileSize(self):
         if self.data['objectType'] != 'scenery_large':
-            return (1, 1, self.data['properties']['height']*8)
+            return (1, 1, int(self.data['properties']['height']/8))
 
         max_x = 0
         max_y = 0
@@ -208,6 +235,3 @@ class RCTObject:
             y = image.size[1]
             self.sprites[im['path']] = spr.sprite(image, (x, y))
             self.rotateObject()
-
-        self.rotateObject()
-        self.rotateObject()
