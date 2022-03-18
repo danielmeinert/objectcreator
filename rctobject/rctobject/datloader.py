@@ -206,6 +206,52 @@ def tag_small_scenery_scan_optional(data, tags, pos):
         raise RuntimeError("Error while scanning optional")
 
 
+def tag_large_scenery_header(data, tags):
+    if(len(data) < 0x1A):
+        return RuntimeError('Could not read large scenery header, not correct length.')
+    tags['price'] = int.from_bytes(data[8:10], 'little', signed=True)
+    tags['removalPrice'] = int.from_bytes(data[10:12], 'little', signed=True)
+    tags['cursor'] = getCursor.get(data[6], 'CURSOR_ARROW')
+    tags['scrollingMode'] = data[17]
+
+    for flag, ind in prop.Jlarge_flags.items():
+        if ((data[ind[0]] & ind[1]) == ind[1]):
+            array_push(tags, flag)
+
+
+def large_scenery_scan_optional(data, pos):
+
+    length = len(data)
+    if length < 8:
+        return RuntimeError("Error while scanning optional")
+    if((data[7] & 0x4) == 0x4):
+        pos += 0x40E
+
+    tiles = []
+
+    if pos >= length-1:
+        return RuntimeError("Error while scanning optional")
+
+    while (data[pos] != 0xFF) or (data[pos+1] != 0xFF):
+        tile = {}
+        tile['x'] = int.from_bytes(data[pos:pos+2], 'little', signed=True)
+        tile['y'] = int.from_bytes(data[pos+2:pos+4], 'little', signed=True)
+        tile['z'] = int.from_bytes(data[pos+4:pos+6], 'little', signed=True)
+        tile['clearance'] = data[pos+6]
+        tile['hasSupports'] = ((data[pos+7] & 0x10) == 0x10)
+        tile['walls'] = (data[pos+8] & 0x0F)
+        tile['corners'] = (data[pos+8] >> 4 & 0x0F)
+
+        tiles.append(tile)
+        pos += 9
+
+    if pos >= length-1:
+        return RuntimeError("Error while scanning optional")
+
+    pos += 2
+    return tiles
+
+
 def read_string_table(data, pos):
 
     length = len(data)
@@ -257,7 +303,7 @@ def read_dat_info(filename: str):
         pos = 0
 
         if object_type == 'ride':
-            pass
+            raise NotImplementedError()
 
         if object_type == 'scenery_small':
             tag_small_scenery_header(chunk, tags)
@@ -268,12 +314,32 @@ def read_dat_info(filename: str):
                 result['strings'].pop('en-US')
             if result['strings'].get('skip', False):
                 result['strings'].pop('skip')
-            # skip group info
+            result['sceneryGroup'] = chunk[pos+4:pos+12].decode('utf-8')
             pos += 16
             tag_small_scenery_scan_optional(chunk, tags, pos)
 
             # result["image"] = small_scenery_get_preview(chunk, pos)
             #	if(result["image"] == =FALSE)return FALSE
+
+        if object_type == 'scenery_large':
+            tag_large_scenery_header(chunk, tags)
+
+            pos += 0x1A
+            result['strings'], pos = read_string_table(chunk, pos)
+
+            if result['strings'].get('en-US', False):
+                result['strings'].pop('en-US')
+            if result['strings'].get('skip', False):
+                result['strings'].pop('skip')
+            # skip group info
+            result['sceneryGroup'] = chunk[pos+4:pos+12].decode('utf-8')
+            pos += 16
+            tags['tiles'] = large_scenery_scan_optional(chunk, pos)
+
+            # if((ord(chunk[7]) & 0x4) != 0x4)
+            # {
+            # result["image"] = large_scenery_get_preview(chunk, pos, tile_info)
+        # 		if(result["image"] == =FALSE)return FALSE
 
         result['properties'] = tags
 

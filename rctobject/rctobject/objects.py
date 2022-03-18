@@ -61,7 +61,7 @@ class RCTObject:
 
     @classmethod
     def from_dat(cls, path: str):
-        """TODO: Instantiates a new object from a .DAT file."""
+        """Instantiates a new object from a .DAT file."""
 
         data = dat.read_dat_info(path)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')

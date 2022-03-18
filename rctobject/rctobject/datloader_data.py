@@ -55,3 +55,16 @@ Jsmall_flags = {
 
     'SMALL_SCENERY_FLAG27': (9, 0x08)
 }
+
+Jlarge_flags = {
+
+    'hasPrimaryColour': (7, 0x01),
+
+    'hasSecondaryColour': (7, 0x02),
+
+    '3dSign': (7, 0x04),
+
+    'isAnimated': (7, 0x08),
+
+    'isPhotogenic': (7, 0x10)
+}
