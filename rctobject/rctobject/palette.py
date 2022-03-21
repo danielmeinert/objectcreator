@@ -6,7 +6,12 @@ Created on Wed Jul 21 11:56:19 2021
 """
 import numpy as np
 from PIL import Image
+<<<<<<< Updated upstream
 from rctobject.palette_data import *
+=======
+from io import BytesIO
+from pkgutil import get_data
+>>>>>>> Stashed changes
 
 
 class Palette(np.ndarray):
@@ -149,10 +154,36 @@ def remapColors():
              'Bright Pink': 31}
 
 
-rct = Palette(rct_data, allColors(), has_sparkles=True)
-orct = Palette(orct_data, allColors(), has_sparkles=True)
-old_objm = Palette(old_objm_data, allColors(), has_sparkles=True)
-save_colors = Palette(save_colors_data, save_colors_dict)
+remap_lookup = np.load(
+    BytesIO(get_data("rctobject", "data/remap_mapping.npy")))
+
+data = np.load(BytesIO(get_data("rctobject", "data/green_remap_pal.npy")))
+green_remap = Palette(data, allColors(), has_sparkles=True)
+
+data = np.load(BytesIO(get_data("rctobject", "data/orct_pal.npy")))
+orct = Palette(data, allColors(), has_sparkles=True)
+
+data = np.load(BytesIO(get_data("rctobject", "data/old_objm_pal.npy")))
+old_objm = Palette(data, allColors(), has_sparkles=True)
+
+data = np.load(BytesIO(get_data("rctobject", "data/save_colors_pal.npy")))
+save_colors_dict = {
+    'Grey': 0,
+    'Light Brown': 1,
+    'Yellow': 2,
+    'Bordeaux': 3,
+    'Grass Green': 4,
+    'Light Olive': 5,
+    'Tan': 6,
+    'Blue': 7,
+    'Sea Green': 8,
+    'Teal': 10,
+    'Brown': 11
+
+}
+save_colors = Palette(data, save_colors_dict)
+
+del(data)
 
 
 def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include_sparkles=True):

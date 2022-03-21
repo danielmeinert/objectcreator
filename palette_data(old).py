@@ -6,7 +6,11 @@ Created on Sat Sep 25 13:47:57 2021
 """
 import numpy as np
 
+<<<<<<< Updated upstream:rctobject/rctobject/palette_data.py
 remap_lookup = np.load('remap_mapping.npy')
+=======
+remap_lookup = np.load(BytesIO(get_data(__name__, "data/remap_mapping.npy")))
+>>>>>>> Stashed changes:palette_data(old).py
 
 rct_data = np.array([
    # [[0,0,0],# Blacks
