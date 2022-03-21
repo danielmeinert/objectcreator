@@ -6,7 +6,6 @@ Objects may be loaded with from_parkobj and from_dat functions.
 
 JSON data may be accessed and edited as dictionary key: obj[key]
 
-TODO: Loading object from .DAT files
 
 Created 09/26/2021; 16:58:33
 @author: Drew
@@ -34,8 +33,7 @@ class RCTObject:
         self.data = data
         self.sprites = sprites
         self.rotation = 0
-        if data:
-            self.tile_size = self.setTileSize()
+
         self.current_first_remap = 'NoColor'
         self.current_second_remap = 'NoColor'
 
@@ -60,7 +58,7 @@ class RCTObject:
         return cls(data=data, sprites=sprites)
 
     @classmethod
-    def from_dat(cls, path: str):
+    def fromDat(cls, path: str):
         """Instantiates a new object from a .DAT file."""
 
         data = dat.read_dat_info(path)
@@ -76,13 +74,12 @@ class RCTObject:
                 i -= 1
 
             data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
-
             sprites = {im['path']: spr.sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
         return cls(data=data, sprites=sprites)
 
-    def save(self, path: str, name: str = None, include_originalId: bool = False, no_zip: bool = False):
+    def save(self, path: str, name: str = None, no_zip: bool = False, include_originalId: bool = False,):
         """Saves an object as .parkobj file to specified path."""
 
         # Bring object in default rotation
@@ -142,9 +139,6 @@ class RCTObject:
         if view is None:
             view = self.rotation
 
-        if self.data['objectType'] != 'scenery_large':
-            return list(self.sprites.values())[view].image.size()
-
         x, y, z = self.tile_size
 
         height = -1 + x*16 + y*16 + z*8
@@ -153,7 +147,6 @@ class RCTObject:
         return (width, height)
 
     def updateImageOffsets(self):
-
         for im in self.data['images']:
             im['x'] = self.sprites[im['path']].x
             im['y'] = self.sprites[im['path']].y
@@ -235,3 +228,26 @@ class RCTObject:
             y = image.size[1]
             self.sprites[im['path']] = spr.sprite(image, (x, y))
             self.rotateObject()
+
+
+class SmallScenery(RCTObject):
+    def __init__(self, data: dict, sprites: dict):
+        super().__init__(data, sprites)
+        if data:
+            if data['objectType'] != 'scenery_small':
+                raise TypeError("Object is not small scenery.")
+
+            self.tile_size = (1, 1, int(self.data['properties']['height']/8))
+            self.is_anim = data['properties'].get('isAnimated', False)
+            self.is_glass = data['properties'].get('hasGlass', False)
+            self.is_flower = data['properties'].get('canWither', False)
+
+    def show(self, animation_frame: int = -1, wither: int = 0):
+        """Still need to implement all possible animation cases and glass objects."""
+        if self.is_flower:
+            return self.sprites[list(self.sprites)[self.rotation+4*wither]].show(self.current_first_remap, self.current_second_remap)
+        else:
+            return self.sprites[list(self.sprites)[self.rotation]].show(self.current_first_remap, self.current_second_remap)
+
+    def rotateObject(self, rot: int = 1):
+        self.rotation = (self.rotation + rot) % 4
