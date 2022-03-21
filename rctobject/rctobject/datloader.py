@@ -4,7 +4,7 @@ Created on Fri Mar  4 16:29:36 2022
 
 @author: puvlh
 """
-import datloader_data as prop
+import rctobject.datloader_data as prop
 
 getCursor = {
     1: "CURSOR_BLANK",
