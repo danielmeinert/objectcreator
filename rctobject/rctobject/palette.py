@@ -6,12 +6,8 @@ Created on Wed Jul 21 11:56:19 2021
 """
 import numpy as np
 from PIL import Image
-<<<<<<< Updated upstream
-from rctobject.palette_data import *
-=======
 from io import BytesIO
 from pkgutil import get_data
->>>>>>> Stashed changes
 
 
 class Palette(np.ndarray):
