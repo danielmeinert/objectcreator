@@ -63,7 +63,7 @@ class pathObject:
         rot = 0
         for i, im in enumerate(data['images']):
             if i < preview_skip:
-                sprites[im['path']] = spr.sprite(template.images[im['path']])
+                sprites[im['path']] = spr.Sprite(template.images[im['path']])
                 continue
 
             mask = template.images[im['path']]
@@ -80,10 +80,10 @@ class pathObject:
                 y = -8 + bbox[1]
 
             image = image.crop(bbox)
-            sprites[im['path']] = spr.sprite(image, (x, y))
+            sprites[im['path']] = spr.Sprite(image, (x, y))
             rot = (rot + 1) % 4
 
-        self.object = obj.RCTObject(data, sprites)
+        self.object = obj.new(data, sprites)
 
         # Create preview thumbnails for multile objects
         if template.num_tiles > 1:
@@ -99,7 +99,7 @@ class pathGenerator:
         self.loadSettings()
         self.loadTemplatesAtStart()
         self.selected_templates = []
-        self.base = spr.sprite(None)
+        self.base = spr.Sprite(None)
         self.current_palette = pal.orct
         self.selected_colors = {
             color: False for color in self.current_palette.color_dict}
@@ -144,7 +144,7 @@ class pathGenerator:
             print('Template file was not type path_tile.')
 
     def loadBase(self, path: str):
-        self.base = spr.sprite.fromFile(path)
+        self.base = spr.Sprite.fromFile(path)
 
         self.base.crop()
         self.base.x = -int(self.base.image.size[0]/2)
@@ -184,12 +184,12 @@ class pathGenerator:
 
         else:
             self.fixBaseToMask()
-            obj = pathObject(self.base)
+            path_obj = pathObject(self.base)
 
             for name in self.selected_templates:
                 template = self.templates[name]
-                obj.generateObject(template, self.settings)
-                obj.save(output_folder, self.settings['no_zip'])
+                path_obj.generateObject(template, self.settings)
+                path_obj.save(output_folder, self.settings['no_zip'])
 
             return 'Objects sucessfully created!'
 

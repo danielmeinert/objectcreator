@@ -13,6 +13,7 @@ Created 09/26/2021; 16:58:33
 
 from json import load, dump, loads
 from os import mkdir, replace
+from os.path import splitext
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
@@ -34,8 +35,10 @@ class RCTObject:
         self.sprites = sprites
         self.rotation = 0
 
+        self.tile_size = (0, 0, 0)  # to be set in subclass
         self.current_first_remap = 'NoColor'
         self.current_second_remap = 'NoColor'
+        self.current_third_remap = 'NoColor'
 
     def __getitem__(self, item: str):
         """Returns value of given item from the object's JSON data."""
@@ -52,7 +55,7 @@ class RCTObject:
             unpack_archive(filename=path, extract_dir=temp, format='zip')
             # Raises error on incorrect object structure or missing json:
             data = load(fp=open(f'{temp}/object.json'))
-            sprites = {im['path']: spr.sprite.fromFile(
+            sprites = {im['path']: spr.Sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
         return cls(data=data, sprites=sprites)
@@ -74,12 +77,12 @@ class RCTObject:
                 i -= 1
 
             data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
-            sprites = {im['path']: spr.sprite.fromFile(
+            sprites = {im['path']: spr.Sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
         return cls(data=data, sprites=sprites)
 
-    def save(self, path: str, name: str = None, no_zip: bool = False, include_originalId: bool = False,):
+    def save(self, path: str, name: str = None, no_zip: bool = False, include_originalId: bool = False):
         """Saves an object as .parkobj file to specified path."""
 
         # Bring object in default rotation
@@ -111,30 +114,6 @@ class RCTObject:
                 move(f'{temp}/images', filename)
                 move(f'{temp}/object.json', filename)
 
-    def numTiles(self):
-        if self.data['objectType'] != 'scenery_large':
-            return 1
-        else:
-            return len(self.data['properties']['tiles'])
-
-    def setTileSize(self):
-        if self.data['objectType'] != 'scenery_large':
-            return (1, 1, int(self.data['properties']['height']/8))
-
-        max_x = 0
-        max_y = 0
-        max_z = 0
-        for tile in self.data['properties']['tiles']:
-            max_x = max(tile['x'], max_x)
-            max_y = max(tile['y'], max_y)
-            max_z = max(tile.get('z', 0) + tile['clearance'], max_z)
-
-        x = (max_x + 32)/32
-        y = (max_y + 32)/32
-        z = max_z / 8
-
-        return (int(x), int(y), int(z))
-
     def spriteBoundingBox(self, view: int = None):
         if view is None:
             view = self.rotation
@@ -151,10 +130,57 @@ class RCTObject:
             im['x'] = self.sprites[im['path']].x
             im['y'] = self.sprites[im['path']].y
 
-    def showSprite(self):
-        if self.numTiles() == 1:
-            return self.sprites[list(self.sprites)[self.rotation]].show(self.current_first_remap, self.current_second_remap)
+###### Small scenery subclass ###### 
 
+class SmallScenery(RCTObject):
+    def __init__(self, data: dict, sprites: dict):
+        super().__init__(data, sprites)
+        if data:
+            if data['objectType'] != 'scenery_small':
+                raise TypeError("Object is not small scenery.")
+
+            self.tile_size = (1, 1, int(self.data['properties']['height']/8))
+            self.is_anim = data['properties'].get('isAnimated', False)
+            self.is_glass = data['properties'].get('hasGlass', False)
+            self.is_flower = data['properties'].get('canWither', False)
+
+    def show(self, animation_frame: int = -1, wither: int = 0):
+        """Still need to implement all possible animation cases and glass objects."""
+        if self.is_flower:
+            return self.sprites[list(self.sprites)[self.rotation+4*wither]].show(self.current_first_remap, self.current_second_remap, self.current_third_remap)
+        else:
+            return self.sprites[list(self.sprites)[self.rotation]].show(self.current_first_remap, self.current_second_remap, self.current_third_remap)
+
+    def rotateObject(self, rot: int = 1):
+        self.rotation = (self.rotation + rot) % 4
+
+###### Large scenery subclass ###### 
+
+class LargeScenery(RCTObject):
+    def __init__(self, data: dict, sprites: dict):
+        super().__init__(data, sprites)
+        if data:
+            if data['objectType'] != 'scenery_large':
+                raise TypeError("Object is not small scenery.")
+
+                self.tile_size = self.setTileSize()
+
+    def setTileSize(self):
+        max_x = 0
+        max_y = 0
+        max_z = 0
+        for tile in self.data['properties']['tiles']:
+            max_x = max(tile['x'], max_x)
+            max_y = max(tile['y'], max_y)
+            max_z = max(tile.get('z', 0) + tile['clearance'], max_z)
+
+        x = (max_x + 32)/32
+        y = (max_y + 32)/32
+        z = max_z / 8
+
+        return (int(x), int(y), int(z))
+
+    def showSprite(self):
         x_size, y_size, z_size = self.tile_size
         canvas = Image.new('RGBA', self.spriteBoundingBox())
 
@@ -179,7 +205,7 @@ class RCTObject:
             y_baseline = z_size*8+(y_size-1)*16
             x_baseline = 32
         else:
-            raise ValueError('view index out of range')
+            raise ValueError('View index out of range.')
 
         for tile_index in drawing_order:
             tile = tiles[tile_index]
@@ -188,7 +214,7 @@ class RCTObject:
 
             sprite_index = 4 + 4*tile_index+view
             sprite = self.sprites[self.data['images'][sprite_index]['path']]
-            canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap),
+            canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
         return canvas.crop(canvas.getbbox())
@@ -207,7 +233,6 @@ class RCTObject:
             tile['x'], tile['y'] = int(pos[0]), int(pos[1])
 
     def getDrawingOrder(self):
-
         order = {}
 
         for tile_index, tile in enumerate(self.data['properties']['tiles']):
@@ -217,9 +242,6 @@ class RCTObject:
         return sorted(order, key=order.get)
 
     def createThumbnails(self):
-        if self.data['objectType'] != 'scenery_large':
-            return
-
         for rot in range(4):
             im = self.data['images'][rot]
             image = self.showSprite()
@@ -230,24 +252,34 @@ class RCTObject:
             self.rotateObject()
 
 
-class SmallScenery(RCTObject):
-    def __init__(self, data: dict, sprites: dict):
-        super().__init__(data, sprites)
-        if data:
-            if data['objectType'] != 'scenery_small':
-                raise TypeError("Object is not small scenery.")
+# Wrapper to load any object type and instantiate is as the correct subclass
 
-            self.tile_size = (1, 1, int(self.data['properties']['height']/8))
-            self.is_anim = data['properties'].get('isAnimated', False)
-            self.is_glass = data['properties'].get('hasGlass', False)
-            self.is_flower = data['properties'].get('canWither', False)
+def open(path: str):
+    """Instantiates a new object from a .parkobj  or .dat file."""
+    extension = splitext(path)[1].lower()
+    
+    if extension == '.parkobj':
+        obj = RCTObject.fromParkobj(path)
+    elif extension == '.dat':
+        obj = RCTObject.fromDat(path)
+    else:
+        raise RuntimeError("Unsupported object file type.")
 
-    def show(self, animation_frame: int = -1, wither: int = 0):
-        """Still need to implement all possible animation cases and glass objects."""
-        if self.is_flower:
-            return self.sprites[list(self.sprites)[self.rotation+4*wither]].show(self.current_first_remap, self.current_second_remap)
-        else:
-            return self.sprites[list(self.sprites)[self.rotation]].show(self.current_first_remap, self.current_second_remap)
+    obj_type = obj.data.get("objectType", False)
+    if obj_type == 'scenery_small':
+        return SmallScenery(obj.data,obj.sprites)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(obj.data,obj.sprites)
+    else:
+        raise NotImplementedError("Object type unsupported by now.")
 
-    def rotateObject(self, rot: int = 1):
-        self.rotation = (self.rotation + rot) % 4
+def new(data, sprites):
+    """Instantiates a new object from given data and sprites."""
+
+    obj_type = data.get("objectType", False)
+    if obj_type == 'scenery_small':
+        return SmallScenery(data,sprites)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(data,sprites)
+    else:
+        raise NotImplementedError("Object type unsupported by now.")

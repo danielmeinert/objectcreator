@@ -9,7 +9,7 @@ from PIL import Image
 import rctobject.palette as pal
 
 
-class sprite:
+class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True):
         if image:
             image = pal.addPalette(image, palette, dither)
@@ -27,17 +27,24 @@ class sprite:
         image = Image.open(path).convert('RGBA')
         return cls(image=image, coords=coords, palette=palette, dither=dither)
 
-    def save(self, path: str):
+    def save(self, path: str, keep_palette: bool = False):
+
+        # Sprites should always be saved in the orct palette so that they can be read properly by the game
+        if not keep_palette and self.palette != pal.orct:
+            self.switchPalette(pal.orct)
         self.image.save(path)
 
-    def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor'):
+    def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
         image_view = self.image
         if first_remap != 'NoColor':
             image_view = colorFirstRemap(
                 image_view, first_remap,  self.palette)
         if second_remap != 'NoColor':
             image_view = colorSecondRemap(
-                image_view, first_remap,  self.palette)
+                image_view, second_remap,  self.palette)
+        if third_remap != 'NoColor':
+            image_view = colorThirdRemap(
+                image_view, third_remap,  self.palette)
         return image_view
 
     def resetSprite(self):
@@ -51,6 +58,9 @@ class sprite:
 
     def checkSecondaryColor(self):
         return checkSecondaryColor(self.image, self.palette)
+
+    def checkTertiaryColor(self):
+        return checkTertiaryColor(self.image, self.palette)
 
     def checkColor(self, color_name: str):
         return checkColor(self.image, color_name, self.palette)
@@ -95,7 +105,7 @@ def mergeSprites(image1: Image.Image, image2: Image.Image, palette: pal.Palette 
 
 def checkPrimaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette[18]
+    colors = palette.getColor('1st Remap')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True
@@ -105,7 +115,17 @@ def checkPrimaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette[16]
+    colors = palette.getColor('Pink')
+    for color in colors:
+        if np.equal(color, data[:, :, :3]).all(axis=2).any():
+            return True
+
+    return False
+
+
+def checkTertiaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
+    data = np.array(image)
+    colors = palette.getColor('Yellow')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True
@@ -115,7 +135,7 @@ def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkColor(image: Image.Image, color_name: str,  palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette[pal.color_dict[color_name]]
+    colors = palette.getColor(color_name)
     for shade in colors:
         if np.equal(shade, data[:, :, :3]).all(axis=2).any():
             return True
@@ -183,6 +203,27 @@ def colorSecondRemap(image: Image.Image, color_name: str,  palette: pal.Palette 
     return Image.fromarray(data_out)
 
 
+def colorThirdRemap(image: Image.Image, color_name: str,  palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+
+    if color_name == 'NoColor':
+        return image
+
+    color_old = palette.getColor('Yellow')
+    color_new = palette.getRemapColor(color_name)
+
+    for i in range(12):
+
+        r1, g1, b1 = color_old[i]  # Original value
+        r2, g2, b2 = color_new[i]  # Value that we want to replace it with
+        red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+        mask = (red == r1) & (green == g1) & (blue == b1)
+        data_out[:, :, :3][mask] = [r2, g2, b2]
+
+    return Image.fromarray(data_out)
+
+
 def _decrBr(data_in, color):
     data_out = np.array(data_in)
 
@@ -216,12 +257,7 @@ def _incrBr(data_in, color):
 
 
 def _changeBrightnessColor(image: Image.Image, step: int, color: str, palette: pal.Palette = pal.orct):
-    """Function to change the brightness of a given image along a given color index of the palette. 
-    Input: image;                        PIL image file you want to convert
-           step;                         integer number of how many steps you want to change brightness (positive and negative allowed)
-           palette (optional);               palette in (20,12,3) shape along which you want to change the brightness. Default: rct_palette
-           include_sparkles (optional);  bool value if you want to include water_sparkles color. Including them might cause artifacts/errors because of same colors in the sparkles and watercolor 
-    """
+
     data = np.array(image)
 
     if color not in palette.color_dict.keys():
@@ -240,12 +276,6 @@ def _changeBrightnessColor(image: Image.Image, step: int, color: str, palette: p
 
 
 def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.orct, include_sparkles=False):
-    """Function to change the brightness of a given image along the colorline of the palette. 
-    Input: image;                        PIL image file you want to convert
-           step;                         integer number of how many steps you want to change brightness (positive and negative allowed)
-           palette (optional);               palette in (20,12,3) shape along which you want to change the brightness. Default: rct_palette
-           include_sparkles (optional);  bool value if you want to include water_sparkles color. Including them might cause artifacts/errors because of same colors in the sparkles and watercolor 
-    """
 
     if include_sparkles and palette.has_sparkles:
         image = _changeBrightnessColor(image, step, 'Sparkles', palette)
@@ -259,13 +289,7 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
     return image
 
 
-def changeBrightnessColor(image: Image.Image, step: int, color, palette: pal.Palette = pal.orct):
-    """Function to change the brightness of a given image along a given color index of the palette. 
-    Input: image;                        PIL image file you want to convert
-           step;                         integer number of how many steps you want to change brightness (positive and negative allowed)
-           palette (optional);               palette in (20,12,3) shape along which you want to change the brightness. Default: rct_palette
-           include_sparkles (optional);  bool value if you want to include water_sparkles color. Including them might cause artifacts/errors because of same colors in the sparkles and watercolor 
-    """
+def changeBrightnessColor(image: Image.Image, step: int, color: str or list, palette: pal.Palette = pal.orct):
 
     if isinstance(color, list):
         for color_name in color:
