@@ -28,9 +28,8 @@ class Sprite:
         return cls(image=image, coords=coords, palette=palette, dither=dither)
 
     def save(self, path: str, keep_palette: bool = False):
-
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
-        if not keep_palette and self.palette != pal.orct:
+        if not keep_palette and self.palette is not pal.orct:
             self.switchPalette(pal.orct)
         self.image.save(path)
 
@@ -256,21 +255,25 @@ def _incrBr(data_in, color):
     return data_out
 
 
-def _changeBrightnessColor(image: Image.Image, step: int, color: str, palette: pal.Palette = pal.orct):
-
+def changeBrightnessColor(image: Image.Image, step: int, color: str or list, palette: pal.Palette = pal.orct):
     data = np.array(image)
 
-    if color not in palette.color_dict.keys():
-        return image
-
-    color_arr = palette.getColor(color)
-
-    if(step < 0):
-        for i in range(-step):
-            data = _decrBr(data, color_arr)
-    else:
-        for i in range(step):
-            data = _incrBr(data, color_arr)
+    if isinstance(color, str):
+        color = [color]
+    
+    for color_name in color:
+    
+        if color_name not in palette.color_dict:
+            continue
+    
+        color_arr = palette.getColor(color_name)
+        
+        if(step < 0):
+            for i in range(-step):
+                data = _decrBr(data, color_arr)
+        else:
+            for i in range(step):
+                data = _incrBr(data, color_arr)
 
     return Image.fromarray(data)
 
@@ -278,7 +281,7 @@ def _changeBrightnessColor(image: Image.Image, step: int, color: str, palette: p
 def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.orct, include_sparkles=False):
 
     if include_sparkles and palette.has_sparkles:
-        image = _changeBrightnessColor(image, step, 'Sparkles', palette)
+        image = changeBrightnessColor(image, step, 'Sparkles', palette)
     elif include_sparkles:
         raise TypeError(
             'Asked to include sparkles but given palette has no sparkles.')
@@ -289,12 +292,23 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
     return image
 
 
-def changeBrightnessColor(image: Image.Image, step: int, color: str or list, palette: pal.Palette = pal.orct):
+def removeColor(image: Image.Image, color: str, palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+    
+    if isinstance(color, str):
+        color = [color]
+    
+    for color_name in color:
+    
+        if color_name not in palette.color_dict:
+            continue
+        color_arr = palette.getColor(color_name)
+        
+        for shade in color_arr:
+            r1, g1, b1 = shade  # Original value
+            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = (red == r1) & (green == g1) & (blue == b1)
+            data_out[:, :, :][mask] = [0, 0, 0, 0]
 
-    if isinstance(color, list):
-        for color_name in color:
-            image = _changeBrightnessColor(image, step, color_name, palette)
-    else:
-        image = _changeBrightnessColor(image, step, color, palette)
-
-    return image
+    return Image.fromarray(data_out)

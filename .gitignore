@@ -1,9 +1,13 @@
+# Specifics for this repo
+*.parkobj
+*.DAT
+output/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.parkobj
-*.DAT
+
 
 # C extensions
 *.so

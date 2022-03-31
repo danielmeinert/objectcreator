@@ -4,52 +4,8 @@ Created on Fri Mar  4 16:29:36 2022
 
 @author: puvlh
 """
-import rctobject.datloader_data as prop
-
-getCursor = {
-    1: "CURSOR_BLANK",
-    2: "CURSOR_UP_ARROW",
-    3: "CURSOR_UP_DOWN_ARROW",
-    4: "CURSOR_HAND_POINT",
-    5: "CURSOR_ZZZ",
-    6: "CURSOR_DIAGONAL_ARROWS",
-    7: "CURSOR_PICKER",
-    8: "CURSOR_TREE_DOWN",
-    9: "CURSOR_FOUNTAIN_DOWN",
-    10: "CURSOR_STATUE_DOWN",
-    11: "CURSOR_BENCH_DOWN",
-    12: "CURSOR_CROSS_HAIR",
-    13: "CURSOR_BIN_DOWN",
-    14: "CURSOR_LAMPPOST_DOWN",
-    15: "CURSOR_FENCE_DOWN",
-    16: "CURSOR_FLOWER_DOWN",
-    17: "CURSOR_PATH_DOWN",
-    18: "CURSOR_DIG_DOWN",
-    19: "CURSOR_WATER_DOWN",
-    20: "CURSOR_HOUSE_DOWN",
-    21: "CURSOR_VOLCANO_DOWN",
-    22: "CURSOR_WALK_DOWN",
-    23: "CURSOR_PAINT_DOWN",
-    24: "CURSOR_ENTRANCE_DOWN",
-    25: "CURSOR_HAND_OPEN",
-    26: "CURSOR_HAND_CLOSED"
-}
-
-languages = {
-    0: "en-GB",
-    1: "en-US",
-    2: "fr-FR",
-    3: "de-DE",
-    4: "es-ES",
-    5: "it-IT",
-    6: "nl-NL",
-    7: "sv-SE",
-    8: "ja-JP",
-    9: "ko-KR",
-    10: "zh-CN",
-    11: "zh-TW",
-    13: "pt-BR"
-}
+import rctobject.constants as const
+from struct import unpack
 
 
 def rle_decode(string: bytes):
@@ -151,11 +107,11 @@ def tag_small_scenery_header(data, tags):
         return RuntimeError('Could not read small scenery header, not correct length.')
     tags['price'] = int.from_bytes(data[12:14], 'little', signed=True)
     tags['removalPrice'] = int.from_bytes(data[14:16], 'little', signed=True)
-    tags['cursor'] = getCursor.get(data[11], 'CURSOR_ARROW')
+    tags['cursor'] = const.cursors[data[11]]
     tags['height'] = data[10]
     tags['shape'] = tag_small_scenery_determine_shape(data)
 
-    for flag, ind in prop.Jsmall_flags.items():
+    for flag, ind in const.Jsmall_flags.items():
         if ((data[ind[0]] & ind[1]) == ind[1]):
             array_push(tags, flag)
 
@@ -211,10 +167,10 @@ def tag_large_scenery_header(data, tags):
         return RuntimeError('Could not read large scenery header, not correct length.')
     tags['price'] = int.from_bytes(data[8:10], 'little', signed=True)
     tags['removalPrice'] = int.from_bytes(data[10:12], 'little', signed=True)
-    tags['cursor'] = getCursor.get(data[6], 'CURSOR_ARROW')
+    tags['cursor'] = const.cursors[data[6]]
     tags['scrollingMode'] = data[17]
 
-    for flag, ind in prop.Jlarge_flags.items():
+    for flag, ind in const.Jlarge_flags.items():
         if ((data[ind[0]] & ind[1]) == ind[1]):
             array_push(tags, flag)
 
@@ -257,11 +213,12 @@ def read_string_table(data, pos):
     length = len(data)
 
     string_table = {}
+    names = {}
     while data[pos] != 0xFF:
 
         if(pos >= length-1):
             return False
-        language = languages.get(data[pos], 'skip')
+        language = list(const.languages)[data[pos]]
         pos += 1
         name = ''
         while data[pos] != 0:
@@ -273,8 +230,9 @@ def read_string_table(data, pos):
         pos += 1
         if pos >= length:
             return False
-        string_table[language] = name
+        names[language] = name
 
+    string_table['name'] = names
     pos += 1
     return string_table, pos
 
@@ -286,14 +244,14 @@ def read_dat_info(filename: str):
     with open(filename, "rb") as f:
         header = f.read(16)
         object_flag = header[0]
+        flag_string = hex(unpack('<L',header[:4])[0])[2:].upper().zfill(8)
         name = header[4:12].decode('utf-8')
-        checksum = header[12:16].hex().upper()
-
+        checksum = hex(unpack('<L',header[12:16])[0])[2:].upper().zfill(8)
         result['id'] = ''
         result['authors'] = ''
         result['version'] = '1.0'
         result['SourceGame'] = get_source(object_flag)
-        result['originalId'] = f'000000{hex(object_flag)[2:].zfill(2)}|{name}|00000000'
+        result['originalId'] = f'{flag_string}|{name}|{checksum}'
 
         object_type = get_object_type(object_flag)
         result['objectType'] = object_type
@@ -312,9 +270,10 @@ def read_dat_info(filename: str):
             result['strings'], pos = read_string_table(chunk, pos)
             if result['strings'].get('en-US', False):
                 result['strings'].pop('en-US')
-            if result['strings'].get('skip', False):
-                result['strings'].pop('skip')
-            result['sceneryGroup'] = chunk[pos+4:pos+12].decode('utf-8')
+
+            scenery_group = chunk[pos+4:pos+12].decode('utf-8')
+            if scenery_group != '        ':
+                result['sceneryGroup'] = scenery_group
             pos += 16
             tag_small_scenery_scan_optional(chunk, tags, pos)
 
@@ -329,10 +288,11 @@ def read_dat_info(filename: str):
 
             if result['strings'].get('en-US', False):
                 result['strings'].pop('en-US')
-            if result['strings'].get('skip', False):
-                result['strings'].pop('skip')
+
             # skip group info
-            result['sceneryGroup'] = chunk[pos+4:pos+12].decode('utf-8')
+            scenery_group = chunk[pos+4:pos+12].decode('utf-8')
+            if scenery_group != '        ':
+                result['sceneryGroup'] = scenery_group
             pos += 16
             tags['tiles'] = large_scenery_scan_optional(chunk, pos)
 

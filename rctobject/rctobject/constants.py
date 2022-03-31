@@ -5,6 +5,53 @@ Created on Fri Mar 11 12:41:04 2022
 @author: puvlh
 """
 
+cursors = [
+     "CURSOR_BLANK",
+     "CURSOR_UP_ARROW",
+     "CURSOR_UP_DOWN_ARROW",
+     "CURSOR_HAND_POINT",
+     "CURSOR_ZZZ",
+     "CURSOR_DIAGONAL_ARROWS",
+     "CURSOR_PICKER",
+     "CURSOR_TREE_DOWN",
+     "CURSOR_FOUNTAIN_DOWN",
+     "CURSOR_STATUE_DOWN",
+     "CURSOR_BENCH_DOWN",
+     "CURSOR_CROSS_HAIR",
+     "CURSOR_BIN_DOWN",
+     "CURSOR_LAMPPOST_DOWN",
+     "CURSOR_FENCE_DOWN",
+     "CURSOR_FLOWER_DOWN",
+     "CURSOR_PATH_DOWN",
+     "CURSOR_DIG_DOWN",
+     "CURSOR_WATER_DOWN",
+     "CURSOR_HOUSE_DOWN",
+     "CURSOR_VOLCANO_DOWN",
+     "CURSOR_WALK_DOWN",
+     "CURSOR_PAINT_DOWN",
+     "CURSOR_ENTRANCE_DOWN",
+     "CURSOR_HAND_OPEN",
+     "CURSOR_HAND_CLOSED"
+]
+
+languages = {
+    "en-GB": 'English',
+    "en-US": 'American English',
+    "fr-FR": 'French',
+    "de-DE": 'German',
+    "es-ES": 'Spanish',
+    "it-IT": 'Italian',
+    "nl-NL": 'Dutch',
+    "sv-SE": 'Swedish',
+    "ja-JP": 'Japanese',
+    "ko-KR": 'Korean',
+    "zh-CN": 'Chinese',
+    "zh-TW": 'Taiwanese',
+    "pl-PL": 'Polish',
+    "pt-BR": 'Portugese'
+}
+
+
 
 # Name: (Byte-Position,Bit)
 Jsmall_flags = {

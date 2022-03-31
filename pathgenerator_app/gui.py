@@ -17,9 +17,9 @@ import generate_path as gen
 import resources_rc
 
 
-class Ui(QMainWindow):
+class PathGeneratorUi(QMainWindow):
     def __init__(self, generator):
-        super(Ui, self).__init__()
+        super().__init__()
         uic.loadUi('pathgenerator.ui', self)
 
         self.generator = generator
@@ -234,6 +234,7 @@ class Ui(QMainWindow):
         return_text = self.generator.generate(self.lineeditOutputFolder.text())
 
         self.labelGenerateReturn.setText(return_text)
+        self.updatePreview()
 
     def clickBoxAutoRotation(self, state):
         self.generator.settings['autoRotate'] = (state == QtCore.Qt.Checked)
@@ -320,6 +321,7 @@ class Ui(QMainWindow):
         else:
             self.labelDisplayName.setText(self.lineeditPrefix.text())
 
+
     def loadFrame(self):
         img = QtGui.QImage(":/images/res/frame.png")
         buffer = QtCore.QBuffer()
@@ -331,3 +333,11 @@ class Ui(QMainWindow):
     def loadTemplates(self):
         for name in self.generator.templates.keys():
             self.listwidgetTemplateList.addItem(name)
+
+
+    # Events
+    
+    def mouseMoveEvent(self, e):
+        self.labelGenerateReturn.setText("")
+
+

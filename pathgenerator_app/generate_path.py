@@ -164,16 +164,15 @@ class pathGenerator:
                 (-32-self.base.x, -self.base.y, -self.base.x+32, -self.base.y+31))
             mask.paste(image, mask)
 
-            self.base.image = mask
-            self.base.x = -32
-            self.base.y = 0
+            self.base = spr.Sprite(mask, (-32,0))
+
 
     def generate(self, output_folder: str):
 
         self.settings['hasPrimaryColour'] = self.base.checkPrimaryColor()
         self.settings['hasSecondaryColour'] = self.base.checkSecondaryColor()
 
-        if self.base is None:
+        if self.base.image.size == (1,1):
             return 'No base image loaded!'
 
         elif self.selected_templates == []:
@@ -185,7 +184,6 @@ class pathGenerator:
         else:
             self.fixBaseToMask()
             path_obj = pathObject(self.base)
-
             for name in self.selected_templates:
                 template = self.templates[name]
                 path_obj.generateObject(template, self.settings)

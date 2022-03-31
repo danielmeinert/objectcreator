@@ -12,15 +12,15 @@ from PyQt5.QtWidgets import QApplication
 import sys
 
 
-class App:
+class PathGeneratorApp:
     def __init__(self):
         self.generator = gen.pathGenerator()
-        self.gui = gui.Ui(self.generator)
+        self.gui = gui.PathGeneratorUi(self.generator)
 
 
 def main():
     qapp = QApplication(sys.argv)
-    app = App()
+    app = PathGeneratorApp()
     qapp.exec_()
 
 
