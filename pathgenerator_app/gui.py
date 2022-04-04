@@ -337,7 +337,7 @@ class PathGeneratorUi(QMainWindow):
 
     # Events
     
-    def mouseMoveEvent(self, e):
+    def mousePressEvent(self, e):
         self.labelGenerateReturn.setText("")
 
 

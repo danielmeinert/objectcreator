@@ -21,7 +21,7 @@ class PathGeneratorApp:
 def main():
     qapp = QApplication(sys.argv)
     app = PathGeneratorApp()
-    qapp.exec_()
+    #qapp.exec_()
 
 
 if __name__ == '__main__':

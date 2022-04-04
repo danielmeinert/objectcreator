@@ -1164,7 +1164,7 @@ QTabBar::tab:selected {
        <string>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</string>
       </property>
       <property name="text">
-       <string>Rain Cover</string>
+       <string>Block Rain</string>
       </property>
      </widget>
      <widget class="QCheckBox" name="checkBox_stackable">
@@ -1215,7 +1215,7 @@ QTabBar::tab:selected {
        <string>SMALL_SCENERY_FLAG27</string>
       </property>
       <property name="text">
-       <string>Remove Supports like Full Tile</string>
+       <string>Block Supports like Full Tile</string>
       </property>
      </widget>
      <widget class="QCheckBox" name="checkBox_supportsAbove">
@@ -1232,6 +1232,9 @@ QTabBar::tab:selected {
       </property>
       <property name="text">
        <string>Allow Supports Above</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QGroupBox" name="groupBox_animOptions">

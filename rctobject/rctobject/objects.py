@@ -157,7 +157,7 @@ class RCTObject:
                 mkdir(filename)
                # mkdir(f'{filename}/images')
                 move(f'{temp}/images', filename)
-                move(f'{temp}/object.json', filename)
+                move(f'{temp}/{name}.json', filename)
 
     def spriteBoundingBox(self, view: int = None):
         if view is None:
@@ -208,6 +208,12 @@ class SmallScenery(RCTObject):
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
+        
+    def setCurrentRotationAsDefault(self):
+        rot = self.rotation
+        image_list = self.data['images']
+        self.data['images'] = image_list[rot:] + image_list[:rot]
+        self.rotation = 0
         
     class Subtype(Enum):
         SIMPLE = 'Simple'
