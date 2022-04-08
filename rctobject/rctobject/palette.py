@@ -39,6 +39,11 @@ class Palette(np.ndarray):
         return "Palette class"
 
     def getColor(self, color: str):
+        if color == '2nd Remap':
+            color = 'Pink'
+        elif color == '3rd Remap':
+            color = 'Yellow'
+        
         if color != 'Sparkles':
             if color not in self.color_dict.keys():
                 raise KeyError(f'Color {color} not in palette')
