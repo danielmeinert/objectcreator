@@ -1,3 +1,3 @@
 include pyproject.toml
-recursive-include customwidgets *.gui
+recursive-include customwidgets *.ui
 
