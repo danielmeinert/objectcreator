@@ -2,6 +2,8 @@
 """
 Created on Fri Mar  4 16:29:36 2022
 
+Taken from objload.php by X7123M3-256
+
 @author: puvlh
 """
 import rctobject.constants as const

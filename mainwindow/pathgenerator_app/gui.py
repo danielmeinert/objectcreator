@@ -76,7 +76,7 @@ class PathGeneratorUi(QMainWindow):
         self.lineeditOutputFolder = self.findChild(
             QLineEdit, "lineEdit_outputFolder")
 
-        # Checkboxes for Colors
+        # Color Panel
         self.widgetColorPanel = self.findChild(QGroupBox, "groupBox_selectedColor")
         self.active_shade = None
         self.colorSelectPanel = colorSelectWidget(self.active_shade, pal.green_remap, True, False, False)

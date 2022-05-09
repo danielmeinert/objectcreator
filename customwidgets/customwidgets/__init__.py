@@ -6,7 +6,6 @@ Created on Thu Mar 31 17:00:22 2022
 """
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
-import sys
 
 from rctobject import palette as pal
 

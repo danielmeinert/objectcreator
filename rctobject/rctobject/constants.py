@@ -5,7 +5,23 @@ Created on Fri Mar 11 12:41:04 2022
 @author: puvlh
 """
 
+from enum import Enum
+
+class Type(Enum):
+    SMALL = 'scenery_small'
+    LARGE = 'scenery_large'
+    WALL = "scenery_wall"
+    BANNER = "footpath_banner"
+    PATH = "footpath"
+    PATHITEM = "footpath_item"
+    GROUP = "scenery_group"
+    ENTRANCE = "park_entrance"
+    PALETTE =  "water"
+    TEXT = "scenario text"
+    
+
 cursors = [
+     "CURSOR_ARROW",
      "CURSOR_BLANK",
      "CURSOR_UP_ARROW",
      "CURSOR_UP_DOWN_ARROW",
@@ -48,7 +64,10 @@ languages = {
     "zh-CN": 'Chinese',
     "zh-TW": 'Taiwanese',
     "pl-PL": 'Polish',
-    "pt-BR": 'Portugese'
+    "pt-BR": 'Portugese',
+    "cs-CZ": 'Czech',
+    "ru-RU": 'Russian',
+    "eo-ZZ": 'Esperanto'
 }
 
 
@@ -114,4 +133,92 @@ Jlarge_flags = {
     'isAnimated': (7, 0x08),
 
     'isPhotogenic': (7, 0x10)
+}
+
+
+data_template_small = {
+  "id": "",
+  "authors": "",
+  "sourceGame": "custom",
+  "objectType": "scenery_small",
+  "properties": {
+      "height": 1
+      },
+  "images": [
+    {
+      "path": "images/00.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/01.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/02.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/03.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/04.png",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "strings": {
+    "name": {
+      "en-GB": ""
+    }
+  }
+}
+
+data_template_large =    {
+  "id": "",
+  "authors": "",
+  "sourceGame": "custom",
+  "objectType": "scenery_small",
+  "properties": { "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "clearence": 1
+        }        ]},
+  "images": [
+    {
+      "path": "images/00.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/01.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/02.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/03.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "path": "images/04.png",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "strings": {
+    "name": {
+      "en-GB": ""
+    }
+  }
 }

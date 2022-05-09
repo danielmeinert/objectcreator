@@ -11,6 +11,7 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True):
+        
         if image:
             image = pal.addPalette(image, palette, dither)
         else:

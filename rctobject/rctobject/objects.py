@@ -25,19 +25,22 @@ from enum import Enum
 
 import rctobject.sprites as spr
 import rctobject.datloader as dat
+import rctobject.constants as cts
 
-OPENRCTPATH = 'C:\\Users\\puvlh\\Documents\\OpenRCT2\\bin'
+OPENRCTPATH = 'C:\\Users\\puvlh\\Documents\\OpenRCT2'
 
 
 class RCTObject:
     """Base class for all editable objects; loads from .parkobj or .DAT files."""
 
-    def __init__(self, data: dict, sprites: dict):
+    def __init__(self, data: dict, sprites: dict, old_id = None):
         """Instantiate object directly given JSON and image data."""
         self.data = data
         self.sprites = sprites
-        self.rotation = 0
+        self.old_id = old_id
 
+        self.rotation = 0
+        
         self.size = (0, 0, 0)  # to be set in subclass
         self.current_first_remap = 'NoColor'
         self.current_second_remap = 'NoColor'
@@ -61,20 +64,22 @@ class RCTObject:
             sprites = {im['path']: spr.Sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
-        return cls(data=data, sprites=sprites)
+        dat_id = data.get('originalId',None)
+        
+        return cls(data=data, sprites=sprites, old_id = dat_id)
     
     @classmethod
     def fromJson(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .json file. Sprite exporting is done 
-        by openRCT, hence openpath has to be according to the system's openrct2.exe location."""
+        by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
         data = jload(fp=open(filepath, encoding='utf8'))
-        dat_id = data.get('originalId',False)
+        dat_id = data.get('originalId',None)
         # If an original Id was given we load the sprites from original DATs (aka "official" openRCT objects).
         if isinstance(data['images'][0], str) and dat_id:
             dat_id = dat_id.split('|')[1].replace(' ', '')
             with TemporaryDirectory() as temp:
                 temp = temp.replace('\\', '/')
-                result = run([f'{openpath}/openrct2', 'sprite',
+                result = run([f'{openpath}/bin/openrct2', 'sprite',
                              'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
                 string = result.stdout
                 string = string[string.find('{'):].replace(f'{temp}/', '')
@@ -94,18 +99,18 @@ class RCTObject:
         else:
             raise RuntimeError('Cannot extract images.')
 
-        return cls(data=data, sprites=sprites)
+        return cls(data=data, sprites=sprites, old_id = dat_id)
     
     @classmethod
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .DAT file. Sprite exporting is done 
-        by openRCT, hence openpath has to be according to the system's openrct2.exe location."""
+        by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
 
         data = dat.read_dat_info(filepath)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
         with TemporaryDirectory() as temp:
             temp = temp.replace('\\', '/')
-            result = run([f'{openpath}/openrct2', 'sprite',
+            result = run([f'{openpath}/bin/openrct2', 'sprite',
                          'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
             string = result.stdout
             string = string[string.find('{'):].replace(f'{temp}/', '')
@@ -117,7 +122,8 @@ class RCTObject:
             sprites = {im['path']: spr.Sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
-        return cls(data=data, sprites=sprites)
+        return cls(data=data, sprites=sprites, old_id = dat_id)
+    
 
     def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
         """Saves an object as .parkobj file to specified path."""
@@ -137,6 +143,11 @@ class RCTObject:
         if not include_originalId and self.data.get('originalId', False):
             self.data.pop('originalId')
             
+        # Remove all false flags to clean up the json
+        for key, val in dict(self.data['properties']).items():
+            if isinstance(val, bool) and val == False:
+                self.data['properties'].pop(key)
+        
         if name:
             filename = f'{path}/{name}'
         else:
@@ -183,8 +194,8 @@ class RCTObject:
     
 
 class SmallScenery(RCTObject):
-    def __init__(self, data: dict, sprites: dict):
-        super().__init__(data, sprites)
+    def __init__(self, data: dict, sprites: dict, old_id = None):
+        super().__init__(data, sprites, old_id)
         if data:
             if data['objectType'] != 'scenery_small':
                 raise TypeError("Object is not small scenery.")
@@ -198,6 +209,20 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.GARDENS
             else:
                 self.subtype = self.Subtype.SIMPLE
+                
+            shape = data['properties'].get('shape', False)
+            if shape == '2/4':
+                self.shape = self.Shape.HALF
+            elif shape == '3/4+D':
+                self.shape = self.Shape.THREEQ
+            elif shape == '4/4':
+                self.shape = self.Shape.FULL
+            elif shape == '4/4+D':
+                self.shape = self.Shape.FULLD
+            elif shape == '1/4+D':
+                self.shape = self.Shape.QUARTERD
+            else:
+                self.shape = self.Shape.QUARTER
 
     def show(self, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
@@ -214,18 +239,60 @@ class SmallScenery(RCTObject):
         image_list = self.data['images']
         self.data['images'] = image_list[rot:] + image_list[:rot]
         self.rotation = 0
+    
+    # tbf
+    def changeSubtype(self, subtype):
+        if subtype == self.subtype:
+            return
         
+    def changeShape(self, shape):
+        self.shape = shape
+        self.data['properties']['shape'] = shape.fullname
+        
+        # quarter is a default
+        if shape == self.Shape.QUARTER:
+            self.data['properties'].pop('shape')
+
+        
+    class Shape(Enum):
+        QUARTER = 0, '1/4'
+        HALF = 1, '2/4'
+        THREEQ = 2, '3/4+D'
+        FULL = 3, '4/4'
+        FULLD = 4, '4/4+D'
+        QUARTERD = 5, '1/4+D'
+        
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+    
+        def __int__(self):
+            return self.value
+        
+        
+
     class Subtype(Enum):
-        SIMPLE = 'Simple'
-        ANIMATED = 'Animated'
-        GLASS = 'Glass'
-        GARDENS = 'Gardens'
+        SIMPLE = 0, 'Simple'
+        ANIMATED = 1, 'Animated'
+        GLASS = 2, 'Glass'
+        GARDENS = 3, 'Gardens'
+        
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+    
+        def __int__(self):
+            return self.value
 
 ###### Large scenery subclass ###### 
 
 class LargeScenery(RCTObject):
-    def __init__(self, data: dict, sprites: dict):
-        super().__init__(data, sprites)
+    def __init__(self, data: dict, sprites: dict, old_id = None):
+        super().__init__(data, sprites, old_id)
         if data:
             if data['objectType'] != 'scenery_large':
                 raise TypeError("Object is not small scenery.")
@@ -337,8 +404,17 @@ class LargeScenery(RCTObject):
             raise NotImplementedError("Creating thumbnails is not supported yet for 3d sign objects.")
             
     class Subtype(Enum):
-        SIMPLE = 'Simple'
-        SIGN = '3D Sign'
+        SIMPLE = 0, 'Simple'
+        SIGN = 1, '3D Sign'
+        
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+    
+        def __int__(self):
+            return self.value
 
 
 
@@ -359,19 +435,48 @@ def load(filepath: str):
 
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
-        return SmallScenery(obj.data,obj.sprites)
+        return SmallScenery(obj.data, obj.sprites, obj.old_id)
     elif obj_type == 'scenery_large':
-        return LargeScenery(obj.data,obj.sprites)
+        return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
         raise NotImplementedError("Object type unsupported by now.")
+
+def loadFromId(identifier: str):
+    pass
 
 def new(data, sprites):
     """Instantiates a new object from given data and sprites."""
 
     obj_type = data.get("objectType", False)
     if obj_type == 'scenery_small':
-        return SmallScenery(data,sprites)
+        return SmallScenery(data, sprites)
     elif obj_type == 'scenery_large':
-        return LargeScenery(data,sprites)
+        return LargeScenery(data, sprites)
     else:
         raise NotImplementedError("Object type unsupported by now.")
+        
+def newEmpty(object_type: cts.Type):
+    data = {}
+    sprite = spr.Sprite(None)
+    
+    if object_type == cts.Type.SMALL:
+        data = cts.data_template_small
+    elif object_type == cts.Type.LARGE:
+            data = cts.data_template_large
+            
+        
+    sprites = {im['path']: sprite for im in data['images']}
+    
+    return new(data,sprites)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
