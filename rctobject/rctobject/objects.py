@@ -27,7 +27,7 @@ import rctobject.sprites as spr
 import rctobject.datloader as dat
 import rctobject.constants as cts
 
-OPENRCTPATH = 'C:\\Users\\puvlh\\Documents\\OpenRCT2'
+OPENRCTPATH = 'C:\\Users\\Daniel\\Documents\\OpenRCT2'
 
 
 class RCTObject:
@@ -176,8 +176,8 @@ class RCTObject:
 
         x, y, z = self.size
 
-        height = -1 + x*16 + y*16 + z*8
-        width = x*32 + y*32
+        height = int(-1 + x*16 + y*16 + z*8)
+        width = int(x*32 + y*32)
 
         return (width, height)
 
@@ -200,7 +200,6 @@ class SmallScenery(RCTObject):
             if data['objectType'] != 'scenery_small':
                 raise TypeError("Object is not small scenery.")
 
-            self.size = (1, 1, int(self.data['properties']['height']/8))
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
             elif data['properties'].get('hasGlass', False):
@@ -213,26 +212,54 @@ class SmallScenery(RCTObject):
             shape = data['properties'].get('shape', False)
             if shape == '2/4':
                 self.shape = self.Shape.HALF
+                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '3/4+D':
                 self.shape = self.Shape.THREEQ
+                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '4/4':
                 self.shape = self.Shape.FULL
+                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '4/4+D':
                 self.shape = self.Shape.FULLD
+                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '1/4+D':
                 self.shape = self.Shape.QUARTERD
+                self.size = (0.5, 0.5, int(self.data['properties']['height']/8))
             else:
                 self.shape = self.Shape.QUARTER
+                self.size = (0.5, 0.5, int(self.data['properties']['height']/8))
 
-    def show(self, animation_frame: int = -1, wither: int = 0):
+    def show(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
-        if self.subtype == self.Subtype.GARDENS:
-            return self.sprites[list(self.sprites)[self.rotation+4*wither]].show(self.current_first_remap, self.current_second_remap, self.current_third_remap)
-        else:
-            return self.sprites[list(self.sprites)[self.rotation]].show(self.current_first_remap, self.current_second_remap, self.current_third_remap)
+        x_size, y_size, z_size = self.size
+        x_base = int(x_size*32)
+        y_base = int(z_size*8)
+        canvas = Image.new('RGBA', self.spriteBoundingBox())
 
-    def rotateObject(self, rot: int = 1):
-        self.rotation = (self.rotation + rot) % 4
+        
+        if not rotation:
+            rotation = self.rotation
+        else:
+            rotation = rotation % 4
+        
+        if self.subtype == self.Subtype.GARDENS:
+            sprite_index = rotation+4*wither
+        else:
+            sprite_index = rotation
+            
+        sprite = self.sprites[self.data['images'][sprite_index]['path']]
+        return sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
+       # canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+     #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
+        
+       # return canvas
+
+
+    def rotateObject(self, rot = None):
+        if not isinstance(rot, int):
+            self.rotation = (self.rotation + 1) % 4
+        else:
+            self.rotation = rot % 4
         
     def setCurrentRotationAsDefault(self):
         rot = self.rotation
@@ -361,7 +388,7 @@ class LargeScenery(RCTObject):
             canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
-        return canvas.crop(canvas.getbbox())
+        return canvas
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
@@ -450,10 +477,10 @@ def new(data, sprites):
     obj_type = data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(data, sprites)
-    elif obj_type == 'scenery_large':
-        return LargeScenery(data, sprites)
+    #elif obj_type == 'scenery_large':
+    #    return LargeScenery(data, sprites)
     else:
-        raise NotImplementedError("Object type unsupported by now.")
+        raise NotImplementedError(f"Object type {obj_type} unsupported by now.")
         
 def newEmpty(object_type: cts.Type):
     data = {}

@@ -2,6 +2,10 @@
 
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
+from PIL import Image
+from PIL.ImageQt import ImageQt
+from copy import copy
+
 
 from rctobject import constants as cts
 
@@ -152,12 +156,127 @@ class settingsTabSS(QWidget):
         self.object_name_lang_field.setText(self.o.data['strings']['name'].get('en-GB',''))
         
 class spritesTabSS(QWidget):
-    def __init__(self, editor, obj):
+    def __init__(self, editor, o):
         super().__init__()
         uic.loadUi('spritesSS.ui', self)
         
         self.editor = editor
-        self.obj = obj
+        self.o = o
+        
+        
+        # Sprite control buttons
+        self.buttonSpriteLeft = self.findChild(
+            QToolButton, "toolButton_left")
+        self.buttonSpriteDown = self.findChild(
+            QToolButton, "toolButton_down")
+        self.buttonSpriteRight = self.findChild(
+            QToolButton, "toolButton_right")
+        self.buttonSpriteUp = self.findChild(
+            QToolButton, "toolButton_up")
+        self.buttonSpriteLeftRight = self.findChild(
+            QToolButton, "toolButton_leftright")
+        self.buttonSpriteUpDown = self.findChild(
+            QToolButton, "toolButton_updown")
+        
+        self.buttonSpriteLeft.clicked.connect(
+            lambda x: self.clickSpriteControl('left'))
+        self.buttonSpriteDown.clicked.connect(
+            lambda x: self.clickSpriteControl('down'))
+        self.buttonSpriteRight.clicked.connect(
+            lambda x: self.clickSpriteControl('right'))
+        self.buttonSpriteUp.clicked.connect(
+            lambda x: self.clickSpriteControl('up'))
+        self.buttonSpriteLeftRight.clicked.connect(
+            lambda x: self.clickSpriteControl('leftright'))
+        self.buttonSpriteUpDown.clicked.connect(
+            lambda x: self.clickSpriteControl('updown'))
+        
+        
+        
+        self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
+        self.sprite_preview = [self.sprite_view_preview0,self.sprite_view_preview1,self.sprite_view_preview2,self.sprite_view_preview3]
+        for rot, widget in enumerate(self.sprite_preview):
+            self.sprite_preview[rot].mousePressEvent= (lambda e, rot=rot: self.previewClicked(rot))
+            self.updatePreview(rot)
+            
+        self.previewClicked(0)
+    
+        
+    def previewClicked(self, rot):
+        old_rot = self.o.rotation
+        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:none;") 
+        self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
+
+    
+        self.o.rotateObject(rot)
+                
+        
+        self.updateMainView()
+     
+    def clickSpriteControl(self, direction: str):
+        if direction == 'left':
+            self.generator.base.x -= 1
+        elif direction == 'right':
+            self.generator.base.x += 1
+        elif direction == 'up':
+            self.generator.base.y -= 1
+        elif direction == 'down':
+            self.generator.base.y += 1
+        elif direction == 'leftright':
+            self.generator.base.image = self.generator.base.image.transpose(
+                Image.FLIP_LEFT_RIGHT)
+        elif direction == 'updown':
+            self.generator.base.image = self.generator.base.image.transpose(
+                Image.FLIP_TOP_BOTTOM)
+
+        self.updatePreview()
+     
+    def updateMainView(self):
+        im, x, y = self.o.show()
+        coords = (76+x, 200+y)
+        
+        canvas = Image.new('RGBA', (152, 271))
+        canvas.paste(im, coords, im)
+        #canvas.paste(self.frame_image, self.frame_image)
+
+        image = ImageQt(canvas)
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.sprite_view_main.setPixmap(pixmap)
+        
+    def updatePreview(self,rot):
+        im, x, y = self.o.show(rotation = rot)
+        im = copy(im)
+        if im.size[1] > 72:
+            im.thumbnail((72, 72), Image.NEAREST)
+            coords = (36+x,0)
+        else:
+            coords = (36+x, 40+y)
+        
+        canvas = Image.new('RGBA', (72, 72))
+        canvas.paste(im, coords, im)
+        #canvas.paste(self.frame_image, self.frame_image)
+        
+        image = ImageQt(canvas)
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.sprite_preview[rot].setPixmap(pixmap)
+        
+        
+        
+        
+        
+        
+  
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         

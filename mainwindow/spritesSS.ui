@@ -45,7 +45,7 @@
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>151</width>
+        <width>152</width>
         <height>271</height>
        </rect>
       </property>
@@ -456,8 +456,8 @@
        <rect>
         <x>10</x>
         <y>330</y>
-        <width>71</width>
-        <height>71</height>
+        <width>72</width>
+        <height>72</height>
        </rect>
       </property>
       <property name="contextMenuPolicy">
@@ -550,8 +550,8 @@
        <rect>
         <x>90</x>
         <y>330</y>
-        <width>71</width>
-        <height>71</height>
+        <width>72</width>
+        <height>72</height>
        </rect>
       </property>
       <property name="contextMenuPolicy">
@@ -590,8 +590,8 @@
        <rect>
         <x>90</x>
         <y>410</y>
-        <width>71</width>
-        <height>71</height>
+        <width>72</width>
+        <height>72</height>
        </rect>
       </property>
       <property name="contextMenuPolicy">
@@ -630,8 +630,8 @@
        <rect>
         <x>10</x>
         <y>410</y>
-        <width>71</width>
-        <height>71</height>
+        <width>72</width>
+        <height>72</height>
        </rect>
       </property>
       <property name="contextMenuPolicy">

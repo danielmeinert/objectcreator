@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -9,6 +9,7 @@ import widgets as wdg
 import sys
 import io
 from os import getcwd
+import traceback
 
 import editor as edi
 from rctobject import constants as cts
@@ -60,13 +61,23 @@ class MainWindowUi(QMainWindow):
         self.editor.closeObject(self.objectTabs.currentIndex())
         
     def openObjectFile(self):
-        
+                
         filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Object", "", "Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json)")
+            self, "Open Object", "", "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
 
         if filepath:
-            o, name = self.editor.openObjectFile(filepath)
-        
+            
+            try:
+                o, name = self.editor.openObjectFile(filepath)
+            except Exception as e:
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Error")
+                msg.setText("Failed to load object")
+                msg.setInformativeText(str(e))
+                msg.show()
+                return
+            
             tab = QWidget()
             layout = QHBoxLayout()
             
@@ -78,7 +89,27 @@ class MainWindowUi(QMainWindow):
             self.objectTabs.addTab(tab, name)
             self.objectTabs.setCurrentWidget(tab)
         
+  
         
+def excepthook(exc_type, exc_value, exc_tb):
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    print("error catched!:")
+    print("error message:\n", tb)
+    
+    
+    sys._excepthook(exc_type, exc_value, exc_tb)
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setWindowTitle("Error Trapper")
+    msg.setText("Runtime error:")
+    msg.setInformativeText(tb)
+    msg.exec_()
+    #sys.exit()
+
+sys._excepthook = sys.excepthook
+sys.excepthook = excepthook
+
+
 def main():
     # if not QApplication.instance():
     #     app = QApplication(sys.argv)
@@ -91,6 +122,7 @@ def main():
     main.show()
     app.exec_()
 
+    
     #return main
 
 if __name__ == '__main__':         

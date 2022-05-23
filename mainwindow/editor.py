@@ -27,10 +27,9 @@ class Editor:
         return o, name
     
     def openObjectFile(self, path):
-        try:
-            o = obj.load(path)
-        except:
-            print('error')
+        
+        o = obj.load(path)
+        
         
         name = o.data['id']
         if not name and o.old_id:
