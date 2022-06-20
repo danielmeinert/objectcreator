@@ -9,12 +9,59 @@ from copy import copy
 
 from rctobject import constants as cts
 
+class objectTabSS(QWidget):
+    def __init__(self, o, filepath = None):
+        super().__init__()
+        
+        self.o = o
+        self.lastpath = filepath
+        self.saved = False
+
+        layout = QHBoxLayout()
+        
+        self.spritesTab = spritesTabSS(o)
+        self.settingsTab = settingsTabSS(o)
+        
+        layout.addWidget(self.spritesTab)
+        layout.addWidget(self.settingsTab)
+        
+        self.setLayout(layout)
+        
+    def saveObject(self, get_path):
+        if get_path or not self.saved:
+            if self.lastpath:
+                path = self.lastpath 
+            else:
+                path =  self.o.data.get('id','')
+            filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path, ".parkobj")
+        else:
+            filepath = self.lastpath
+            
+        
+        if self.settingsTab.checkBox_remapCheck.isChecked():
+            for path, sprite in self.o.sprites.items():
+                if sprite.checkPrimaryColor():
+                    self.o.data['properties']['hasPrimaryColour'] = True
+                    break
+            for path, sprite in self.o.sprites.items():
+                if sprite.checkSecondaryColor():
+                    self.o.data['properties']['hasSecondaryColour'] = True
+                    break
+            for path, sprite in self.o.sprites.items():
+                if sprite.checkTertiaryColor():
+                    self.o.data['properties']['hasTertiaryColour'] = True
+                    break
+        
+        self.o.save(filepath, include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+        
+            
+            
+
 class settingsTabSS(QWidget):
-    def __init__(self, editor, o):
+    def __init__(self, o):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
         
-        self.editor = editor
         self.o = o
         
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
@@ -62,6 +109,20 @@ class settingsTabSS(QWidget):
         self.object_name_field.textEdited.connect(self.nameChanged)
         self.object_name_lang_field.textEdited.connect(self.nameChangedLang)
 
+        ### Flags
+        for flag in cts.Jsmall_flags:
+            checkbox = self.findChild(QCheckBox, flag)
+            if checkbox:
+                checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
+        checkbox = self.findChild(QCheckBox, 'isTree')
+        checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
+        checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
+        checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
+        
+        checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
+        checkbox.stateChanged.connect(self.flagRemapChanged)
+        
+        self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOriginalId")
         
         self.loadObjectSettings()
         
@@ -121,8 +182,15 @@ class settingsTabSS(QWidget):
         self.language_index = value
         lang = list(cts.languages)[value]
         self.object_name_lang_field.setText(self.o.data['strings']['name'].get(lang,''))
-        
-        
+      
+    def flagChanged(self, value, flag):
+        self.o['properties']['key'] = value
+
+    def flagRemapChanged(self, value):
+        self.hasPrimaryColour.setEnabled(not value)    
+        self.hasSecondaryColour.setEnabled(not value)    
+        self.hasTertiaryColour.setEnabled(not value)    
+
         
     def loadObjectSettings(self):
          
@@ -156,11 +224,10 @@ class settingsTabSS(QWidget):
         self.object_name_lang_field.setText(self.o.data['strings']['name'].get('en-GB',''))
         
 class spritesTabSS(QWidget):
-    def __init__(self, editor, o):
+    def __init__(self, o):
         super().__init__()
         uic.loadUi('spritesSS.ui', self)
         
-        self.editor = editor
         self.o = o
         
         
@@ -214,22 +281,24 @@ class spritesTabSS(QWidget):
         self.updateMainView()
      
     def clickSpriteControl(self, direction: str):
+        sprite = self.o.giveSprite()
+        
         if direction == 'left':
-            self.generator.base.x -= 1
+            sprite.x -= 1
         elif direction == 'right':
-            self.generator.base.x += 1
+            sprite.x += 1
         elif direction == 'up':
-            self.generator.base.y -= 1
+            sprite.y -= 1
         elif direction == 'down':
-            self.generator.base.y += 1
+            sprite.y += 1
         elif direction == 'leftright':
-            self.generator.base.image = self.generator.base.image.transpose(
+            sprite.image = sprite.image.transpose(
                 Image.FLIP_LEFT_RIGHT)
         elif direction == 'updown':
-            self.generator.base.image = self.generator.base.image.transpose(
+            sprite.image = sprite.image.transpose(
                 Image.FLIP_TOP_BOTTOM)
 
-        self.updatePreview()
+        self.updateMainView()
      
     def updateMainView(self):
         im, x, y = self.o.show()
@@ -243,14 +312,19 @@ class spritesTabSS(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_view_main.setPixmap(pixmap)
         
+        self.updatePreview(self.o.rotation)
+        
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
         im = copy(im)
-        if im.size[1] > 72:
-            im.thumbnail((72, 72), Image.NEAREST)
-            coords = (36+x,0)
-        else:
-            coords = (36+x, 40+y)
+        
+        im.thumbnail((72, 72), Image.NEAREST)
+        coords = (int(36-im.size[0]/2),int(36-im.size[1]/2))
+        # if im.size[1] > 72:
+        #     
+        #     coords = (36+x,0)
+        # else:
+        #     coords = (36+x, 40+y)
         
         canvas = Image.new('RGBA', (72, 72))
         canvas.paste(im, coords, im)

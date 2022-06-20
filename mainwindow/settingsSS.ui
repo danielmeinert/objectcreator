@@ -210,22 +210,6 @@ QTabBar::tab:selected {
             <string>Author ID</string>
            </property>
           </widget>
-          <widget class="QCheckBox" name="checkBox_keepOrginalId">
-           <property name="geometry">
-            <rect>
-             <x>110</x>
-             <y>110</y>
-             <width>51</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Tick if you like to keep the original ID of the loaded object. If you do so, this object will be loaded ingame instead of the orginal. Not recommended&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Keep</string>
-           </property>
-          </widget>
           <widget class="QLineEdit" name="lineEdit_originalID">
            <property name="enabled">
             <bool>false</bool>
@@ -243,6 +227,22 @@ QTabBar::tab:selected {
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="checkBox_keepOrginalId">
+           <property name="geometry">
+            <rect>
+             <x>110</x>
+             <y>110</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Tick if you like to keep the original ID of the loaded object. If you do so, this object will be loaded ingame instead of the orginal. Not recommended&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Keep</string>
            </property>
           </widget>
          </widget>
@@ -566,6 +566,9 @@ QTabBar::tab:selected {
           </property>
           <property name="toolTip">
            <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
+          </property>
+          <property name="locale">
+           <locale language="English" country="UnitedStates"/>
           </property>
           <property name="decimals">
            <number>1</number>

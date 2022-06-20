@@ -35,7 +35,7 @@
       </size>
      </property>
      <property name="title">
-      <string>Sprite</string>
+      <string>Sprites</string>
      </property>
      <widget class="QLabel" name="sprite_view_main">
       <property name="enabled">
@@ -216,6 +216,9 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
          <property name="arrowType">
           <enum>Qt::LeftArrow</enum>
          </property>
@@ -238,6 +241,9 @@
          <property name="text">
           <string>...</string>
          </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
          <property name="arrowType">
           <enum>Qt::DownArrow</enum>
          </property>
@@ -259,6 +265,9 @@
          </property>
          <property name="text">
           <string>...</string>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
          </property>
          <property name="arrowType">
           <enum>Qt::UpArrow</enum>
@@ -337,6 +346,9 @@
          </property>
          <property name="text">
           <string>...</string>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
          </property>
          <property name="arrowType">
           <enum>Qt::RightArrow</enum>

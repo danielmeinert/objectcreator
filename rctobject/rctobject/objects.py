@@ -20,7 +20,6 @@ from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
 from subprocess import run
 import numpy as np
-from numpy.linalg import matrix_power
 from enum import Enum
 
 import rctobject.sprites as spr
@@ -152,13 +151,14 @@ class RCTObject:
             filename = f'{path}/{name}'
         else:
             filename = f'{path}/{self.data["id"]}'
+            name = self.data["id"]
 
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=self.data, fp=file, indent=2)
-            for name, sprite in self.sprites.items():
-                sprite.save(f'{temp}/{name}')
+            for im_name, sprite in self.sprites.items():
+                sprite.save(f'{temp}/{im_name}')
             make_archive(base_name=f'{filename}',
                          root_dir=temp, format='zip')
 
@@ -168,7 +168,7 @@ class RCTObject:
                 mkdir(filename)
                # mkdir(f'{filename}/images')
                 move(f'{temp}/images', filename)
-                move(f'{temp}/{name}.json', filename)
+                move(f'{temp}/object.json', filename)
 
     def spriteBoundingBox(self, view: int = None):
         if view is None:
@@ -231,12 +231,7 @@ class SmallScenery(RCTObject):
 
     def show(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
-        x_size, y_size, z_size = self.size
-        x_base = int(x_size*32)
-        y_base = int(z_size*8)
-        canvas = Image.new('RGBA', self.spriteBoundingBox())
-
-        
+                
         if not rotation:
             rotation = self.rotation
         else:
@@ -253,7 +248,20 @@ class SmallScenery(RCTObject):
      #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
         
        # return canvas
-
+    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
+        """Still need to implement all possible animation cases and glass objects."""
+                
+        if not rotation:
+            rotation = self.rotation
+        else:
+            rotation = rotation % 4
+        
+        if self.subtype == self.Subtype.GARDENS:
+            sprite_index = rotation+4*wither
+        else:
+            sprite_index = rotation
+            
+        return self.sprites[self.data['images'][sprite_index]['path']]
 
     def rotateObject(self, rot = None):
         if not isinstance(rot, int):
@@ -336,6 +344,14 @@ class LargeScenery(RCTObject):
         else:
             self.subtype = self.Subtype.SIMPLE
             self.num_glyph_sprites = 0
+            
+        self.rotation_matrices = [
+            np.array([[1,0],[0,1]]),      # R^0
+            np.array([[0, 1], [-1, 0]]),  # R
+            np.array([[-1, 0], [0, -1]]), # R^2
+            np.array([[0, -1], [1, 0]])   # R^3
+            
+            ]
         
     def setSize(self):
         max_x = 0
@@ -395,8 +411,8 @@ class LargeScenery(RCTObject):
         if self.num_tiles == 1:
             return
 
-        rot_mat = matrix_power(np.array([[0, 1], [-1, 0]]), rot % 4)
-
+        rot_mat = self.rotation_matrices[rot % 4]
+        
         for tile in self.data['properties']['tiles']:
             pos = np.array([tile['x'], tile['y']])
 
@@ -429,6 +445,21 @@ class LargeScenery(RCTObject):
                 self.rotateObject()
         else:
             raise NotImplementedError("Creating thumbnails is not supported yet for 3d sign objects.")
+     
+    # Override base class
+    def updateImageOffsets(self):
+        for i, im in enumerate(self.data['images']):
+            # Update the non-preview sprites
+            if i >3:
+                im['x'] = self.sprites[im['path']].x
+                im['y'] = self.sprites[im['path']].y
+            # preview sprites have different offsets
+            else:
+                image = self.sprites[im['path']].show()
+                im['x'] = -int(image.size[0]/2)
+                im['y'] = image.size[1]
+                
+                
             
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
@@ -463,10 +494,10 @@ def load(filepath: str):
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(obj.data, obj.sprites, obj.old_id)
-    elif obj_type == 'scenery_large':
-        return LargeScenery(obj.data, obj.sprites, obj.old_id)
+   # elif obj_type == 'scenery_large':
+   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
-        raise NotImplementedError("Object type unsupported by now.")
+        raise NotImplementedError(f"Object type {obj_type} unsupported by now.")
 
 def loadFromId(identifier: str):
     pass
@@ -477,10 +508,10 @@ def new(data, sprites):
     obj_type = data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(data, sprites)
-    #elif obj_type == 'scenery_large':
-    #    return LargeScenery(data, sprites)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(data, sprites)
     else:
-        raise NotImplementedError(f"Object type {obj_type} unsupported by now.")
+        raise NotImplementedError(f"Object type unsupported by now.")
         
 def newEmpty(object_type: cts.Type):
     data = {}

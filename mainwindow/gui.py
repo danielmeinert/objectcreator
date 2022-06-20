@@ -9,6 +9,8 @@ import widgets as wdg
 import sys
 import io
 from os import getcwd
+from os.path import splitext
+
 import traceback
 
 import editor as edi
@@ -22,8 +24,8 @@ class MainWindowUi(QMainWindow):
         super().__init__()
         uic.loadUi('main_window.ui', self)
         
-        self.editor = edi.Editor()        
-        
+        self.new_object_count = 1
+
         
         ##### Object Tabs ###
         self.objectTabs = self.findChild(
@@ -40,25 +42,23 @@ class MainWindowUi(QMainWindow):
         #### Menubar        
         self.actionSmallScenery.triggered.connect(lambda x: self.newObject(cts.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.openObjectFile)
+        self.actionSave.triggered.connect(self.saveObject)
+        self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
         
         self.show()
         
     def newObject(self, obj_type = cts.Type.SMALL):
-        o, name = self.editor.newObject(obj_type)
-        tab = QWidget()
-        layout = QHBoxLayout()
+        o = obj.newEmpty(obj_type)
+        name = f'Object {self.new_object_count}'
+        self.new_object_count += 1
         
-        layout.addWidget(wdg.spritesTabSS(self.editor, o))
-        layout.addWidget(wdg.settingsTabSS(self.editor, o))
+        tab = wdg.objectTabSS(o)
         
-        tab.setLayout(layout)
-    
         self.objectTabs.addTab(tab, name)
         self.objectTabs.setCurrentWidget(tab)
     
     def closeObject(self, index):
         self.objectTabs.removeTab(index)
-        self.editor.closeObject(self.objectTabs.currentIndex())
         
     def openObjectFile(self):
                 
@@ -66,9 +66,14 @@ class MainWindowUi(QMainWindow):
             self, "Open Object", "", "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
 
         if filepath:
-            
             try:
-                o, name = self.editor.openObjectFile(filepath)
+                o = obj.load(filepath)
+                name = o.data.get('id', None)
+                if not name and o.old_id:
+                    name = o.old_id
+                else:
+                    name = f'Object {self.new_object_count}'
+                    self.new_object_count += 1
             except Exception as e:
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Critical)
@@ -78,18 +83,24 @@ class MainWindowUi(QMainWindow):
                 msg.show()
                 return
             
-            tab = QWidget()
-            layout = QHBoxLayout()
+            extension = splitext(filepath)[1].lower()
+            if not extension == '.parkobj':
+                filepath = None
             
-            layout.addWidget(wdg.spritesTabSS(self.editor, o))
-            layout.addWidget(wdg.settingsTabSS(self.editor, o))
-            
-            tab.setLayout(layout)
+            tab = wdg.objectTabSS(o, filepath)
         
             self.objectTabs.addTab(tab, name)
             self.objectTabs.setCurrentWidget(tab)
+            
+    def saveObject(self):
+        widget = self.objectTabs.currentWidget()
         
-  
+        widget.saveObject(get_path = False)
+        
+    def saveObjectAt(self):
+        widget = self.objectTabs.currentWidget()
+        
+        widget.saveObject(get_path = True)
         
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
@@ -123,7 +134,7 @@ def main():
     app.exec_()
 
     
-    #return main
+    return main
 
 if __name__ == '__main__':         
     m = main()

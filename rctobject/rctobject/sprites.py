@@ -293,7 +293,7 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
     return image
 
 
-def removeColor(image: Image.Image, color: str, palette: pal.Palette = pal.orct):
+def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
     

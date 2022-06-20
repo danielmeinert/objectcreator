@@ -18,8 +18,8 @@ from copy import deepcopy
 
 class pathObject:
 
-    def __init__(self, base: Image.Image):
-        self.base = base
+    def __init__(self, bases: list):
+        self.bases = bases
 
     def generateObject(self, template: templ.pathTemplate, settings_input: dict):
 
@@ -35,6 +35,9 @@ class pathObject:
             data['properties']['hasPrimaryColour'] = settings['hasPrimaryColour']
         if settings['hasSecondaryColour']:
             data['properties']['hasSecondaryColour'] = settings['hasSecondaryColour']
+        if settings['hasTertiaryColour']:
+            data['properties']['hasTertiaryColour'] = settings['hasTertiaryColour']
+            
         data['properties']['cursor'] = settings['cursor']
 
         if settings['autoNaming']:
@@ -46,13 +49,12 @@ class pathObject:
             for lang in settings['name']:
                 data['strings']['name'][lang] = settings['name'][lang]['pre']
 
-        base = [self.base, self.base, self.base, self.base]
+        # 0 = no rotation, 1 = rotation
+        if settings['rotationMode'] == 0:
+            base = [self.bases[0], self.bases[0], self.bases[0], self.bases[0]]
+        else:
+            base = [self.bases[0], self.bases[1], self.bases[2], self.bases[3]]
 
-        if settings['autoRotate']:
-            base[1] = self.base.transpose(Image.FLIP_LEFT_RIGHT)
-            base[2] = (self.base.transpose(Image.FLIP_LEFT_RIGHT)
-                       ).transpose(Image.FLIP_TOP_BOTTOM)
-            base[3] = self.base.transpose(Image.FLIP_TOP_BOTTOM)
 
         if template.num_tiles == 1:
             preview_skip = 0
@@ -95,14 +97,19 @@ class pathObject:
 
 
 class pathGenerator:
-    def __init__(self):
+    def __init__(self, fix_mask):
         self.loadSettings()
         self.loadTemplatesAtStart()
         self.selected_templates = []
-        self.base = spr.Sprite(None)
+        self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
+        self.base = self.bases[0]
+        self.current_rotation = 0
+        
         self.current_palette = pal.orct
         self.selected_colors = {
             color: False for color in self.current_palette.color_dict}
+        
+        self.fix_mask = fix_mask
 
     def loadSettings(self):
         try:
@@ -112,14 +119,17 @@ class pathGenerator:
             self.settings['author'] = ''
             self.settings['author_id'] = ''
             self.settings['no_zip'] = False
+            self.settings['version'] = '1.0'
+
 
         self.settings['name'] = {'en-GB': {}}
         self.settings['object_id'] = ''
         self.settings['hasPrimaryColour'] = False
         self.settings['hasSecondaryColour'] = False
+        self.settings['hasTertiarySecondaryColour'] = False
         self.settings['cursor'] = "CURSOR_PATH_DOWN"
         self.settings['autoNaming'] = False
-        self.settings['autoRotate'] = False
+        self.settings['rotationMode'] = 0
 
     def loadTemplatesAtStart(self):
         self.templates = {}
@@ -144,11 +154,24 @@ class pathGenerator:
             print('Template file was not type path_tile.')
 
     def loadBase(self, path: str):
-        self.base = spr.Sprite.fromFile(path)
+        sprite = spr.Sprite.fromFile(path)
 
-        self.base.crop()
-        self.base.x = -int(self.base.image.size[0]/2)
-        self.base.y = 0
+        sprite.crop()
+        sprite.x = -int(sprite.image.size[0]/2)
+        sprite.y = 0
+        
+        self.bases[self.current_rotation] = sprite
+        self.base = self.bases[self.current_rotation]
+        
+    def importBases(self, bases):
+        for i, base in enumerate(bases):
+            self.bases[i] = spr.Sprite(base, (-32,0))
+        
+        
+    def resetAllBases(self):
+        self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
+        self.base = self.bases[0]
+        self.current_rotation = 0
 
     def setName(self, prefix: str, suffix: str = ''):
         if self.settings['autoNaming']:
@@ -159,23 +182,70 @@ class pathGenerator:
 
     def fixBaseToMask(self):
         if self.base.image.size != (1, 1):
-            mask = self.templates['Fulltile'].images['images/00.png'].copy()
+            mask = self.fix_mask.copy()
             image = self.base.image.crop(
                 (-32-self.base.x, -self.base.y, -self.base.x+32, -self.base.y+31))
             mask.paste(image, mask)
 
-            self.base = spr.Sprite(mask, (-32,0))
+            self.bases[self.current_rotation] = spr.Sprite(mask, (-32,0))
+            self.base = self.bases[self.current_rotation]
+
+    def rotationOptionChanged(self, item):
+        if not self.settings['rotationMode'] == item:
+            self.settings['rotationMode'] = item
+            if item == 0:
+                self.base = self.bases[0]
+                self.current_rotation = 0
+
+    def rotationChanged(self, rot):
+
+        self.current_rotation = rot
+        self.base = self.bases[self.current_rotation]
+        
+    def generateRotations(self, direction):
+        
+        
+        sprite = self.bases[0].image
+        x = self.bases[0].x
+        y = self.bases[0].y
+        
+        if direction == 0:
+            self.bases[1] = spr.Sprite(sprite.transpose(Image.FLIP_LEFT_RIGHT), (x,y))
+            self.bases[2] = spr.Sprite((sprite.transpose(Image.FLIP_LEFT_RIGHT)
+                       ).transpose(Image.FLIP_TOP_BOTTOM), (x,y))
+            self.bases[3] = spr.Sprite(sprite.transpose(Image.FLIP_TOP_BOTTOM), (x,y))
+        elif direction == 1:
+            self.bases[1] = spr.Sprite(sprite.transpose(Image.FLIP_TOP_BOTTOM), (x,y))
+            self.bases[2] = spr.Sprite((sprite.transpose(Image.FLIP_TOP_BOTTOM)
+                        ).transpose(Image.FLIP_LEFT_RIGHT), (x,y))
+            self.bases[3] = spr.Sprite(sprite.transpose(Image.FLIP_LEFT_RIGHT), (x,y))
+
+        self.base = self.bases[self.current_rotation]
 
 
     def generate(self, output_folder: str):
 
-        self.settings['hasPrimaryColour'] = self.base.checkPrimaryColor()
-        self.settings['hasSecondaryColour'] = self.base.checkSecondaryColor()
+        primary_check = False
+        secondary_check = False
+        tertiary_check = False
+        
+        for base in self.bases:
+            if base.image.size == (1,1):
+                return 'Not all base images loaded!'
+            
+            primary_check = (base.checkPrimaryColor() or primary_check)
+            secondary_check = (base.checkSecondaryColor() or secondary_check)
+            tertiary_check = (base.checkTertiaryColor() or tertiary_check)
+            
+            if self.settings['rotationMode'] == 0:
+                break
 
-        if self.base.image.size == (1,1):
-            return 'No base image loaded!'
+        self.settings['hasPrimaryColour']= primary_check
+        self.settings['hasSecondaryColour'] = secondary_check
+        self.settings['hasTertiaryColour']= tertiary_check
 
-        elif self.selected_templates == []:
+        
+        if self.selected_templates == []:
             return 'No templates selected!'
 
         elif self.settings['object_id'] == '':
@@ -183,7 +253,7 @@ class pathGenerator:
 
         else:
             self.fixBaseToMask()
-            path_obj = pathObject(self.base)
+            path_obj = pathObject(self.bases)
             for name in self.selected_templates:
                 template = self.templates[name]
                 path_obj.generateObject(template, self.settings)

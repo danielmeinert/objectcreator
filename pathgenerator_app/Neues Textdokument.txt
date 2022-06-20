@@ -1,0 +1,2 @@
+conda activate extranumpy
+pyinstaller --noconfirm --clean app.spec
