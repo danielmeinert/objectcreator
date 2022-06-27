@@ -20,10 +20,7 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    print("error catched!:")
-    print("error message:\n", tb)
-    
-    
+   
     sys._excepthook(exc_type, exc_value, exc_tb)
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Critical)

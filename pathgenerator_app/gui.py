@@ -7,7 +7,7 @@ Created on Thu Feb  3 23:48:10 2022
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
-from PIL import Image
+from PIL import Image, ImageEnhance
 from PIL.ImageQt import ImageQt
 from customwidgets import colorSelectWidget
 import sys
@@ -17,6 +17,7 @@ from os import getcwd
 import generate_path as gen
 import resources_rc
 from rctobject import palette as pal
+from rctobject import sprites as spr
 
 #om.rotate(-45, Image.NEAREST).resize((64,31),Image.NEAREST)
 
@@ -490,11 +491,16 @@ class ImportSpriteUi(QDialog):
         self.x = 0 
         self.y = 0
         self.base = Image.new('RGBA', (1, 1))
+        
+        self.contrast = 1.0
+        self.sharpness = 1.0
+        self.brightness = 1.0
 
         self.factor = 1
         self.angle = 0
         
         self.spriteViewLabel = self.findChild(QLabel, "sprite_view")
+        self.spritePreviewLabel = self.findChild(QLabel, "sprite_preview")
         
         self.buttonLoadBase = self.findChild(
             QPushButton, "pushButton_loadImageButton")
@@ -505,6 +511,15 @@ class ImportSpriteUi(QDialog):
         
         self.sliderZoom = self.findChild(QSlider, "slider_zoom")
         self.sliderZoom.valueChanged.connect(self.zoomChanged)
+        
+        self.sliderContrast = self.findChild(QSlider, "slider_contrast")
+        self.sliderContrast.valueChanged.connect(self.contrastChanged)
+        
+        self.sliderBrightness = self.findChild(QSlider, "slider_brightness")
+        self.sliderBrightness.valueChanged.connect(self.brightnessChanged)
+        
+        self.sliderSharpness = self.findChild(QSlider, "slider_sharpness")
+        self.sliderSharpness.valueChanged.connect(self.sharpnessChanged)
         
         # Sprite control buttons
         self.buttonSpriteLeft = self.findChild(
@@ -578,6 +593,10 @@ class ImportSpriteUi(QDialog):
         if filepath:
             self.base = Image.open(filepath).convert('RGBA')
             self.base.crop(self.base.getbbox())
+            self.sliderContrast.setValue(100)
+            self.sliderBrightness.setValue(100)
+            self.sliderSharpness.setValue(100)
+
         
 
         self.updateMainView()
@@ -588,7 +607,25 @@ class ImportSpriteUi(QDialog):
         self.updateMainView()
         
     def zoomChanged(self, val):
-        self.factor = 2**(val/10)
+        if val > 0:
+            self.factor = 1.5**(val/10)
+        else:
+            self.factor = 2**(val/10)
+       
+        self.updateMainView()
+        
+    def contrastChanged(self, val):
+        self.contrast = val/100
+       
+        self.updateMainView()
+        
+    def brightnessChanged(self, val):
+        self.brightness = val/100
+       
+        self.updateMainView()
+        
+    def sharpnessChanged(self, val):
+        self.sharpness = val/100
        
         self.updateMainView()
 
@@ -608,6 +645,36 @@ class ImportSpriteUi(QDialog):
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.spriteViewLabel.setPixmap(pixmap)
+        
+        self.updatePreview(base)
+        
+    def updatePreview(self, base):
+        if self.base.size == (1,1):
+            return
+        
+        else:
+                        
+            x = self.x -int(base.size[0]/2)
+            y = self.y -int(base.size[1]/2)
+            
+            im = self.fixToMask(base, x, y)
+            
+            if self.contrast != 1:
+                im = ImageEnhance.Contrast(im).enhance(self.contrast)
+            if self.brightness != 1:
+                im = ImageEnhance.Brightness(im).enhance(self.brightness)
+            if self.sharpness != 1:
+                im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+            
+            canvas = Image.new('RGBA', (71, 71))
+            canvas.paste(
+                im, (3, 21), im)
+        
+            image = ImageQt(canvas)
+            pixmap = QtGui.QPixmap.fromImage(image)
+            self.spritePreviewLabel.setPixmap(pixmap)
+        
+    
         
     def accept(self):
         
@@ -637,8 +704,7 @@ class ImportSpriteUi(QDialog):
         image = image.rotate(rot*90, Image.BICUBIC)
         mask.paste(image, mask)
         
-        mask.save('test1.png')
-
+        
         return mask.rotate(-45, Image.NEAREST, expand=1).crop((1,2,65,64)).resize((64,31),Image.NEAREST)
 
         
