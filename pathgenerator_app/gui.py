@@ -409,6 +409,10 @@ class PathGeneratorUi(QMainWindow):
                 self.generator.importBases(ret)
                 self.comboboxRotation.setCurrentIndex(1)
             self.previewClicked(0)
+            
+            self.updatePreview(1)
+            self.updatePreview(2)
+            self.updatePreview(3)
                 
             
     
