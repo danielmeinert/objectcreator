@@ -690,10 +690,30 @@ class ImportSpriteUi(QDialog):
             if self.checkBox_rotations.isChecked():
                 self.ret = []
                 for rot in range(4):
-                    self.ret.append(self.fixToMask(base, x, y, rot))
-                
+                    im = self.fixToMask(base, x, y, rot)
+                    
+                    if self.contrast != 1:
+                        im = ImageEnhance.Contrast(im).enhance(self.contrast)
+                    if self.brightness != 1:
+                        im = ImageEnhance.Brightness(im).enhance(self.brightness)
+                    if self.sharpness != 1:
+                        im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+                    
+                    self.ret.append(im)
+
+                    
             else:
-                self.ret = self.fixToMask(base, x, y)
+                im = self.fixToMask(base, x, y)
+                
+                if self.contrast != 1:
+                    im = ImageEnhance.Contrast(im).enhance(self.contrast)
+                if self.brightness != 1:
+                    im = ImageEnhance.Brightness(im).enhance(self.brightness)
+                if self.sharpness != 1:
+                    im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+                
+                
+                self.ret = im
         
             super().accept()
         

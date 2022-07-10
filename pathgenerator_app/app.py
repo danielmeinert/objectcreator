@@ -13,7 +13,7 @@ import sys
 import traceback
 import ctypes
 
-myappid = 'tols.objectmaker.pathgenerator.0.1' # arbitrary string
+myappid = 'tols.objectmaker.pathgenerator.0.2' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
