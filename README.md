@@ -2,8 +2,8 @@ Object maker for Open Rollercoaster Tycoon 2 objects.
 
 To run the develop version with python, clone the repository. You need to install the following python packages to run the python code (run the following lines):
 
-python3 -m pip install numpy
-python3 -m pip install pyqt5
+python3 -m pip install numpy \\
+python3 -m pip install pyqt5 \\
 python3 -m pip install Pillow
 
 You also need to install two custom packages of this code. I recommend using the -e option such that when the files in the packages get updated you don't have to reinstall them.
