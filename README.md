@@ -8,7 +8,7 @@ python3 -m pip install pyqt5
 python3 -m pip install Pillow
 ```
 
-You also need to install two custom packages of this code. I recommend using the -e option such that when the files in the packages get updated you don't have to reinstall them.
+You also need to install two custom packages of this code. Before doing this, in rctobject/rctobject/objects.py you need to change OPENRCTPATH to the path of your openrct installation (because this program extracts DAT sprites via openRCT's extractalldat command). I recommend using the -e option such that when the files in the packages get updated you don't have to reinstall them.
 
 From inside the repo folder run
 
