@@ -248,7 +248,7 @@ class SmallScenery(RCTObject):
      #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
         
        # return canvas
-    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
+    def  giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
                 
         if not rotation:

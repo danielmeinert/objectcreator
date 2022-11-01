@@ -9,7 +9,7 @@ import widgets as wdg
 import sys
 import io
 from os import getcwd
-from os.path import splitext
+from os.path import splitext, split
 
 import traceback
 
@@ -84,10 +84,18 @@ class MainWindowUi(QMainWindow):
                 return
             
             extension = splitext(filepath)[1].lower()
-            if not extension == '.parkobj':
+            author_id = None
+            if extension == '.parkobj':
+                filepath, filename = split(filepath)
+                
+                # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
+                if len(filename.split('.')) > 2:
+                    author_id = filename.split('.')[0]
+            else:
                 filepath = None
+
             
-            tab = wdg.objectTabSS(o, filepath)
+            tab = wdg.objectTabSS(o, filepath, author_id)
         
             self.objectTabs.addTab(tab, name)
             self.objectTabs.setCurrentWidget(tab)

@@ -5,12 +5,13 @@ from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
 from copy import copy
+import os.path
 
 
 from rctobject import constants as cts
 
 class objectTabSS(QWidget):
-    def __init__(self, o, filepath = None):
+    def __init__(self, o, filepath = None, author_id = None):
         super().__init__()
         
         self.o = o
@@ -19,8 +20,8 @@ class objectTabSS(QWidget):
 
         layout = QHBoxLayout()
         
-        self.spritesTab = spritesTabSS(o)
-        self.settingsTab = settingsTabSS(o)
+        self.spritesTab = spritesTabSS(o, self)
+        self.settingsTab = settingsTabSS(o, self, author_id)
         
         layout.addWidget(self.spritesTab)
         layout.addWidget(self.settingsTab)
@@ -28,16 +29,23 @@ class objectTabSS(QWidget):
         self.setLayout(layout)
         
     def saveObject(self, get_path):
+        if self.settingsTab.author_id_field.text():
+            name = f"{self.settingsTab.author_id_field.text()}.{self.o.data.get('id','')}" 
+        else:
+            name = self.o.data.get('id','')
+            
         if get_path or not self.saved:
             if self.lastpath:
-                path = self.lastpath 
+                path = f"{self.lastpath}/{name}" 
             else:
-                path =  self.o.data.get('id','')
-            filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path, ".parkobj")
+                path = name
+    
+            filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path,"Parkobj Files (*.parkobj)")
+            if filepath.endswith('.parkobj.parkobj'):
+                filepath = filepath[:-8]
         else:
-            filepath = self.lastpath
+            filepath = f"{self.lastpath}/{name}" 
             
-        
         if self.settingsTab.checkBox_remapCheck.isChecked():
             for path, sprite in self.o.sprites.items():
                 if sprite.checkPrimaryColor():
@@ -52,17 +60,24 @@ class objectTabSS(QWidget):
                     self.o.data['properties']['hasTertiaryColour'] = True
                     break
         
-        self.o.save(filepath, include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+        if filepath:
+            filepath, name = os.path.split(filepath)
+            self.lastpath = filepath
+            self.o.save(filepath, name = name, include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+            self.saved = True
+            
+            
         
             
             
 
 class settingsTabSS(QWidget):
-    def __init__(self, o):
+    def __init__(self, o, object_tab, author_id):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
         
         self.o = o
+        self.object_tab = object_tab
         
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
@@ -106,6 +121,10 @@ class settingsTabSS(QWidget):
         self.name_lang_box.currentIndexChanged.connect(self.languageChanged)
         self.language_index = 0
 
+
+        self.author_field.textEdited.connect(self.authorChanged)
+        self.author_id_field.textEdited.connect(self.authorIdChanged)
+        self.object_id_field.textEdited.connect(self.idChanged)
         self.object_name_field.textEdited.connect(self.nameChanged)
         self.object_name_lang_field.textEdited.connect(self.nameChangedLang)
 
@@ -122,9 +141,9 @@ class settingsTabSS(QWidget):
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
         
-        self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOriginalId")
+        self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOrginalId")
         
-        self.loadObjectSettings()
+        self.loadObjectSettings(author_id)
         
        
     def tabChanged(self, index):
@@ -168,6 +187,17 @@ class settingsTabSS(QWidget):
 
         self.o.changeShape(shape)
         
+    def authorChanged(self, value):
+        self.o.data['authors'] = value 
+        
+    def authorIdChanged(self, value):
+        self.object_tab.saved = False
+        
+    def idChanged(self, value):
+        self.o.data['id'] = value
+        self.object_tab.saved = False
+        
+        
     def nameChanged(self, value):
         self.o.data['strings']['name']['en-GB'] = value
         
@@ -184,7 +214,7 @@ class settingsTabSS(QWidget):
         self.object_name_lang_field.setText(self.o.data['strings']['name'].get(lang,''))
       
     def flagChanged(self, value, flag):
-        self.o['properties']['key'] = value
+        self.o['properties'][flag] = bool(value)
 
     def flagRemapChanged(self, value):
         self.hasPrimaryColour.setEnabled(not value)    
@@ -192,7 +222,7 @@ class settingsTabSS(QWidget):
         self.hasTertiaryColour.setEnabled(not value)    
 
         
-    def loadObjectSettings(self):
+    def loadObjectSettings(self, author_id = None):
          
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
         self.shape_box.setCurrentIndex(self.o.shape.value)
@@ -207,6 +237,8 @@ class settingsTabSS(QWidget):
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o.data['properties'].get('cursor','CURSOR_BLANK')))
 
         self.author_field.setText(self.o.data.get('authors',''))
+        self.author_id_field.setText(author_id)
+
         
         obj_id = self.o.data.get('id', False)
         if obj_id:
@@ -222,13 +254,15 @@ class settingsTabSS(QWidget):
         
         self.object_name_field.setText(self.o.data['strings']['name'].get('en-GB',''))
         self.object_name_lang_field.setText(self.o.data['strings']['name'].get('en-GB',''))
+   
         
 class spritesTabSS(QWidget):
-    def __init__(self, o):
+    def __init__(self, o, object_tab):
         super().__init__()
         uic.loadUi('spritesSS.ui', self)
         
         self.o = o
+        self.object_tab = object_tab
         
         
         # Sprite control buttons
