@@ -9,6 +9,8 @@ import os.path
 
 
 from rctobject import constants as cts
+from rctobject import sprites as spr
+
 
 class objectTabSS(QWidget):
     def __init__(self, o, filepath = None, author_id = None):
@@ -265,6 +267,17 @@ class spritesTabSS(QWidget):
         self.object_tab = object_tab
         
         
+        # Buttons load/reset
+        self.buttonLoadImage = self.findChild(
+            QPushButton, "pushButton_loadImage")
+        self.buttonResetImage = self.findChild(
+            QPushButton, "pushButton_resetImage")
+        self.buttonResetOffsets = self.findChild(
+            QPushButton, "pushButton_resetOffsets")
+        
+        self.buttonLoadImage.clicked.connect(self.loadImage)
+        
+        
         # Sprite control buttons
         self.buttonSpriteLeft = self.findChild(
             QToolButton, "toolButton_left")
@@ -295,17 +308,30 @@ class spritesTabSS(QWidget):
         
         
         self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
-        self.sprite_preview = [self.sprite_view_preview0,self.sprite_view_preview1,self.sprite_view_preview2,self.sprite_view_preview3]
+        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
-            self.sprite_preview[rot].mousePressEvent= (lambda e, rot=rot: self.previewClicked(rot))
+            self.sprite_preview[rot].mousePressEvent = (lambda e, rot=rot: self.previewClicked(rot))
             self.updatePreview(rot)
             
         self.previewClicked(0)
     
         
+    def loadImage(self):
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
+
+        if filepath:
+            sprite = spr.Sprite.fromFile(filepath)
+            sprite.x = -int(sprite.image.size[0]/2)
+            sprite.y = -int(sprite.image.size[1]/2)       
+            self.o.setSprite(sprite)
+            
+
+        self.updateMainView()
+    
     def previewClicked(self, rot):
         old_rot = self.o.rotation
-        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:none;") 
+        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:2px outset black;") 
         self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
 
     
@@ -363,7 +389,6 @@ class spritesTabSS(QWidget):
         canvas = Image.new('RGBA', (72, 72))
         canvas.paste(im, coords, im)
         #canvas.paste(self.frame_image, self.frame_image)
-        
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)

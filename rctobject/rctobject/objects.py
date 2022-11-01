@@ -117,7 +117,7 @@ class RCTObject:
             while string[i] != ',':
                 i -= 1
 
-            data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
+            data['images'] = loads(f'[{string[:i]}]')
             sprites = {im['path']: spr.Sprite.fromFile(
                 f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
 
@@ -248,7 +248,7 @@ class SmallScenery(RCTObject):
      #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
         
        # return canvas
-    def  giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
+    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
                 
         if not rotation:
@@ -262,6 +262,21 @@ class SmallScenery(RCTObject):
             sprite_index = rotation
             
         return self.sprites[self.data['images'][sprite_index]['path']]
+    
+    def setSprite(self, sprite: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
+        """Still need to implement all possible animation cases and glass objects."""
+                
+        if not rotation:
+            rotation = self.rotation
+        else:
+            rotation = rotation % 4
+        
+        if self.subtype == self.Subtype.GARDENS:
+            sprite_index = rotation+4*wither
+        else:
+            sprite_index = rotation
+            
+        self.sprites[self.data['images'][sprite_index]['path']] = sprite
 
     def rotateObject(self, rot = None):
         if not isinstance(rot, int):
