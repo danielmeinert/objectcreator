@@ -290,6 +290,26 @@ class SmallScenery(RCTObject):
         self.data['images'] = image_list[rot:] + image_list[:rot]
         self.rotation = 0
     
+    def flagChanged(self, flag, value):
+        if  flag == 'SMALL_SCENERY_FLAG_VOFFSET_CENTRE':
+            if value and not self.data['properties'].get(flag):
+                for im_name, sprite in self.sprites.items():
+                    sprite.y += 12
+                    sprite.y += 2 if self.data['properties'].get('prohibitWalls') else 0
+            elif not value and self.data['properties'].get(flag):
+                for im_name, sprite in self.sprites.items():
+                    sprite.y -= 12
+                    sprite.y -= 2 if self.data['properties'].get('prohibitWalls') else 0
+        elif flag == 'prohibitWalls' and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
+            if value and not self.data['properties'].get(flag):
+                for im_name, sprite in self.sprites.items():
+                    sprite.y += 2
+            elif not value and self.data['properties'].get(flag):
+                for im_name, sprite in self.sprites.items():
+                    sprite.y -= 2
+                    
+        self.data['properties'][flag] = value
+        
     # tbf
     def changeSubtype(self, subtype):
         if subtype == self.subtype:

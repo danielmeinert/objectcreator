@@ -23,7 +23,7 @@ class objectTabSS(QWidget):
         layout = QHBoxLayout()
         
         self.spritesTab = spritesTabSS(o, self)
-        self.settingsTab = settingsTabSS(o, self, author_id)
+        self.settingsTab = settingsTabSS(o, self, self.spritesTab, author_id)
         
         layout.addWidget(self.spritesTab)
         layout.addWidget(self.settingsTab)
@@ -51,15 +51,15 @@ class objectTabSS(QWidget):
         if self.settingsTab.checkBox_remapCheck.isChecked():
             for path, sprite in self.o.sprites.items():
                 if sprite.checkPrimaryColor():
-                    self.o.data['properties']['hasPrimaryColour'] = True
+                    self.o['properties']['hasPrimaryColour'] = True
                     break
             for path, sprite in self.o.sprites.items():
                 if sprite.checkSecondaryColor():
-                    self.o.data['properties']['hasSecondaryColour'] = True
+                    self.o['properties']['hasSecondaryColour'] = True
                     break
             for path, sprite in self.o.sprites.items():
                 if sprite.checkTertiaryColor():
-                    self.o.data['properties']['hasTertiaryColour'] = True
+                    self.o['properties']['hasTertiaryColour'] = True
                     break
         
         if filepath:
@@ -74,12 +74,13 @@ class objectTabSS(QWidget):
             
 
 class settingsTabSS(QWidget):
-    def __init__(self, o, object_tab, author_id):
+    def __init__(self, o, object_tab, sprites_tab, author_id):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
         
         self.o = o
         self.object_tab = object_tab
+        self.sprites_tab = sprites_tab
         
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
@@ -150,9 +151,9 @@ class settingsTabSS(QWidget):
        
     def tabChanged(self, index):
         if index == 0:
-            self.object_name_field.setText(self.o.data['strings']['name']['en-GB'])
+            self.object_name_field.setText(self.o['strings']['name']['en-GB'])
         elif index == 2 and self.language_index == 0:
-            self.object_name_lang_field.setText(self.o.data['strings']['name']['en-GB'])
+            self.object_name_lang_field.setText(self.o['strings']['name']['en-GB'])
         
         
     # bother with when other subtypes are introduced   
@@ -190,38 +191,40 @@ class settingsTabSS(QWidget):
         self.o.changeShape(shape)
         
     def authorChanged(self, value):
-        self.o.data['authors'] = value 
+        self.o['authors'] = value 
         
     def authorIdChanged(self, value):
         self.object_tab.saved = False
         
     def idChanged(self, value):
-        self.o.data['id'] = value
+        self.o['id'] = value
         self.object_tab.saved = False
         
         
     def nameChanged(self, value):
-        self.o.data['strings']['name']['en-GB'] = value
+        self.o['strings']['name']['en-GB'] = value
         
     def nameChangedLang(self, value):    
         if self.language_index == 0:
-            self.o.data['strings']['name']['en-GB'] = value
+            self.o['strings']['name']['en-GB'] = value
             
     def languageChanged(self, value):
         lang = list(cts.languages)[self.language_index]
-        self.o.data['strings']['name'][lang] = self.object_name_lang_field.text()
+        self.o['strings']['name'][lang] = self.object_name_lang_field.text()
 
         self.language_index = value
         lang = list(cts.languages)[value]
-        self.object_name_lang_field.setText(self.o.data['strings']['name'].get(lang,''))
+        self.object_name_lang_field.setText(self.o['strings']['name'].get(lang,''))
       
     def flagChanged(self, value, flag):
-        self.o['properties'][flag] = bool(value)
+        self.o.flagChanged(flag, bool(value))
+        
+        self.sprites_tab.updateMainView()
 
     def flagRemapChanged(self, value):
-        self.hasPrimaryColour.setEnabled(not value)    
-        self.hasSecondaryColour.setEnabled(not value)    
-        self.hasTertiaryColour.setEnabled(not value)    
+        self.hasPrimaryColour.setEnabled(not bool(value))    
+        self.hasSecondaryColour.setEnabled(not bool(value))    
+        self.hasTertiaryColour.setEnabled(not bool(value))    
 
         
     def loadObjectSettings(self, author_id = None):
@@ -229,14 +232,14 @@ class settingsTabSS(QWidget):
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
         self.shape_box.setCurrentIndex(self.o.shape.value)
         
-        self.clearence_box.setValue(self.o.data['properties']['height'])
+        self.clearence_box.setValue(self.o['properties']['height'])
         
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
-                checkbox.setChecked(self.o.data['properties'].get(flag, False))
+                checkbox.setChecked(self.o['properties'].get(flag, False))
                 
-        self.cursor_box.setCurrentIndex(cts.cursors.index(self.o.data['properties'].get('cursor','CURSOR_BLANK')))
+        self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
         self.author_field.setText(self.o.data.get('authors',''))
         self.author_id_field.setText(author_id)
@@ -254,8 +257,8 @@ class settingsTabSS(QWidget):
         if dat_id:
             self.object_original_id_field.setText(dat_id.split('|')[1].replace(' ', ''))
         
-        self.object_name_field.setText(self.o.data['strings']['name'].get('en-GB',''))
-        self.object_name_lang_field.setText(self.o.data['strings']['name'].get('en-GB',''))
+        self.object_name_field.setText(self.o['strings']['name'].get('en-GB',''))
+        self.object_name_lang_field.setText(self.o['strings']['name'].get('en-GB',''))
    
         
 class spritesTabSS(QWidget):
@@ -315,7 +318,6 @@ class spritesTabSS(QWidget):
             
         self.previewClicked(0)
     
-        
     def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
@@ -333,10 +335,8 @@ class spritesTabSS(QWidget):
         old_rot = self.o.rotation
         self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:2px outset black;") 
         self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
-
     
-        self.o.rotateObject(rot)
-                
+        self.o.rotateObject(rot)    
         
         self.updateMainView()
      
@@ -362,6 +362,11 @@ class spritesTabSS(QWidget):
      
     def updateMainView(self):
         im, x, y = self.o.show()
+        
+        #if self.o['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
+        #    y -= 12
+        #    y -= 2 if self.o['properties'].get('prohibitWalls') else 0
+        
         coords = (76+x, 200+y)
         
         canvas = Image.new('RGBA', (152, 271))
