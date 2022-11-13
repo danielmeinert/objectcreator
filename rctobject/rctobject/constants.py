@@ -164,11 +164,6 @@ data_template_small = {
       "path": "images/03.png",
       "x": 0,
       "y": 0
-    },
-    {
-      "path": "images/04.png",
-      "x": 0,
-      "y": 0
     }
   ],
   "strings": {

@@ -100,6 +100,9 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_auxiliaries_2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="title">
           <string>Auxiliaries</string>
          </property>
@@ -552,7 +555,7 @@ border: 1px solid darkgrey;}
     </property>
     <widget class="QMenu" name="menuLoad_Object_from">
      <property name="title">
-      <string>Load Object from</string>
+      <string>Open Object from</string>
      </property>
      <addaction name="actionOpenFile"/>
      <addaction name="actionDATIdentifier"/>
@@ -605,6 +608,9 @@ border: 1px solid darkgrey;}
   <action name="actionOpenFile">
    <property name="text">
     <string>File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionDATIdentifier">

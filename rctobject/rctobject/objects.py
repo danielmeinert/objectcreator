@@ -146,6 +146,10 @@ class RCTObject:
         for key, val in dict(self.data['properties']).items():
             if isinstance(val, bool) and val == False:
                 self.data['properties'].pop(key)
+                
+        # Remove an empty scenery group
+        if self.data.get('sceneryGroup') == '' or  self.data.get('sceneryGroup') == '\x00\x00\x00\x00\x00\x00\x00\x00':
+             self.data.pop('sceneryGroup')
         
         if name:
             filename = f'{path}/{name}'
@@ -284,29 +288,27 @@ class SmallScenery(RCTObject):
         else:
             self.rotation = rot % 4
         
-    def setCurrentRotationAsDefault(self):
-        rot = self.rotation
+    def cycleSpritesRotation(self, step: int = 1):
         image_list = self.data['images']
-        self.data['images'] = image_list[rot:] + image_list[:rot]
-        self.rotation = 0
+        self.data['images'] = image_list[-step:] + image_list[:-step]
     
     def flagChanged(self, flag, value):
-        if  flag == 'SMALL_SCENERY_FLAG_VOFFSET_CENTRE':
-            if value and not self.data['properties'].get(flag):
-                for im_name, sprite in self.sprites.items():
-                    sprite.y += 12
-                    sprite.y += 2 if self.data['properties'].get('prohibitWalls') else 0
-            elif not value and self.data['properties'].get(flag):
-                for im_name, sprite in self.sprites.items():
-                    sprite.y -= 12
-                    sprite.y -= 2 if self.data['properties'].get('prohibitWalls') else 0
-        elif flag == 'prohibitWalls' and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
-            if value and not self.data['properties'].get(flag):
-                for im_name, sprite in self.sprites.items():
-                    sprite.y += 2
-            elif not value and self.data['properties'].get(flag):
-                for im_name, sprite in self.sprites.items():
-                    sprite.y -= 2
+        # if  flag == 'SMALL_SCENERY_FLAG_VOFFSET_CENTRE':
+        #     if value and not self.data['properties'].get(flag):
+        #         for im_name, sprite in self.sprites.items():
+        #             sprite.y += 12
+        #             sprite.y += 2 if self.data['properties'].get('prohibitWalls') else 0
+        #     elif not value and self.data['properties'].get(flag):
+        #         for im_name, sprite in self.sprites.items():
+        #             sprite.y -= 12
+        #             sprite.y -= 2 if self.data['properties'].get('prohibitWalls') else 0
+        # elif flag == 'prohibitWalls' and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
+        #     if value and not self.data['properties'].get(flag):
+        #         for im_name, sprite in self.sprites.items():
+        #             sprite.y += 2
+        #     elif not value and self.data['properties'].get(flag):
+        #         for im_name, sprite in self.sprites.items():
+        #             sprite.y -= 2
                     
         self.data['properties'][flag] = value
         

@@ -20,6 +20,7 @@ class Sprite:
         self.image = image
         self.image_base = image
         self.x, self.y = coords
+        self.x_base, self.y_base = coords
         self.palette = palette
 
     @classmethod
@@ -49,6 +50,10 @@ class Sprite:
 
     def resetSprite(self):
         self.image = self.image_base
+        
+    def resetOffsets(self):
+        self.x = int(self.x_base)
+        self.y = int(self.y_base)
 
     def removeBlackPixels(self):
         self.image = pal.removeBlackPixels(self.image)

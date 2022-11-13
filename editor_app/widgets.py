@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
-from PIL import Image
+from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
 from copy import copy
 import os.path
@@ -279,6 +279,9 @@ class spritesTabSS(QWidget):
             QPushButton, "pushButton_resetOffsets")
         
         self.buttonLoadImage.clicked.connect(self.loadImage)
+        self.buttonResetImage.clicked.connect(self.resetImage)
+        self.buttonResetOffsets.clicked.connect(self.resetOffsets)
+
         
         
         # Sprite control buttons
@@ -314,6 +317,9 @@ class spritesTabSS(QWidget):
         
         self.buttonCycleRotation.clicked.connect(self.cycleRotation)
         
+        self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.sprite_view_main.customContextMenuRequested.connect(self.showSpriteMenu)
+
         
         self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
@@ -330,11 +336,40 @@ class spritesTabSS(QWidget):
         if filepath:
             sprite = spr.Sprite.fromFile(filepath)
             sprite.x = -int(sprite.image.size[0]/2)
-            sprite.y = -int(sprite.image.size[1]/2)       
+            sprite.y = -int(sprite.image.size[1]/2)
+            sprite.x_base = int(sprite.x)
+            sprite.y_base = int(sprite.y)
             self.o.setSprite(sprite)
             
 
         self.updateMainView()
+        
+    def resetImage(self):
+        sprite = self.o.giveSprite()
+        sprite.resetSprite()
+        
+        self.updateMainView()
+        
+    def resetOffsets(self):
+        sprite = self.o.giveSprite()
+        sprite.resetOffsets()
+        
+        self.updateMainView()
+        
+    def showSpriteMenu(self, pos):
+        menu = QMenu()
+        paste_action = menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
+        action = menu.exec_(self.sprite_view_main.mapToGlobal(pos))
+        
+    def pasteSpriteFromClipboard(self):
+        image = ImageGrab.grabclipboard()
+        
+        if image:
+            sprite = spr.Sprite(image,(-int(image.size[0]/2),-int(image.size[1]/2)))
+            self.o.setSprite(sprite)
+            
+        self.updateMainView()
+        
         
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
