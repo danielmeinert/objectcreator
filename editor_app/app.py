@@ -69,11 +69,12 @@ class MainWindowUi(QMainWindow):
             try:
                 o = obj.load(filepath)
                 name = o.data.get('id', None)
-                if not name and o.old_id:
-                    name = o.old_id
-                else:
-                    name = f'Object {self.new_object_count}'
-                    self.new_object_count += 1
+                if not name:
+                    if o.old_id:
+                        name = o.old_id
+                    else:
+                        name = f'Object {self.new_object_count}'
+                        self.new_object_count += 1
             except Exception as e:
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Critical)

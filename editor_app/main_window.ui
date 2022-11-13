@@ -608,6 +608,9 @@ border: 1px solid darkgrey;}
    </property>
   </action>
   <action name="actionDATIdentifier">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>DAT Identifier</string>
    </property>

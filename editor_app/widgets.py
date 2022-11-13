@@ -43,10 +43,11 @@ class objectTabSS(QWidget):
                 path = name
     
             filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path,"Parkobj Files (*.parkobj)")
-            if filepath.endswith('.parkobj.parkobj'):
+            while filepath.endswith('.parkobj'):
                 filepath = filepath[:-8]
+            filepath, name = os.path.split(filepath)
         else:
-            filepath = f"{self.lastpath}/{name}" 
+            filepath = self.lastpath
             
         if self.settingsTab.checkBox_remapCheck.isChecked():
             for path, sprite in self.o.sprites.items():
@@ -63,7 +64,6 @@ class objectTabSS(QWidget):
                     break
         
         if filepath:
-            filepath, name = os.path.split(filepath)
             self.lastpath = filepath
             self.o.save(filepath, name = name, include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
@@ -309,6 +309,11 @@ class spritesTabSS(QWidget):
             lambda x: self.clickSpriteControl('updown'))
         
         
+        self.buttonCycleRotation = self.findChild(
+            QPushButton, "pushButton_cycleRotation")
+        
+        self.buttonCycleRotation.clicked.connect(self.cycleRotation)
+        
         
         self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
@@ -329,6 +334,13 @@ class spritesTabSS(QWidget):
             self.o.setSprite(sprite)
             
 
+        self.updateMainView()
+        
+    def cycleRotation(self):
+        self.o.cycleSpritesRotation()
+        for rot in range(4):
+            self.updatePreview(rot)
+            
         self.updateMainView()
     
     def previewClicked(self, rot):
@@ -363,9 +375,9 @@ class spritesTabSS(QWidget):
     def updateMainView(self):
         im, x, y = self.o.show()
         
-        #if self.o['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
-        #    y -= 12
-        #    y -= 2 if self.o['properties'].get('prohibitWalls') else 0
+        # if self.o['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
+        #     y -= 12
+        #     y -= 2 if self.o['properties'].get('prohibitWalls') else 0
         
         coords = (76+x, 200+y)
         
