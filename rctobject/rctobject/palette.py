@@ -276,3 +276,21 @@ def removeBlackPixels(image: Image.Image):
     data_out[:, :, :][mask] = [0, 0, 0, 0]
 
     return Image.fromarray(data_out)
+
+def removeColorWhenImport(image: Image.Image, color = None):
+    ##If no color is given we remove the color from (0,0) pixel
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+    
+    if color:
+        r1, g1, b1 = color
+    else:
+        r1, g1, b1 = data_in[0,0][:3]
+    
+    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+    mask = (red == r1) & (green == g1) & (blue == b1)
+    data_out[:, :, :][mask] = [0, 0, 0, 0]
+
+    return Image.fromarray(data_out)
+    
+    

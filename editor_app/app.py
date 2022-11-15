@@ -10,6 +10,10 @@ import sys
 import io
 from os import getcwd
 from os.path import splitext, split
+from json import load as jload
+from json import dump as jdump
+
+
 
 import traceback
 
@@ -25,7 +29,8 @@ class MainWindowUi(QMainWindow):
         uic.loadUi('main_window.ui', self)
         
         self.new_object_count = 1
-
+        
+        self.loadSettings()
         
         ##### Object Tabs ###
         self.objectTabs = self.findChild(
@@ -47,12 +52,33 @@ class MainWindowUi(QMainWindow):
         
         self.show()
         
+    def loadSettings(self):
+        try:
+            self.settings = jload(fp=open('config.json'))
+        except FileNotFoundError:
+            self.settings = {}
+            self.settings['openpath'] = obj.OPENRCTPATH
+            self.settings['author'] = ''
+            self.settings['author_id'] = ''
+            self.settings['no_zip'] = False
+            self.settings['version'] = '1.0'
+            self.settings['import_color'] = None
+            
+        self.openpath = self.settings['openpath']
+
+            
+    def saveSettings(self):
+        path = getcwd()
+        with open(f'{path}/config.json', mode='w') as file:
+            jdump(obj=self.settings, fp=file, indent=2)
+        
+        
     def newObject(self, obj_type = cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
         
-        tab = wdg.objectTabSS(o)
+        tab = wdg.objectTabSS(o, author_id = self.settings['author_id'], settings = self.settings)
         
         self.objectTabs.addTab(tab, name)
         self.objectTabs.setCurrentWidget(tab)
@@ -67,7 +93,7 @@ class MainWindowUi(QMainWindow):
 
         if filepath:
             try:
-                o = obj.load(filepath)
+                o = obj.load(filepath, openpath = self.openpath)
                 name = o.data.get('id', None)
                 if not name:
                     if o.old_id:
@@ -96,7 +122,7 @@ class MainWindowUi(QMainWindow):
                 filepath = None
 
             
-            tab = wdg.objectTabSS(o, filepath, author_id)
+            tab = wdg.objectTabSS(o, filepath, author_id, settings = self.settings)
         
             self.objectTabs.addTab(tab, name)
             self.objectTabs.setCurrentWidget(tab)
@@ -110,6 +136,12 @@ class MainWindowUi(QMainWindow):
         widget = self.objectTabs.currentWidget()
         
         widget.saveObject(get_path = True)
+
+
+
+
+
+
         
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))

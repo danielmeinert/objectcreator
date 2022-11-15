@@ -10,10 +10,14 @@ import rctobject.palette as pal
 
 
 class Sprite:
-    def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True):
+    def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         
         if image:
+            # if use_transparency:
+            #     image 
+                
             image = pal.addPalette(image, palette, dither)
+            
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -24,10 +28,10 @@ class Sprite:
         self.palette = palette
 
     @classmethod
-    def fromFile(cls, path: str, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True):
+    def fromFile(cls, path: str, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
-        return cls(image=image, coords=coords, palette=palette, dither=dither)
+        return cls(image=image, coords=coords, palette=palette, dither=dither, use_transparency = use_transparency, transparent_color = transparent_color)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game

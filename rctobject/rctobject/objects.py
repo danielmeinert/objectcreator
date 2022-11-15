@@ -515,16 +515,16 @@ class LargeScenery(RCTObject):
 
 # Wrapper to load any object type and instantiate is as the correct subclass
 
-def load(filepath: str):
+def load(filepath: str, openpath = OPENRCTPATH):
     """Instantiates a new object from a .parkobj  or .dat file."""
     extension = splitext(filepath)[1].lower()
     
     if extension == '.parkobj':
         obj = RCTObject.fromParkobj(filepath)
     elif extension == '.dat':
-        obj = RCTObject.fromDat(filepath)
+        obj = RCTObject.fromDat(filepath, openpath)
     elif extension == '.json':
-        obj = RCTObject.fromJson(filepath)
+        obj = RCTObject.fromJson(filepath, openpath)
     else:
         raise RuntimeError("Unsupported object file type.")
 

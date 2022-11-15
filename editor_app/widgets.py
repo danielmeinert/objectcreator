@@ -7,18 +7,19 @@ from PIL.ImageQt import ImageQt
 from copy import copy
 import os.path
 
-
 from rctobject import constants as cts
 from rctobject import sprites as spr
+from rctobject import palette as pal
 
 
 class objectTabSS(QWidget):
-    def __init__(self, o, filepath = None, author_id = None):
+    def __init__(self, o, filepath = None, author_id = None, settings = {}):
         super().__init__()
         
         self.o = o
         self.lastpath = filepath
         self.saved = False
+        self.settings = settings
 
         layout = QHBoxLayout()
         
@@ -65,13 +66,10 @@ class objectTabSS(QWidget):
         
         if filepath:
             self.lastpath = filepath
-            self.o.save(filepath, name = name, include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+            self.o.save(filepath, name = name, no_zip = self.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
             
-            
-        
-            
-            
+ 
 
 class settingsTabSS(QWidget):
     def __init__(self, o, object_tab, sprites_tab, author_id):
@@ -80,7 +78,7 @@ class settingsTabSS(QWidget):
         
         self.o = o
         self.object_tab = object_tab
-        self.sprites_tab = sprites_tab
+        self.sprites_tab = sprites_tab        
         
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
@@ -363,8 +361,10 @@ class spritesTabSS(QWidget):
         
     def pasteSpriteFromClipboard(self):
         image = ImageGrab.grabclipboard()
-        
+
         if image:
+            image = pal.removeColorWhenImport(image.convert('RGBA'))
+            
             sprite = spr.Sprite(image,(-int(image.size[0]/2),-int(image.size[1]/2)))
             self.o.setSprite(sprite)
             
