@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsWindow</class>
+ <widget class="QDialog" name="SettingsWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>437</width>
+    <height>376</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_mainsettings">
+      <attribute name="title">
+       <string>Main Settings</string>
+      </attribute>
+      <widget class="QLabel" name="label_openpath">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>OpenRCT2 path (needed for opening DAT files)</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_changeOpenpath">
+       <property name="geometry">
+        <rect>
+         <x>370</x>
+         <y>30</y>
+         <width>31</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_openpath">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>30</y>
+         <width>341</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_openpath_2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>60</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default save folder</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_changeSaveDefault">
+       <property name="geometry">
+        <rect>
+         <x>370</x>
+         <y>80</y>
+         <width>31</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_savedefault">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>80</y>
+         <width>341</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_author">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>140</y>
+         <width>47</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Author</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_authorID">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>170</y>
+         <width>47</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Author ID</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_authorID">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>170</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true">Your identity/name for the object ID</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_author">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>140</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your name, seperate multiple names by comma. It is also good practice to add the name of the original creator(s) if you are fixing/remixing an existing object.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>270</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Custom color for imports (R,G,B)</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="checkBox_nozip">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>200</y>
+         <width>271</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>When saving also create unzipped folder of parkobj</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_transparencycolor">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>240</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Black (0,0,0)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>White (255,255,255)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Upper Left Pixel</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Custom Color</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>240</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default transparency setting for imports</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_R">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>270</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_G">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>270</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_B">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>270</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_version_2">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>140</y>
+         <width>47</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Version</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_version">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>140</y>
+         <width>62</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
+       </property>
+       <property name="locale">
+        <locale language="English" country="UnitedStates"/>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_SS_default">
+      <attribute name="title">
+       <string>Small Scenery Defaults</string>
+      </attribute>
+      <widget class="QLabel" name="label_cursor">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>10</y>
+         <width>51</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Cursor</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_cursor">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>201</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="allowSupportsAbove">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>140</y>
+         <width>131</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>allowSupportsAbove</string>
+       </property>
+       <property name="text">
+        <string>Allow Supports Above</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="requiresFlatSurface">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>requiresFlatSurface</string>
+       </property>
+       <property name="text">
+        <string>Flat Surface Only</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VOFFSET_CENTRE">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</string>
+       </property>
+       <property name="text">
+        <string>Block Rain</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_price">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>62</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true"/>
+       </property>
+       <property name="minimum">
+        <number>-1000</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="isTree">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>80</y>
+         <width>111</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>isTree</string>
+       </property>
+       <property name="text">
+        <string>Is Tree</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="supportsHavePrimaryColour">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>120</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>supportsHavePrimaryColour</string>
+       </property>
+       <property name="text">
+        <string>Supports in Remap</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_removalPrice">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>50</y>
+         <width>71</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Removal Price</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_price">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>50</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Price</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="hasNoSupports">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>100</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>hasNoSupports</string>
+       </property>
+       <property name="text">
+        <string>No Supports</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="SMALL_SCENERY_FLAG27">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>171</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>SMALL_SCENERY_FLAG27</string>
+       </property>
+       <property name="text">
+        <string>Block Supports like Full Tile</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_removalPrice">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>50</y>
+         <width>62</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true"/>
+       </property>
+       <property name="minimum">
+        <number>-1000</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="isStackable">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>isStackable</string>
+       </property>
+       <property name="text">
+        <string>Stackable</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="prohibitWalls">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>140</y>
+         <width>111</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>prohibitWalls</string>
+       </property>
+       <property name="text">
+        <string>Prohibit Walls</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>SettingsWindow</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>SettingsWindow</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>364</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

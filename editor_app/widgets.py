@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
 from copy import copy
 import os.path
+
+from os import getcwd
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -236,7 +238,10 @@ class settingsTabSS(QWidget):
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
                 checkbox.setChecked(self.o['properties'].get(flag, False))
-                
+        
+        checkbox = self.findChild(QCheckBox, 'isTree')
+        checkbox.setChecked(self.o['properties'].get('isTree', False))
+        
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
         self.author_field.setText(self.o.data.get('authors',''))
@@ -447,8 +452,102 @@ class spritesTabSS(QWidget):
         
         
         
+class ChangeSettingsUi(QDialog):
+    def __init__(self, settings):
+        super().__init__()
+        uic.loadUi('settings_window.ui', self)
         
+        self.setFixedSize(self.size())
+         
+        self.lineEdit_openpath.setText(settings.get('openpath'))
+        self.lineEdit_savedefault.setText(settings.get('savedefault'))
+        self.lineEdit_authorID.setText(settings.get('author_id'))
+        self.lineEdit_author.setText(settings.get('author'))
         
+        self.checkBox_nozip.setChecked(settings.get('no_zip', False))
+        self.comboBox_transparencycolor.setCurrentIndex(settings.get('transparency_color', 0))
+        self.spinBox_R.setValue(settings.get('import_color', (0,0,0))[0])
+        self.spinBox_G.setValue(settings.get('import_color', (0,0,0))[1])
+        self.spinBox_B.setValue(settings.get('import_color', (0,0,0))[2])
+        self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
+     
+        self.loadSSSettings(settings)
+        
+     
+        
+     
+        
+     
+    def loadSSSettings(self, settings):
+        for flag in cts.Jsmall_flags:
+            checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
+            if checkbox:
+                checkbox.setChecked(settings.get('small_scenery_defaults',{}).get(flag, False))
+                
+        checkbox = self.tab_SS_default.findChild(QCheckBox, 'isTree')
+        checkbox.setChecked(settings.get('small_scenery_defaults',{}).get('isTree', False))
+           
+        self.cursor_box = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor")
+        
+        for cursor in cts.cursors:
+            self.cursor_box.addItem(cursor.replace('_', ' '))
+        
+        self.cursor_box.setCurrentText(settings.get('small_scenery_defaults',{}).get('cursor', 'CURSOR BLANK'))
+        
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
+        spinbox.setValue(int(settings.get('small_scenery_defaults',{}).get('price', 1)))
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
+        spinbox.setValue(int(settings.get('small_scenery_defaults',{}).get('removalPrice', 1)))
+        
+        self.pushButton_changeOpenpath.clicked.connect(lambda x, sender = self.lineEdit_openpath:
+            self.clickChangeFolder(sender))
+        self.pushButton_changeSaveDefault.clicked.connect(lambda x, sender = self.lineEdit_savedefault:
+            self.clickChangeFolder(sender))
+
+    
+    def clickChangeFolder(self, sender):
+        
+        directory = sender.text() if sender.text() else getcwd()
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Output Directory", directory = directory)
+        if folder:
+            sender.setText(folder)    
+         
+            
+    def retrieveInputs(self):
+        settings = {}
+        
+        settings['openpath'] = self.lineEdit_openpath.text()
+        settings['author'] = self.lineEdit_author.text()
+        settings['author_id'] = self.lineEdit_authorID.text()
+        settings['no_zip'] = self.checkBox_nozip.isChecked()
+        settings['version'] = self.doubleSpinBox_version.value()
+        settings['transparency_color'] = self.comboBox_transparencycolor.currentIndex()
+        settings['import_color'] = [self.spinBox_R.value(),self.spinBox_G.value(),self.spinBox_B.value()]
+        
+        ss_defaults = {}
+        for flag in cts.Jsmall_flags:
+            checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
+            if checkbox:
+                ss_defaults[flag] = checkbox.isChecked()
+         
+        ss_defaults['isTree'] = self.isTree.isChecked()
+     
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
+        ss_defaults['price'] = spinbox.value()
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
+        ss_defaults['removalPrice'] = spinbox.value()
+         
+        ss_defaults['cursor'] = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor").currentText()
+        
+        settings['small_scenery_defaults'] = ss_defaults
+        
+        return settings
+        
+    def accept(self):
+
+         self.ret = self.retrieveInputs()         
+         super().accept()       
         
   
         

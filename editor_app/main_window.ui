@@ -551,7 +551,7 @@ border: 1px solid darkgrey;}
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>Object</string>
     </property>
     <widget class="QMenu" name="menuLoad_Object_from">
      <property name="title">
@@ -575,7 +575,7 @@ border: 1px solid darkgrey;}
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Edit</string>
+     <string>Sprite</string>
     </property>
     <addaction name="actionNewSprite"/>
     <addaction name="actionLoadImage"/>
@@ -584,6 +584,17 @@ border: 1px solid darkgrey;}
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="menuImport_Color">
+     <property name="title">
+      <string>Transparency Color</string>
+     </property>
+     <addaction name="actionBlack_0_0_0"/>
+     <addaction name="actionWhite_255_255_255"/>
+     <addaction name="actionUpper_Left_Pixel"/>
+     <addaction name="actionCustom_Color"/>
+    </widget>
+    <addaction name="actionSettings"/>
+    <addaction name="menuImport_Color"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -591,7 +602,7 @@ border: 1px solid darkgrey;}
   </widget>
   <action name="actionSaveObjectAt">
    <property name="text">
-    <string>Save Object at</string>
+    <string>Save Object at...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -607,7 +618,7 @@ border: 1px solid darkgrey;}
   </action>
   <action name="actionOpenFile">
    <property name="text">
-    <string>File</string>
+    <string>File...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -618,7 +629,7 @@ border: 1px solid darkgrey;}
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>DAT Identifier</string>
+    <string>DAT Identifier...</string>
    </property>
   </action>
   <action name="actionNewSprite">
@@ -650,6 +661,46 @@ border: 1px solid darkgrey;}
    </property>
    <property name="text">
     <string>Wall</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings...</string>
+   </property>
+  </action>
+  <action name="actionBlack_0_0_0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black (0,0,0)</string>
+   </property>
+  </action>
+  <action name="actionWhite_255_255_255">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White (255,255,255)</string>
+   </property>
+  </action>
+  <action name="actionUpper_Left_Pixel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Upper Left Pixel</string>
+   </property>
+  </action>
+  <action name="actionCustom_Color">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Custom Color</string>
    </property>
   </action>
  </widget>

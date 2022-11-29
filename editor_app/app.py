@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -16,8 +16,6 @@ from json import dump as jdump
 
 
 import traceback
-
-import editor as edi
 from rctobject import constants as cts
 from rctobject import objects as obj
 
@@ -49,6 +47,7 @@ class MainWindowUi(QMainWindow):
         self.actionOpenFile.triggered.connect(self.openObjectFile)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
+        self.actionSettings.triggered.connect(self.changeSettings)
         
         self.show()
         
@@ -57,12 +56,16 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open('config.json'))
         except FileNotFoundError:
             self.settings = {}
-            self.settings['openpath'] = obj.OPENRCTPATH
-            self.settings['author'] = ''
-            self.settings['author_id'] = ''
-            self.settings['no_zip'] = False
-            self.settings['version'] = '1.0'
-            self.settings['import_color'] = None
+            self.changeSettings()
+            
+            #If user refused to enter settings, use hard coded settings
+            if not self.settings:
+                self.settings['openpath'] = obj.OPENRCTPATH
+                self.settings['author'] = ''
+                self.settings['author_id'] = ''
+                self.settings['no_zip'] = False
+                self.settings['version'] = '1.0'
+                self.settings['import_color'] = (0,0,0)
             
         self.openpath = self.settings['openpath']
 
@@ -71,6 +74,13 @@ class MainWindowUi(QMainWindow):
         path = getcwd()
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
+            
+    def changeSettings(self):
+        dialog = wdg.ChangeSettingsUi(self.settings)
+        
+        if dialog.exec():
+            self.settings = dialog.ret
+            self.saveSettings()
         
         
     def newObject(self, obj_type = cts.Type.SMALL):
@@ -137,8 +147,7 @@ class MainWindowUi(QMainWindow):
         
         widget.saveObject(get_path = True)
 
-
-
+        
 
 
 
