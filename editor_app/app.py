@@ -60,7 +60,7 @@ class MainWindowUi(QMainWindow):
             
             #If user refused to enter settings, use hard coded settings
             if not self.settings:
-                self.settings['openpath'] = obj.OPENRCTPATH
+                self.settings['openpath'] = "%USERPROFILE%/Documents/OpenRCT2"
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
                 self.settings['no_zip'] = False
