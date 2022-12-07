@@ -367,9 +367,7 @@ class spritesTabSS(QWidget):
     def pasteSpriteFromClipboard(self):
         image = ImageGrab.grabclipboard()
 
-        if image:
-            image = pal.removeColorWhenImport(image.convert('RGBA'))
-            
+        if image:            
             sprite = spr.Sprite(image,(-int(image.size[0]/2),-int(image.size[1]/2)))
             self.o.setSprite(sprite)
             
@@ -450,6 +448,11 @@ class spritesTabSS(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
         
+    def updateAllViews(self):
+        self.updateMainView()
+        for rot in range(4):
+            self.updatePreview(rot)
+        
         
         
 class ChangeSettingsUi(QDialog):
@@ -470,6 +473,9 @@ class ChangeSettingsUi(QDialog):
         self.spinBox_G.setValue(settings.get('import_color', (0,0,0))[1])
         self.spinBox_B.setValue(settings.get('import_color', (0,0,0))[2])
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
+     
+        self.comboBox_palette.setCurrentIndex(settings.get('palette', 0))
+   
      
         self.loadSSSettings(settings)
         
@@ -507,7 +513,7 @@ class ChangeSettingsUi(QDialog):
     
     def clickChangeFolder(self, sender):
         
-        directory = sender.text() if sender.text() else getcwd()
+        directory = sender.text() if sender.text() else "%USERPROFILE%/Documents/"
         folder = QFileDialog.getExistingDirectory(
             self, "Select Output Directory", directory = directory)
         if folder:
@@ -524,6 +530,8 @@ class ChangeSettingsUi(QDialog):
         settings['version'] = self.doubleSpinBox_version.value()
         settings['transparency_color'] = self.comboBox_transparencycolor.currentIndex()
         settings['import_color'] = [self.spinBox_R.value(),self.spinBox_G.value(),self.spinBox_B.value()]
+        settings['palette'] = self.comboBox_palette.currentIndex()
+        
         
         ss_defaults = {}
         for flag in cts.Jsmall_flags:

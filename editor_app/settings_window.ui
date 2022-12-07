@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>437</width>
-    <height>376</height>
+    <height>411</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -300,6 +300,39 @@
        </property>
        <property name="value">
         <double>1.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_palette">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>310</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Open RCT</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Old Object Maker</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>310</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default viewing palette</string>
        </property>
       </widget>
      </widget>

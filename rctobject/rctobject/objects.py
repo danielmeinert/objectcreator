@@ -184,6 +184,11 @@ class RCTObject:
         width = int(x*32 + y*32)
 
         return (width, height)
+    
+    def switchPalette(self, palette):
+        for i, sprite in self.sprites.items():
+            sprite.switchPalette(palette)
+        
 
     def updateImageOffsets(self):
         for im in self.data['images']:

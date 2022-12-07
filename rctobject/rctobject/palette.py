@@ -12,7 +12,7 @@ from pkgutil import get_data
 
 class Palette(np.ndarray):
 
-    def __new__(cls, input_array, color_dict, has_sparkles=False):
+    def __new__(cls, input_array, color_dict, name, has_sparkles=False):
 
         if has_sparkles:
             sparkles = input_array[19]
@@ -20,6 +20,7 @@ class Palette(np.ndarray):
         obj = np.asarray(input_array).view(cls)
         obj.has_sparkles = has_sparkles
         obj.color_dict = color_dict
+        obj.name = name
         if has_sparkles:
             obj.sparkles = sparkles
 
@@ -31,12 +32,16 @@ class Palette(np.ndarray):
         self.has_sparkles = getattr(obj, 'has_sparkles', None)
         self.sparkles = getattr(obj, 'sparkles', None)
         self.color_dict = getattr(obj, 'color_dict', None)
+        self.name = getattr(obj, 'name', None)
 
-    # def __str__(self):
-    #     return "Palette class"
+    def __str__(self):
+         return self.name
+     
+    def __eq__(self, other):
+        return self.name == other.name
 
-    def __repr__(self):
-        return "Palette class"
+    # def __repr__(self):
+    #     return str(self.name)
 
     def getColor(self, color: str):
         if color == '2nd Remap':
@@ -159,13 +164,13 @@ remap_lookup = np.load(
     BytesIO(get_data("rctobject", "data/remap_mapping.npy")))
 
 data = np.load(BytesIO(get_data("rctobject", "data/green_remap_pal.npy")))
-green_remap = Palette(data, allColors(), has_sparkles=True)
+green_remap = Palette(data, allColors(), 'green_remap', has_sparkles=True)
 
 data = np.load(BytesIO(get_data("rctobject", "data/orct_pal.npy")))
-orct = Palette(data, allColors(), has_sparkles=True)
+orct = Palette(data, allColors(), 'orct', has_sparkles=True)
 
 data = np.load(BytesIO(get_data("rctobject", "data/old_objm_pal.npy")))
-old_objm = Palette(data, allColors(), has_sparkles=True)
+old_objm = Palette(data, allColors(), 'old_objm', has_sparkles=True)
 
 data = np.load(BytesIO(get_data("rctobject", "data/save_colors_pal.npy")))
 save_colors_dict = {
@@ -182,7 +187,7 @@ save_colors_dict = {
     'Brown': 11
 
 }
-save_colors = Palette(data, save_colors_dict)
+save_colors = Palette(data, save_colors_dict, 'save_colors')
 
 del(data)
 

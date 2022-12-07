@@ -13,8 +13,8 @@ class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         
         if image:
-            # if use_transparency:
-            #     image 
+            if use_transparency:
+                image = pal.removeColorWhenImport(image, transparent_color) 
                 
             image = pal.addPalette(image, palette, dither)
             
@@ -77,6 +77,8 @@ class Sprite:
     def switchPalette(self, palette_new: pal.Palette, include_sparkles=True):
         self.image = pal.switchPalette(
             self.image, self.palette, palette_new, include_sparkles)
+        self.palette = palette_new
+
 
     def changeBrightness(self, step: int, include_sparkles: bool = False):
         self.image = changeBrightness(

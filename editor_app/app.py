@@ -18,6 +18,7 @@ from json import dump as jdump
 import traceback
 from rctobject import constants as cts
 from rctobject import objects as obj
+from rctobject import palette as pal
 
 
 
@@ -49,6 +50,14 @@ class MainWindowUi(QMainWindow):
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
         self.actionSettings.triggered.connect(self.changeSettings)
         
+        self.actionBlack.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
+        self.actionWhite.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
+        self.actionUpper_Left_Pixel.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
+        self.actionCustom_Color.triggered.connect(lambda x, mode=3: self.setCurrentImportColor(mode))
+
+        self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
+        self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
+        
         self.show()
         
     def loadSettings(self):
@@ -56,7 +65,7 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open('config.json'))
         except FileNotFoundError:
             self.settings = {}
-            self.changeSettings()
+            self.changeSettings(update_tabs = False)
             
             #If user refused to enter settings, use hard coded settings
             if not self.settings:
@@ -65,9 +74,14 @@ class MainWindowUi(QMainWindow):
                 self.settings['author_id'] = ''
                 self.settings['no_zip'] = False
                 self.settings['version'] = '1.0'
-                self.settings['import_color'] = (0,0,0)
+                self.settings['transparency_color'] = 0
+                self.settings['import_color'] = [0,0,0]
+                self.settings['palette'] = 0
             
         self.openpath = self.settings['openpath']
+        self.setCurrentImportColor(self.settings['transparency_color'])
+        self.setCurrentPalette(self.settings['palette'], update_tabs = False)
+        
 
             
     def saveSettings(self):
@@ -75,18 +89,69 @@ class MainWindowUi(QMainWindow):
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
             
-    def changeSettings(self):
+    def changeSettings(self, update_tabs = True):
         dialog = wdg.ChangeSettingsUi(self.settings)
         
         if dialog.exec():
             self.settings = dialog.ret
+            
+            self.openpath = self.settings['openpath']
+            self.setCurrentImportColor(self.settings['transparency_color'])
+            self.setCurrentPalette(self.settings['palette'], update_tabs = update_tabs)
+            
             self.saveSettings()
+            
         
-        
+    def setCurrentImportColor(self, mode):
+        if mode == 0:
+            self.current_import_color = (0,0,0)
+            self.actionBlack.setChecked(True)
+            self.actionWhite.setChecked(False)
+            self.actionUpper_Left_Pixel.setChecked(False)
+            self.actionCustom_Color.setChecked(False)
+        elif mode == 1:
+            self.current_import_color = (255,255,255)
+            self.actionBlack.setChecked(False)
+            self.actionWhite.setChecked(True)
+            self.actionUpper_Left_Pixel.setChecked(False)
+            self.actionCustom_Color.setChecked(False)
+        elif mode == 2:
+            self.current_import_color = None
+            self.actionBlack.setChecked(False)
+            self.actionWhite.setChecked(False)
+            self.actionUpper_Left_Pixel.setChecked(True)
+            self.actionCustom_Color.setChecked(False)
+        elif mode == 3:
+            self.current_import_color = self.settings.get('import_color', (0,0,0))
+            self.actionBlack.setChecked(False)
+            self.actionWhite.setChecked(False)
+            self.actionUpper_Left_Pixel.setChecked(False)
+            self.actionCustom_Color.setChecked(True)
+            
+    def setCurrentPalette(self, palette, update_tabs = True):
+        if palette == 0:
+            self.current_palette = pal.orct
+            self.actionPaletteOpenRCT.setChecked(True)
+            self.actionPaletteOld.setChecked(False)
+        elif palette == 1:
+            self.current_palette = pal.green_remap
+            self.actionPaletteOpenRCT.setChecked(False)
+            self.actionPaletteOld.setChecked(True)
+          
+        if update_tabs:    
+            for index in range(self.objectTabs.count()):
+                tab = self.objectTabs.widget(index)                             
+                tab.o.switchPalette(self.current_palette)
+                tab.spritesTab.updateAllViews()
+            
+            
     def newObject(self, obj_type = cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
+        
+        if not self.current_palette == pal.orct:
+            o.switchPalette(self.current_palette)
         
         tab = wdg.objectTabSS(o, author_id = self.settings['author_id'], settings = self.settings)
         
@@ -130,6 +195,9 @@ class MainWindowUi(QMainWindow):
                     author_id = filename.split('.')[0]
             else:
                 filepath = None
+                
+            if not self.current_palette == pal.orct:
+                o.switchPalette(self.current_palette)
 
             
             tab = wdg.objectTabSS(o, filepath, author_id, settings = self.settings)

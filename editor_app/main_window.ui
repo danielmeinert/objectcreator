@@ -588,13 +588,21 @@ border: 1px solid darkgrey;}
      <property name="title">
       <string>Transparency Color</string>
      </property>
-     <addaction name="actionBlack_0_0_0"/>
-     <addaction name="actionWhite_255_255_255"/>
+     <addaction name="actionBlack"/>
+     <addaction name="actionWhite"/>
      <addaction name="actionUpper_Left_Pixel"/>
      <addaction name="actionCustom_Color"/>
     </widget>
+    <widget class="QMenu" name="menuPalette">
+     <property name="title">
+      <string>Palette</string>
+     </property>
+     <addaction name="actionPaletteOpenRCT"/>
+     <addaction name="actionPaletteOld"/>
+    </widget>
     <addaction name="actionSettings"/>
     <addaction name="menuImport_Color"/>
+    <addaction name="menuPalette"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -668,7 +676,7 @@ border: 1px solid darkgrey;}
     <string>Settings...</string>
    </property>
   </action>
-  <action name="actionBlack_0_0_0">
+  <action name="actionBlack">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -679,7 +687,7 @@ border: 1px solid darkgrey;}
     <string>Black (0,0,0)</string>
    </property>
   </action>
-  <action name="actionWhite_255_255_255">
+  <action name="actionWhite">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -701,6 +709,22 @@ border: 1px solid darkgrey;}
    </property>
    <property name="text">
     <string>Custom Color</string>
+   </property>
+  </action>
+  <action name="actionPaletteOpenRCT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Open RCT</string>
+   </property>
+  </action>
+  <action name="actionPaletteOld">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Green Remap</string>
    </property>
   </action>
  </widget>
