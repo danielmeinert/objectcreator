@@ -10,7 +10,7 @@ import rctobject.palette as pal
 
 
 class Sprite:
-    def __init__(self, image: Image.Image, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
+    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         
         if image:
             if use_transparency:
@@ -23,12 +23,19 @@ class Sprite:
 
         self.image = image
         self.image_base = image
-        self.x, self.y = coords
-        self.x_base, self.y_base = coords
+        if coords:
+            self.x, self.y = coords
+            self.x_base, self.y_base = coords
+        else:
+            self.x = -int(image.size[0]/2)
+            self.y = -int(image.size[1]/2)
+            self.x_base = int(self.x)
+            self.y_base = int(self.y)
+            
         self.palette = palette
 
     @classmethod
-    def fromFile(cls, path: str, coords: tuple = (0, 0), palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
+    def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(image=image, coords=coords, palette=palette, dither=dither, use_transparency = use_transparency, transparent_color = transparent_color)

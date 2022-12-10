@@ -652,6 +652,82 @@
        <string>4</string>
       </property>
      </widget>
+     <widget class="QWidget" name="widget_firstRemap" native="true">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>330</y>
+        <width>104</width>
+        <height>52</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_firstRemap">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>380</y>
+        <width>15</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_secondRemap">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>400</y>
+        <width>15</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_thirdRemap">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>420</y>
+        <width>15</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
      <zorder>groupBox_auxiliaries</zorder>
      <zorder>sprite_view_main</zorder>
      <zorder>groupBox_imageControl</zorder>
@@ -671,6 +747,10 @@
      <zorder>label_3</zorder>
      <zorder>label_7</zorder>
      <zorder>label_8</zorder>
+     <zorder>widget_firstRemap</zorder>
+     <zorder>pushButton_firstRemap</zorder>
+     <zorder>pushButton_secondRemap</zorder>
+     <zorder>pushButton_thirdRemap</zorder>
     </widget>
    </item>
   </layout>

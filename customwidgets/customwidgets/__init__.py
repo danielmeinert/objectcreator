@@ -4,7 +4,7 @@ Created on Thu Mar 31 17:00:22 2022
 
 @author: puvlh
 """
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 
 from rctobject import palette as pal
@@ -42,11 +42,11 @@ class shadeButton(QPushButton):
 
         self.setStyleSheet("QPushButton"
                            "{"
-                           f"background-color :  rgb{shade}; border:none;"
+                           f"background-color :  rgb{shade};"
                            "}"
                            "QPushButton:pressed"
                            "{"
-                           f"background-color : rgb{shade}; border: none"
+                           f"background-color : rgb{shade};"
                            "}"
                            "QPushButton:checked"
                            "{"
@@ -141,6 +141,47 @@ class colorSelectWidget(QWidget):
                 ret.append(name)
         
         return ret
+    
+class remapColorSelectWidget(QWidget):
+    def __init__(self, palette ,parent, button_func, remap, window_button):
+        super().__init__(parent=parent)
         
+        self.active_color_button = None
+        self.button = window_button
         
+        self.setMinimumSize(QtCore.QSize(8*13,4*13))
+
+        container = QGridLayout()
+        container.setSpacing(0)
+        container.setContentsMargins(0, 0, 0, 0)
+
+        self.setLayout(container)
+        
+        for color_name, i in pal.remapColors().items():
+            if i == -1:
+                continue
+            
+            shade = palette.getRemapColor(color_name)[6]
+            b = shadeButton(tuple(shade))
+            b.clicked.connect(lambda x, color_name = color_name, remap = remap, button_func = button_func: self.colorButtonClicked(color_name, remap, button_func))
+            x = i % 8
+            y = int(i/8)
+            container.addWidget(b,y,x)
+        
+    def colorButtonClicked(self, color_name, remap, button_func):
+        button = self.sender()
+        if button is self.active_color_button:
+            self.active_color_button = None
+            button_func("NoColor", remap, self.button, None)
+            self.hide()
+            return
+            
+        if self.active_color_button:
+            self.active_color_button.setChecked(False)
+            
+        self.active_color_button = button
+
+        button_func(color_name, remap, self.button, button.shade)
+        
+        self.hide()
         

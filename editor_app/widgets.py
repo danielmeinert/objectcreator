@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
@@ -9,19 +9,21 @@ import os.path
 
 from os import getcwd
 
+from customwidgets import remapColorSelectWidget
+
 from rctobject import constants as cts
 from rctobject import sprites as spr
 from rctobject import palette as pal
 
 
 class objectTabSS(QWidget):
-    def __init__(self, o, filepath = None, author_id = None, settings = {}):
+    def __init__(self, o, main_window, filepath = None, author_id = None):
         super().__init__()
         
         self.o = o
         self.lastpath = filepath
         self.saved = False
-        self.settings = settings
+        self.main_window = main_window
 
         layout = QHBoxLayout()
         
@@ -80,7 +82,8 @@ class settingsTabSS(QWidget):
         
         self.o = o
         self.object_tab = object_tab
-        self.sprites_tab = sprites_tab        
+        self.sprites_tab = sprites_tab 
+        self.main_window = object_tab.main_window
         
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
@@ -271,7 +274,10 @@ class spritesTabSS(QWidget):
         
         self.o = o
         self.object_tab = object_tab
+        self.main_window = object_tab.main_window
+                
         
+        main_widget = self.findChild(QGroupBox, "groupBox_spriteSS")
         
         # Buttons load/reset
         self.buttonLoadImage = self.findChild(
@@ -329,21 +335,38 @@ class spritesTabSS(QWidget):
         for rot, widget in enumerate(self.sprite_preview):
             self.sprite_preview[rot].mousePressEvent = (lambda e, rot=rot: self.previewClicked(rot))
             self.updatePreview(rot)
+        
             
+        # Remap Color Panel
+        self.buttonFirstRemap = self.findChild(QPushButton, 'pushButton_firstRemap')
+        self.firstRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.buttonFirstRemap)
+        self.firstRemapSelectPanel.setGeometry(170, 330, 104, 52)
+        self.firstRemapSelectPanel.hide()
+        self.buttonFirstRemap.clicked.connect(self.firstRemapSelectPanel.show)
+        
+        self.buttonSecondRemap = self.findChild(QPushButton, 'pushButton_secondRemap')
+        self.secondRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
+        self.secondRemapSelectPanel.setGeometry(170, 350, 104, 52)
+        self.secondRemapSelectPanel.hide()
+        self.buttonSecondRemap.clicked.connect(self.secondRemapSelectPanel.show)
+        
+        self.buttonThirdRemap = self.findChild(QPushButton, 'pushButton_thirdRemap')
+        self.thirdRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
+        self.thirdRemapSelectPanel.setGeometry(170, 370, 104, 52)
+        self.thirdRemapSelectPanel.hide()
+        self.buttonThirdRemap.clicked.connect(self.thirdRemapSelectPanel.show)
+        
         self.previewClicked(0)
+        
+        
     
     def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
-            sprite = spr.Sprite.fromFile(filepath)
-            sprite.x = -int(sprite.image.size[0]/2)
-            sprite.y = -int(sprite.image.size[1]/2)
-            sprite.x_base = int(sprite.x)
-            sprite.y_base = int(sprite.y)
-            self.o.setSprite(sprite)
-            
+            sprite = spr.Sprite.fromFile(filepath, palette = self.main_window.current_palette, use_transparency = True, transparent_color = self.main_window.current_import_color)
+            self.o.setSprite(sprite)        
 
         self.updateMainView()
         
@@ -368,7 +391,7 @@ class spritesTabSS(QWidget):
         image = ImageGrab.grabclipboard()
 
         if image:            
-            sprite = spr.Sprite(image,(-int(image.size[0]/2),-int(image.size[1]/2)))
+            sprite = spr.Sprite(image, palette = self.main_window.current_palette, use_transparency = True, transparent_color = self.main_window.current_import_color)
             self.o.setSprite(sprite)
             
         self.updateMainView()
@@ -409,6 +432,20 @@ class spritesTabSS(QWidget):
                 Image.FLIP_TOP_BOTTOM)
 
         self.updateMainView()
+        
+    def clickChangeRemap(self, color, remap, button, shade):
+        self.o.changeRemap(color, remap)
+        
+        if shade:
+            button.setStyleSheet("QPushButton"
+                                 "{"
+                                 f"background-color :  rgb{shade};"
+                                 "}")
+        else:
+            button.setStyleSheet("")
+        
+        self.updateAllViews()
+        
      
     def updateMainView(self):
         im, x, y = self.o.show()

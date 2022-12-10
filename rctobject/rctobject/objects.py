@@ -189,6 +189,13 @@ class RCTObject:
         for i, sprite in self.sprites.items():
             sprite.switchPalette(palette)
         
+    def changeRemap(self, color, remap):
+        if remap == '1st Remap':
+            self.current_first_remap = color
+        elif remap == '2nd Remap':
+            self.current_second_remap = color
+        elif remap == '3rd Remap':
+            self.current_third_remap = color
 
     def updateImageOffsets(self):
         for im in self.data['images']:
