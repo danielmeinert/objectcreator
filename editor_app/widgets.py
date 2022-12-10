@@ -5,8 +5,8 @@ from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
 from copy import copy
+import io
 import os.path
-
 from os import getcwd
 
 from customwidgets import remapColorSelectWidget
@@ -14,6 +14,9 @@ from customwidgets import remapColorSelectWidget
 from rctobject import constants as cts
 from rctobject import sprites as spr
 from rctobject import palette as pal
+
+import resources_rc
+
 
 
 class objectTabSS(QWidget):
@@ -43,9 +46,10 @@ class objectTabSS(QWidget):
             
         if get_path or not self.saved:
             if self.lastpath:
-                path = f"{self.lastpath}/{name}" 
+                path = f"{self.lastpath}/{name}.parkobj" 
             else:
-                path = name
+                folder = self.main_window.settings.get('savedefault', getcwd)
+                path = f"{folder}/{name}.parkobj"
     
             filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path,"Parkobj Files (*.parkobj)")
             while filepath.endswith('.parkobj'):
@@ -70,7 +74,7 @@ class objectTabSS(QWidget):
         
         if filepath:
             self.lastpath = filepath
-            self.o.save(filepath, name = name, no_zip = self.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+            self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
             
  
@@ -106,7 +110,8 @@ class settingsTabSS(QWidget):
         self.diagonal_box.stateChanged.connect(self.shapeChanged)
         
         ### Clearence Spinbox
-        self.clearence_box = self.findChild(QDoubleSpinBox, "doubleSpinBox_clearence")
+        self.clearence_box = self.findChild(QSpinBox, "spinBox_clearence")
+        self.clearence_box.valueChanged.connect(self.clearenceChanged)
         
         ### Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
@@ -192,6 +197,11 @@ class settingsTabSS(QWidget):
                  shape = self.o.Shape.FULL
 
         self.o.changeShape(shape)
+        self.sprites_tab.updateMainView()
+        
+    def clearenceChanged(self, value):
+        self.o['properties']['height'] = value*8
+        self.sprites_tab.updateMainView()
         
     def authorChanged(self, value):
         self.o['authors'] = value 
@@ -201,8 +211,7 @@ class settingsTabSS(QWidget):
         
     def idChanged(self, value):
         self.o['id'] = value
-        self.object_tab.saved = False
-        
+        self.object_tab.saved = False        
         
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
@@ -235,7 +244,7 @@ class settingsTabSS(QWidget):
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
         self.shape_box.setCurrentIndex(self.o.shape.value)
         
-        self.clearence_box.setValue(self.o['properties']['height'])
+        self.clearence_box.setValue(int(self.o['properties']['height']/8))
         
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)
@@ -275,6 +284,8 @@ class spritesTabSS(QWidget):
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
+        
+        self.loadBoundingBoxes()
                 
         
         main_widget = self.findChild(QGroupBox, "groupBox_spriteSS")
@@ -291,7 +302,11 @@ class spritesTabSS(QWidget):
         self.buttonResetImage.clicked.connect(self.resetImage)
         self.buttonResetOffsets.clicked.connect(self.resetOffsets)
 
+        # Buttons auxiliary
+        self.buttonBoundingBox =  self.findChild(
+            QToolButton, "toolButton_boundingBox")
         
+        self.buttonBoundingBox.clicked.connect(self.updateMainView)
         
         # Sprite control buttons
         self.buttonSpriteLeft = self.findChild(
@@ -338,26 +353,37 @@ class spritesTabSS(QWidget):
         
             
         # Remap Color Panel
+        groupRemap = self.findChild(QGroupBox, 'groupBox_remap')
+        coords_group = (groupRemap.x(),groupRemap.y())
+
         self.buttonFirstRemap = self.findChild(QPushButton, 'pushButton_firstRemap')
         self.firstRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.buttonFirstRemap)
-        self.firstRemapSelectPanel.setGeometry(170, 330, 104, 52)
+        self.firstRemapSelectPanel.setGeometry(coords_group[0] + self.buttonFirstRemap.x(), coords_group[1] +  self.buttonFirstRemap.y()-50, 104, 52)
         self.firstRemapSelectPanel.hide()
-        self.buttonFirstRemap.clicked.connect(self.firstRemapSelectPanel.show)
+        self.buttonFirstRemap.clicked.connect(lambda x, panel = self.firstRemapSelectPanel: self.clickRemapButton(panel = panel))
         
         self.buttonSecondRemap = self.findChild(QPushButton, 'pushButton_secondRemap')
         self.secondRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
-        self.secondRemapSelectPanel.setGeometry(170, 350, 104, 52)
+        self.secondRemapSelectPanel.setGeometry(coords_group[0] + self.buttonSecondRemap.x(), coords_group[1] +  self.buttonSecondRemap.y()-50, 104, 52)
         self.secondRemapSelectPanel.hide()
-        self.buttonSecondRemap.clicked.connect(self.secondRemapSelectPanel.show)
+        self.buttonSecondRemap.clicked.connect(lambda x, panel = self.secondRemapSelectPanel: self.clickRemapButton(panel = panel))
         
         self.buttonThirdRemap = self.findChild(QPushButton, 'pushButton_thirdRemap')
         self.thirdRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
-        self.thirdRemapSelectPanel.setGeometry(170, 370, 104, 52)
+        self.thirdRemapSelectPanel.setGeometry(coords_group[0] + self.buttonThirdRemap.x(), coords_group[1] +  self.buttonThirdRemap.y()-50, 104, 52)
         self.thirdRemapSelectPanel.hide()
-        self.buttonThirdRemap.clicked.connect(self.thirdRemapSelectPanel.show)
+        self.buttonThirdRemap.clicked.connect(lambda x, panel = self.thirdRemapSelectPanel: self.clickRemapButton(panel = panel))
         
         self.previewClicked(0)
         
+        
+    def loadBoundingBoxes(self):
+        img = QtGui.QImage(":/images/res/backbox_quarter.png")
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QBuffer.ReadWrite)
+        img.save(buffer, "PNG")
+        self.backbox_quarter = Image.open(io.BytesIO(buffer.data()))
+        buffer.close()
         
     
     def loadImage(self):
@@ -432,7 +458,13 @@ class spritesTabSS(QWidget):
                 Image.FLIP_TOP_BOTTOM)
 
         self.updateMainView()
-        
+    
+    def clickRemapButton(self, panel):
+        if panel.isVisible():
+            panel.hide()
+        else:
+            panel.show()
+    
     def clickChangeRemap(self, color, remap, button, shade):
         self.o.changeRemap(color, remap)
         
@@ -457,9 +489,16 @@ class spritesTabSS(QWidget):
         coords = (76+x, 200+y)
         
         canvas = Image.new('RGBA', (152, 271))
-        canvas.paste(im, coords, im)
-        #canvas.paste(self.frame_image, self.frame_image)
+        
+        if self.buttonBoundingBox.isChecked():
+            h = int(self.o['properties']['height']/8)
+            for i in range(h):
+                canvas.paste(self.backbox_quarter, (76-16,200-(h-i)*8-7), self.backbox_quarter)
 
+            
+        #canvas.paste(self.frame_image, self.frame_image)
+        canvas.paste(im, coords, im)
+        
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_view_main.setPixmap(pixmap)
@@ -500,9 +539,18 @@ class ChangeSettingsUi(QDialog):
         self.setFixedSize(self.size())
          
         self.lineEdit_openpath.setText(settings.get('openpath'))
-        self.lineEdit_savedefault.setText(settings.get('savedefault'))
+        self.lineEdit_saveDefault.setText(settings.get('savedefault'))
+        self.lineEdit_openDefault.setText(settings.get('opendefault'))
+
         self.lineEdit_authorID.setText(settings.get('author_id'))
         self.lineEdit_author.setText(settings.get('author'))
+        
+        self.pushButton_changeOpenpath.clicked.connect(lambda x, sender = self.lineEdit_openpath:
+            self.clickChangeFolder(sender))
+        self.pushButton_changeSaveDefault.clicked.connect(lambda x, sender = self.lineEdit_saveDefault:
+            self.clickChangeFolder(sender))
+        self.pushButton_changeOpenDefault.clicked.connect(lambda x, sender = self.lineEdit_openDefault:
+            self.clickChangeFolder(sender))
         
         self.checkBox_nozip.setChecked(settings.get('no_zip', False))
         self.comboBox_transparencycolor.setCurrentIndex(settings.get('transparency_color', 0))
@@ -515,10 +563,6 @@ class ChangeSettingsUi(QDialog):
    
      
         self.loadSSSettings(settings)
-        
-     
-        
-     
         
      
     def loadSSSettings(self, settings):
@@ -542,15 +586,12 @@ class ChangeSettingsUi(QDialog):
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
         spinbox.setValue(int(settings.get('small_scenery_defaults',{}).get('removalPrice', 1)))
         
-        self.pushButton_changeOpenpath.clicked.connect(lambda x, sender = self.lineEdit_openpath:
-            self.clickChangeFolder(sender))
-        self.pushButton_changeSaveDefault.clicked.connect(lambda x, sender = self.lineEdit_savedefault:
-            self.clickChangeFolder(sender))
+
 
     
     def clickChangeFolder(self, sender):
         
-        directory = sender.text() if sender.text() else "%USERPROFILE%/Documents/"
+        directory = sender.text() if sender.text() != '' else "%USERPROFILE%/Documents/"
         folder = QFileDialog.getExistingDirectory(
             self, "Select Output Directory", directory = directory)
         if folder:
@@ -561,6 +602,8 @@ class ChangeSettingsUi(QDialog):
         settings = {}
         
         settings['openpath'] = self.lineEdit_openpath.text()
+        settings['savedefault'] =self.lineEdit_saveDefault.text()
+        settings['opendefault'] =self.lineEdit_openDefault.text()
         settings['author'] = self.lineEdit_author.text()
         settings['author_id'] = self.lineEdit_authorID.text()
         settings['no_zip'] = self.checkBox_nozip.isChecked()

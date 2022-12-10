@@ -69,7 +69,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>60</y>
+         <y>50</y>
          <width>201</width>
          <height>16</height>
         </rect>
@@ -82,7 +82,7 @@
        <property name="geometry">
         <rect>
          <x>370</x>
-         <y>80</y>
+         <y>70</y>
          <width>31</width>
          <height>23</height>
         </rect>
@@ -91,11 +91,11 @@
         <string>...</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="lineEdit_savedefault">
+      <widget class="QLineEdit" name="lineEdit_saveDefault">
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>80</y>
+         <y>70</y>
          <width>341</width>
          <height>20</height>
         </rect>
@@ -333,6 +333,42 @@
        </property>
        <property name="text">
         <string>Default viewing palette</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_openpath_3">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>90</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default open folder</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_openDefault">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>110</y>
+         <width>341</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_changeOpenDefault">
+       <property name="geometry">
+        <rect>
+         <x>370</x>
+         <y>110</y>
+         <width>31</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
        </property>
       </widget>
      </widget>

@@ -304,7 +304,7 @@ QTabBar::tab:selected {
            <bool>false</bool>
           </property>
          </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_clearence">
+         <widget class="QSpinBox" name="spinBox_clearence">
           <property name="geometry">
            <rect>
             <x>20</x>
@@ -316,17 +316,8 @@ QTabBar::tab:selected {
           <property name="toolTip">
            <string notr="true">Object height</string>
           </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <double>32.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
           <property name="value">
-           <double>1.000000000000000</double>
+           <number>1</number>
           </property>
          </widget>
          <widget class="QLabel" name="label_clearence">

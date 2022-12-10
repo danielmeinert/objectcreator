@@ -13,7 +13,7 @@ Created 09/26/2021; 16:58:33
 
 from json import dump, loads
 from json import load as jload
-from os import mkdir, replace, getcwd
+from os import mkdir, makedirs, replace, getcwd
 from os.path import splitext
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
@@ -169,7 +169,7 @@ class RCTObject:
             replace(f'{filename}.zip', f'{filename}.parkobj')
             if no_zip:
                 rmtree(filename, ignore_errors=True)
-                mkdir(filename)
+                makedirs(filename, exist_ok=True)
                # mkdir(f'{filename}/images')
                 move(f'{temp}/images', filename)
                 move(f'{temp}/object.json', filename)

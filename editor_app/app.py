@@ -70,6 +70,8 @@ class MainWindowUi(QMainWindow):
             #If user refused to enter settings, use hard coded settings
             if not self.settings:
                 self.settings['openpath'] = "%USERPROFILE%/Documents/OpenRCT2"
+                self.settings['savedefault'] = ''
+                self.settings['opendefault'] =  "%USERPROFILE%/Documents/OpenRCT2/object"
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
                 self.settings['no_zip'] = False
@@ -162,9 +164,10 @@ class MainWindowUi(QMainWindow):
         self.objectTabs.removeTab(index)
         
     def openObjectFile(self):
-                
+           
+        
         filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Object", "", "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
+            self, "Open Object", self.settings.get('opendefault',''), "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
 
         if filepath:
             try:
