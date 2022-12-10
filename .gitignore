@@ -1,7 +1,7 @@
 # Specifics for this repo
 *.parkobj
 *.DAT
-config.json
+*/config.json
 output/
 test/
 
