@@ -4,8 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWi
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
-from customwidgets import colorSelectWidget
-import widgets as wdg
+import traceback
 import sys
 import io
 from os import getcwd
@@ -13,9 +12,10 @@ from os.path import splitext, split
 from json import load as jload
 from json import dump as jdump
 
+from customwidgets import colorSelectWidget
+import widgets as wdg
+import auxiliaries as aux
 
-
-import traceback
 from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
@@ -30,6 +30,7 @@ class MainWindowUi(QMainWindow):
         self.new_object_count = 1
         
         self.loadSettings()
+        self.bounding_boxes = aux.BoundingBoxes()
         
         ##### Object Tabs ###
         self.objectTabs = self.findChild(
@@ -166,47 +167,48 @@ class MainWindowUi(QMainWindow):
     def openObjectFile(self):
            
         
-        filepath, _ = QFileDialog.getOpenFileName(
+        filepaths, _ = QFileDialog.getOpenFileNames(
             self, "Open Object", self.settings.get('opendefault',''), "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
 
-        if filepath:
-            try:
-                o = obj.load(filepath, openpath = self.openpath)
-                name = o.data.get('id', None)
-                if not name:
-                    if o.old_id:
-                        name = o.old_id
-                    else:
-                        name = f'Object {self.new_object_count}'
-                        self.new_object_count += 1
-            except Exception as e:
-                msg = QMessageBox(self)
-                msg.setIcon(QMessageBox.Critical)
-                msg.setWindowTitle("Error")
-                msg.setText("Failed to load object")
-                msg.setInformativeText(str(e))
-                msg.show()
-                return
-            
-            extension = splitext(filepath)[1].lower()
-            author_id = None
-            if extension == '.parkobj':
-                filepath, filename = split(filepath)
+        if filepaths:
+            for filepath in filepaths:
+                try:
+                    o = obj.load(filepath, openpath = self.openpath)
+                    name = o.data.get('id', None)
+                    if not name:
+                        if o.old_id:
+                            name = o.old_id
+                        else:
+                            name = f'Object {self.new_object_count}'
+                            self.new_object_count += 1
+                except Exception as e:
+                    msg = QMessageBox(self)
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setWindowTitle("Error")
+                    msg.setText("Failed to load object")
+                    msg.setInformativeText(str(e))
+                    msg.show()
+                    return
                 
-                # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
-                if len(filename.split('.')) > 2:
-                    author_id = filename.split('.')[0]
-            else:
-                filepath = None
+                extension = splitext(filepath)[1].lower()
+                author_id = None
+                if extension == '.parkobj':
+                    filepath, filename = split(filepath)
+                    
+                    # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
+                    if len(filename.split('.')) > 2:
+                        author_id = filename.split('.')[0]
+                else:
+                    filepath = None
+                    
+                if not self.current_palette == pal.orct:
+                    o.switchPalette(self.current_palette)
+    
                 
-            if not self.current_palette == pal.orct:
-                o.switchPalette(self.current_palette)
-
+                tab = wdg.objectTabSS(o, self, filepath, author_id)
             
-            tab = wdg.objectTabSS(o, self, filepath, author_id)
-        
-            self.objectTabs.addTab(tab, name)
-            self.objectTabs.setCurrentWidget(tab)
+                self.objectTabs.addTab(tab, name)
+                self.objectTabs.setCurrentWidget(tab)
             
     def saveObject(self):
         widget = self.objectTabs.currentWidget()
@@ -217,8 +219,6 @@ class MainWindowUi(QMainWindow):
         widget = self.objectTabs.currentWidget()
         
         widget.saveObject(get_path = True)
-
-        
 
 
 

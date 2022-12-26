@@ -491,7 +491,7 @@
        <pixmap>:/images/res/frame.png</pixmap>
       </property>
      </widget>
-     <widget class="QLabel" name="sprite_view_preview3">
+     <widget class="QLabel" name="sprite_view_preview2">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -531,7 +531,7 @@
        <pixmap>:/images/res/frame.png</pixmap>
       </property>
      </widget>
-     <widget class="QLabel" name="sprite_view_preview2">
+     <widget class="QLabel" name="sprite_view_preview3">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -636,7 +636,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>3</string>
+       <string>4</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_8">
@@ -649,7 +649,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>4</string>
+       <string>3</string>
       </property>
      </widget>
      <widget class="QGroupBox" name="groupBox_remap">
@@ -670,7 +670,7 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>6</x>
          <y>20</y>
          <width>15</width>
          <height>15</height>
@@ -689,27 +689,27 @@
       <widget class="QLabel" name="label_6">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>28</x>
          <y>60</y>
          <width>47</width>
          <height>13</height>
         </rect>
        </property>
        <property name="text">
-        <string>Third</string>
+        <string>Tertiary</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_5">
        <property name="geometry">
         <rect>
-         <x>30</x>
-         <y>40</y>
-         <width>47</width>
-         <height>13</height>
+         <x>28</x>
+         <y>36</y>
+         <width>61</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
-        <string>Second</string>
+        <string>Secondary</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_thirdRemap">
@@ -718,7 +718,7 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>6</x>
          <y>60</y>
          <width>15</width>
          <height>15</height>
@@ -740,7 +740,7 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>6</x>
          <y>40</y>
          <width>15</width>
          <height>15</height>
@@ -759,14 +759,14 @@
       <widget class="QLabel" name="label_4">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>28</x>
          <y>20</y>
          <width>47</width>
          <height>13</height>
         </rect>
        </property>
        <property name="text">
-        <string>First</string>
+        <string>Primary</string>
        </property>
       </widget>
      </widget>
@@ -781,8 +781,8 @@
      <zorder>label_2</zorder>
      <zorder>horizontalSlider_animationFrame</zorder>
      <zorder>sprite_view_preview1</zorder>
-     <zorder>sprite_view_preview3</zorder>
      <zorder>sprite_view_preview2</zorder>
+     <zorder>sprite_view_preview3</zorder>
      <zorder>pushButton_animate</zorder>
      <zorder>pushButton_cycleRotation</zorder>
      <zorder>label</zorder>
@@ -794,6 +794,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

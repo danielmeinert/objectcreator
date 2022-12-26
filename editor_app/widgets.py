@@ -14,50 +14,50 @@ from customwidgets import remapColorSelectWidget
 from rctobject import constants as cts
 from rctobject import sprites as spr
 from rctobject import palette as pal
+from rctobject import objects as obj
 
-import resources_rc
 
 
 
 class objectTabSS(QWidget):
     def __init__(self, o, main_window, filepath = None, author_id = None):
         super().__init__()
-        
+
         self.o = o
         self.lastpath = filepath
         self.saved = False
         self.main_window = main_window
 
         layout = QHBoxLayout()
-        
+
         self.spritesTab = spritesTabSS(o, self)
         self.settingsTab = settingsTabSS(o, self, self.spritesTab, author_id)
-        
+
         layout.addWidget(self.spritesTab)
         layout.addWidget(self.settingsTab)
-        
+
         self.setLayout(layout)
-        
+
     def saveObject(self, get_path):
         if self.settingsTab.author_id_field.text():
-            name = f"{self.settingsTab.author_id_field.text()}.{self.o.data.get('id','')}" 
+            name = f"{self.settingsTab.author_id_field.text()}.{self.o.data.get('id','')}"
         else:
             name = self.o.data.get('id','')
-            
+
         if get_path or not self.saved:
             if self.lastpath:
-                path = f"{self.lastpath}/{name}.parkobj" 
+                path = f"{self.lastpath}/{name}.parkobj"
             else:
                 folder = self.main_window.settings.get('savedefault', getcwd)
                 path = f"{folder}/{name}.parkobj"
-    
+
             filepath, _ = QFileDialog.getSaveFileName(self, "Save Object", path,"Parkobj Files (*.parkobj)")
             while filepath.endswith('.parkobj'):
                 filepath = filepath[:-8]
             filepath, name = os.path.split(filepath)
         else:
             filepath = self.lastpath
-            
+
         if self.settingsTab.checkBox_remapCheck.isChecked():
             for path, sprite in self.o.sprites.items():
                 if sprite.checkPrimaryColor():
@@ -71,36 +71,36 @@ class objectTabSS(QWidget):
                 if sprite.checkTertiaryColor():
                     self.o['properties']['hasTertiaryColour'] = True
                     break
-        
+
         if filepath:
             self.lastpath = filepath
             self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
-            
- 
+
+
 
 class settingsTabSS(QWidget):
     def __init__(self, o, object_tab, sprites_tab, author_id):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
-        
+
         self.o = o
         self.object_tab = object_tab
-        self.sprites_tab = sprites_tab 
+        self.sprites_tab = sprites_tab
         self.main_window = object_tab.main_window
-        
+
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
-        
+
         ### Subtype combobox, for now only simple available
         self.subtype_box = self.findChild(
             QComboBox, "comboBox_subtype")
 
         self.subtype_box.currentIndexChanged.connect(self.subtypeChanged)
-        
+
         for i in [1,2,3]:
             self.subtype_box.model().item(i).setEnabled(False)
-            
+
         ### Shape combobox, for now only simple available
         self.shape_box = self.findChild(
             QComboBox, "comboBox_shape")
@@ -108,19 +108,19 @@ class settingsTabSS(QWidget):
 
         self.shape_box.currentIndexChanged.connect(self.shapeChanged)
         self.diagonal_box.stateChanged.connect(self.shapeChanged)
-        
+
         ### Clearence Spinbox
         self.clearence_box = self.findChild(QSpinBox, "spinBox_clearence")
         self.clearence_box.valueChanged.connect(self.clearenceChanged)
-        
+
         ### Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
-        
+
         for cursor in cts.cursors:
             self.cursor_box.addItem(cursor.replace('_', ' '))
-        
-        
-        ### Names 
+
+
+        ### Names
         self.author_field = self.findChild(QLineEdit, "lineEdit_author")
         self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
         self.object_id_field = self.findChild(QLineEdit, "lineEdit_objectID")
@@ -148,30 +148,29 @@ class settingsTabSS(QWidget):
         checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
         checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
         checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
-        
+
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
-        
+
         self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOrginalId")
-        
+
         self.loadObjectSettings(author_id)
-        
-       
+
+
     def tabChanged(self, index):
         if index == 0:
             self.object_name_field.setText(self.o['strings']['name']['en-GB'])
         elif index == 2 and self.language_index == 0:
             self.object_name_lang_field.setText(self.o['strings']['name']['en-GB'])
-        
-        
-    # bother with when other subtypes are introduced   
+
+
+    # bother with when other subtypes are introduced
     def subtypeChanged(self, value):
-        pass        
-        
-        
+        pass
+
+
     def shapeChanged(self):
         value = self.shape_box.currentIndex()
-        
         if value == 0:
             self.diagonal_box.setEnabled(True)
             if self.diagonal_box.isChecked():
@@ -188,7 +187,7 @@ class settingsTabSS(QWidget):
             self.diagonal_box.setChecked(True)
             self.diagonal_box.setEnabled(False)
             shape = self.o.Shape.THREEQ
-        
+
         elif value == 3:
              self.diagonal_box.setEnabled(True)
              if self.diagonal_box.isChecked():
@@ -198,28 +197,28 @@ class settingsTabSS(QWidget):
 
         self.o.changeShape(shape)
         self.sprites_tab.updateMainView()
-        
+
     def clearenceChanged(self, value):
         self.o['properties']['height'] = value*8
         self.sprites_tab.updateMainView()
-        
+
     def authorChanged(self, value):
-        self.o['authors'] = value 
-        
+        self.o['authors'] = value
+
     def authorIdChanged(self, value):
         self.object_tab.saved = False
-        
+
     def idChanged(self, value):
         self.o['id'] = value
-        self.object_tab.saved = False        
-        
+        self.object_tab.saved = False
+
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
-        
-    def nameChangedLang(self, value):    
+
+    def nameChangedLang(self, value):
         if self.language_index == 0:
             self.o['strings']['name']['en-GB'] = value
-            
+
     def languageChanged(self, value):
         lang = list(cts.languages)[self.language_index]
         self.o['strings']['name'][lang] = self.object_name_lang_field.text()
@@ -227,39 +226,50 @@ class settingsTabSS(QWidget):
         self.language_index = value
         lang = list(cts.languages)[value]
         self.object_name_lang_field.setText(self.o['strings']['name'].get(lang,''))
-      
+
     def flagChanged(self, value, flag):
-        self.o.flagChanged(flag, bool(value))
-        
+        self.o.changeFlag(flag, bool(value))
+
         self.sprites_tab.updateMainView()
 
     def flagRemapChanged(self, value):
-        self.hasPrimaryColour.setEnabled(not bool(value))    
-        self.hasSecondaryColour.setEnabled(not bool(value))    
-        self.hasTertiaryColour.setEnabled(not bool(value))    
+        self.hasPrimaryColour.setEnabled(not bool(value))
+        self.hasSecondaryColour.setEnabled(not bool(value))
+        self.hasTertiaryColour.setEnabled(not bool(value))
 
-        
+
     def loadObjectSettings(self, author_id = None):
-         
+
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
-        self.shape_box.setCurrentIndex(self.o.shape.value)
-        
+
+        shape = self.o.shape
+
+        if shape == self.o.Shape.FULLD:
+            self.shape_box.setCurrentIndex(3)
+            self.diagonal_box.setChecked(True)
+        elif shape == self.o.Shape.QUARTERD:
+            self.shape_box.setCurrentIndex(0)
+            self.diagonal_box.setChecked(True)
+        else:
+            self.shape_box.setCurrentIndex(shape.value)
+
+
         self.clearence_box.setValue(int(self.o['properties']['height']/8))
-        
+
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
                 checkbox.setChecked(self.o['properties'].get(flag, False))
-        
+
         checkbox = self.findChild(QCheckBox, 'isTree')
         checkbox.setChecked(self.o['properties'].get('isTree', False))
-        
+
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
         self.author_field.setText(self.o.data.get('authors',''))
         self.author_id_field.setText(author_id)
 
-        
+
         obj_id = self.o.data.get('id', False)
         if obj_id:
             if len(obj_id.split('.')) > 2:
@@ -267,29 +277,26 @@ class settingsTabSS(QWidget):
                 self.object_id_field.setText(obj_id.split('.',2)[2])
             else:
                 self.object_id_field.setText(obj_id)
-        
+
         dat_id = self.o.data.get('originalId',False)
         if dat_id:
             self.object_original_id_field.setText(dat_id.split('|')[1].replace(' ', ''))
-        
+
         self.object_name_field.setText(self.o['strings']['name'].get('en-GB',''))
         self.object_name_lang_field.setText(self.o['strings']['name'].get('en-GB',''))
-   
-        
+
+
 class spritesTabSS(QWidget):
     def __init__(self, o, object_tab):
         super().__init__()
         uic.loadUi('spritesSS.ui', self)
-        
+
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
-        
-        self.loadBoundingBoxes()
-                
-        
+
         main_widget = self.findChild(QGroupBox, "groupBox_spriteSS")
-        
+
         # Buttons load/reset
         self.buttonLoadImage = self.findChild(
             QPushButton, "pushButton_loadImage")
@@ -297,7 +304,7 @@ class spritesTabSS(QWidget):
             QPushButton, "pushButton_resetImage")
         self.buttonResetOffsets = self.findChild(
             QPushButton, "pushButton_resetOffsets")
-        
+
         self.buttonLoadImage.clicked.connect(self.loadImage)
         self.buttonResetImage.clicked.connect(self.resetImage)
         self.buttonResetOffsets.clicked.connect(self.resetOffsets)
@@ -305,9 +312,9 @@ class spritesTabSS(QWidget):
         # Buttons auxiliary
         self.buttonBoundingBox =  self.findChild(
             QToolButton, "toolButton_boundingBox")
-        
+
         self.buttonBoundingBox.clicked.connect(self.updateMainView)
-        
+
         # Sprite control buttons
         self.buttonSpriteLeft = self.findChild(
             QToolButton, "toolButton_left")
@@ -321,7 +328,7 @@ class spritesTabSS(QWidget):
             QToolButton, "toolButton_leftright")
         self.buttonSpriteUpDown = self.findChild(
             QToolButton, "toolButton_updown")
-        
+
         self.buttonSpriteLeft.clicked.connect(
             lambda x: self.clickSpriteControl('left'))
         self.buttonSpriteDown.clicked.connect(
@@ -334,24 +341,24 @@ class spritesTabSS(QWidget):
             lambda x: self.clickSpriteControl('leftright'))
         self.buttonSpriteUpDown.clicked.connect(
             lambda x: self.clickSpriteControl('updown'))
-        
-        
+
+
         self.buttonCycleRotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
-        
+
         self.buttonCycleRotation.clicked.connect(self.cycleRotation)
-        
+
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(self.showSpriteMenu)
 
-        
+
         self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
             self.sprite_preview[rot].mousePressEvent = (lambda e, rot=rot: self.previewClicked(rot))
             self.updatePreview(rot)
-        
-            
+
+
         # Remap Color Panel
         groupRemap = self.findChild(QGroupBox, 'groupBox_remap')
         coords_group = (groupRemap.x(),groupRemap.y())
@@ -361,87 +368,78 @@ class spritesTabSS(QWidget):
         self.firstRemapSelectPanel.setGeometry(coords_group[0] + self.buttonFirstRemap.x(), coords_group[1] +  self.buttonFirstRemap.y()-50, 104, 52)
         self.firstRemapSelectPanel.hide()
         self.buttonFirstRemap.clicked.connect(lambda x, panel = self.firstRemapSelectPanel: self.clickRemapButton(panel = panel))
-        
+
         self.buttonSecondRemap = self.findChild(QPushButton, 'pushButton_secondRemap')
         self.secondRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
         self.secondRemapSelectPanel.setGeometry(coords_group[0] + self.buttonSecondRemap.x(), coords_group[1] +  self.buttonSecondRemap.y()-50, 104, 52)
         self.secondRemapSelectPanel.hide()
         self.buttonSecondRemap.clicked.connect(lambda x, panel = self.secondRemapSelectPanel: self.clickRemapButton(panel = panel))
-        
+
         self.buttonThirdRemap = self.findChild(QPushButton, 'pushButton_thirdRemap')
         self.thirdRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
         self.thirdRemapSelectPanel.setGeometry(coords_group[0] + self.buttonThirdRemap.x(), coords_group[1] +  self.buttonThirdRemap.y()-50, 104, 52)
         self.thirdRemapSelectPanel.hide()
         self.buttonThirdRemap.clicked.connect(lambda x, panel = self.thirdRemapSelectPanel: self.clickRemapButton(panel = panel))
-        
+
         self.previewClicked(0)
-        
-        
-    def loadBoundingBoxes(self):
-        img = QtGui.QImage(":/images/res/backbox_quarter.png")
-        buffer = QtCore.QBuffer()
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        self.backbox_quarter = Image.open(io.BytesIO(buffer.data()))
-        buffer.close()
-        
-    
+
+
     def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
             sprite = spr.Sprite.fromFile(filepath, palette = self.main_window.current_palette, use_transparency = True, transparent_color = self.main_window.current_import_color)
-            self.o.setSprite(sprite)        
+            self.o.setSprite(sprite)
 
         self.updateMainView()
-        
+
     def resetImage(self):
         sprite = self.o.giveSprite()
         sprite.resetSprite()
-        
+
         self.updateMainView()
-        
+
     def resetOffsets(self):
         sprite = self.o.giveSprite()
         sprite.resetOffsets()
-        
+
         self.updateMainView()
-        
+
     def showSpriteMenu(self, pos):
         menu = QMenu()
         paste_action = menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
         action = menu.exec_(self.sprite_view_main.mapToGlobal(pos))
-        
+
     def pasteSpriteFromClipboard(self):
         image = ImageGrab.grabclipboard()
 
-        if image:            
+        if image:
             sprite = spr.Sprite(image, palette = self.main_window.current_palette, use_transparency = True, transparent_color = self.main_window.current_import_color)
             self.o.setSprite(sprite)
-            
+
         self.updateMainView()
-        
-        
+
+
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
         for rot in range(4):
             self.updatePreview(rot)
-            
+
         self.updateMainView()
-    
+
     def previewClicked(self, rot):
         old_rot = self.o.rotation
-        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:2px outset black;") 
+        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:2px outset black;")
         self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
-    
-        self.o.rotateObject(rot)    
-        
+
+        self.o.rotateObject(rot)
+
         self.updateMainView()
-     
+
     def clickSpriteControl(self, direction: str):
         sprite = self.o.giveSprite()
-        
+
         if direction == 'left':
             sprite.x -= 1
         elif direction == 'right':
@@ -458,16 +456,16 @@ class spritesTabSS(QWidget):
                 Image.FLIP_TOP_BOTTOM)
 
         self.updateMainView()
-    
+
     def clickRemapButton(self, panel):
         if panel.isVisible():
             panel.hide()
         else:
             panel.show()
-    
+
     def clickChangeRemap(self, color, remap, button, shade):
         self.o.changeRemap(color, remap)
-        
+
         if shade:
             button.setStyleSheet("QPushButton"
                                  "{"
@@ -475,132 +473,129 @@ class spritesTabSS(QWidget):
                                  "}")
         else:
             button.setStyleSheet("")
-        
+
         self.updateAllViews()
-        
-     
+
+
     def updateMainView(self):
         im, x, y = self.o.show()
-        
-        # if self.o['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE'):
-        #     y -= 12
-        #     y -= 2 if self.o['properties'].get('prohibitWalls') else 0
-        
-        coords = (76+x, 200+y)
-        
-        canvas = Image.new('RGBA', (152, 271))
-        
-        if self.buttonBoundingBox.isChecked():
-            h = int(self.o['properties']['height']/8)
-            for i in range(h):
-                canvas.paste(self.backbox_quarter, (76-16,200-(h-i)*8-7), self.backbox_quarter)
 
-            
+        print(x,y)
+
+        coords = (76+x, 200+y)
+
+        canvas = Image.new('RGBA', (152, 271))
+
+        if self.buttonBoundingBox.isChecked():
+            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
+            canvas.paste(backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
+
+
         #canvas.paste(self.frame_image, self.frame_image)
         canvas.paste(im, coords, im)
-        
+
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_view_main.setPixmap(pixmap)
-        
+
         self.updatePreview(self.o.rotation)
-        
+
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
         im = copy(im)
-        
+
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(36-im.size[0]/2),int(36-im.size[1]/2))
         # if im.size[1] > 72:
-        #     
+        #
         #     coords = (36+x,0)
         # else:
         #     coords = (36+x, 40+y)
-        
+
         canvas = Image.new('RGBA', (72, 72))
         canvas.paste(im, coords, im)
         #canvas.paste(self.frame_image, self.frame_image)
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
-        
+
     def updateAllViews(self):
         self.updateMainView()
         for rot in range(4):
             self.updatePreview(rot)
-        
-        
-        
+
+
+
 class ChangeSettingsUi(QDialog):
     def __init__(self, settings):
         super().__init__()
         uic.loadUi('settings_window.ui', self)
-        
+
         self.setFixedSize(self.size())
-         
+
         self.lineEdit_openpath.setText(settings.get('openpath'))
         self.lineEdit_saveDefault.setText(settings.get('savedefault'))
         self.lineEdit_openDefault.setText(settings.get('opendefault'))
 
         self.lineEdit_authorID.setText(settings.get('author_id'))
         self.lineEdit_author.setText(settings.get('author'))
-        
+
         self.pushButton_changeOpenpath.clicked.connect(lambda x, sender = self.lineEdit_openpath:
             self.clickChangeFolder(sender))
         self.pushButton_changeSaveDefault.clicked.connect(lambda x, sender = self.lineEdit_saveDefault:
             self.clickChangeFolder(sender))
         self.pushButton_changeOpenDefault.clicked.connect(lambda x, sender = self.lineEdit_openDefault:
             self.clickChangeFolder(sender))
-        
+
         self.checkBox_nozip.setChecked(settings.get('no_zip', False))
         self.comboBox_transparencycolor.setCurrentIndex(settings.get('transparency_color', 0))
         self.spinBox_R.setValue(settings.get('import_color', (0,0,0))[0])
         self.spinBox_G.setValue(settings.get('import_color', (0,0,0))[1])
         self.spinBox_B.setValue(settings.get('import_color', (0,0,0))[2])
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
-     
+
         self.comboBox_palette.setCurrentIndex(settings.get('palette', 0))
-   
-     
+
+
         self.loadSSSettings(settings)
-        
-     
+
+
     def loadSSSettings(self, settings):
         for flag in cts.Jsmall_flags:
             checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
             if checkbox:
                 checkbox.setChecked(settings.get('small_scenery_defaults',{}).get(flag, False))
-                
+
         checkbox = self.tab_SS_default.findChild(QCheckBox, 'isTree')
         checkbox.setChecked(settings.get('small_scenery_defaults',{}).get('isTree', False))
-           
+
         self.cursor_box = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor")
-        
+
         for cursor in cts.cursors:
             self.cursor_box.addItem(cursor.replace('_', ' '))
-        
+
         self.cursor_box.setCurrentText(settings.get('small_scenery_defaults',{}).get('cursor', 'CURSOR BLANK'))
-        
+
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
         spinbox.setValue(int(settings.get('small_scenery_defaults',{}).get('price', 1)))
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
         spinbox.setValue(int(settings.get('small_scenery_defaults',{}).get('removalPrice', 1)))
-        
 
 
-    
+
+
     def clickChangeFolder(self, sender):
-        
+
         directory = sender.text() if sender.text() != '' else "%USERPROFILE%/Documents/"
         folder = QFileDialog.getExistingDirectory(
             self, "Select Output Directory", directory = directory)
         if folder:
-            sender.setText(folder)    
-         
-            
+            sender.setText(folder)
+
+
     def retrieveInputs(self):
         settings = {}
-        
+
         settings['openpath'] = self.lineEdit_openpath.text()
         settings['savedefault'] =self.lineEdit_saveDefault.text()
         settings['opendefault'] =self.lineEdit_openDefault.text()
@@ -611,44 +606,43 @@ class ChangeSettingsUi(QDialog):
         settings['transparency_color'] = self.comboBox_transparencycolor.currentIndex()
         settings['import_color'] = [self.spinBox_R.value(),self.spinBox_G.value(),self.spinBox_B.value()]
         settings['palette'] = self.comboBox_palette.currentIndex()
-        
-        
+
+
         ss_defaults = {}
         for flag in cts.Jsmall_flags:
             checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
             if checkbox:
                 ss_defaults[flag] = checkbox.isChecked()
-         
+
         ss_defaults['isTree'] = self.isTree.isChecked()
-     
+
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
         ss_defaults['price'] = spinbox.value()
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
         ss_defaults['removalPrice'] = spinbox.value()
-         
+
         ss_defaults['cursor'] = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor").currentText()
-        
+
         settings['small_scenery_defaults'] = ss_defaults
-        
+
         return settings
-        
+
     def accept(self):
 
-         self.ret = self.retrieveInputs()         
-         super().accept()       
-        
-  
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+         self.ret = self.retrieveInputs()
+         super().accept()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
