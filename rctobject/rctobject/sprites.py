@@ -11,13 +11,13 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
-        
+
         if image:
             if use_transparency:
-                image = pal.removeColorWhenImport(image, transparent_color) 
-                
+                image = pal.removeColorWhenImport(image, transparent_color)
+
             image = pal.addPalette(image, palette, dither)
-            
+
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -31,7 +31,7 @@ class Sprite:
             self.y = -int(image.size[1]/2)
             self.x_base = int(self.x)
             self.y_base = int(self.y)
-            
+
         self.palette = palette
 
     @classmethod
@@ -47,24 +47,20 @@ class Sprite:
         self.image.save(path)
 
     def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
-        image_view = self.image
-        if first_remap != 'NoColor':
-            image_view = colorFirstRemap(
-                image_view, first_remap,  self.palette)
-        if second_remap != 'NoColor':
-            image_view = colorSecondRemap(
-                image_view, second_remap,  self.palette)
-        if third_remap != 'NoColor':
-            image_view = colorThirdRemap(
-                image_view, third_remap,  self.palette)
-        return image_view
+        return colorRemaps(self.image, first_remap, second_remap, third_remap)
 
     def resetSprite(self):
         self.image = self.image_base
-        
+
     def resetOffsets(self):
         self.x = int(self.x_base)
         self.y = int(self.y_base)
+
+    def overwriteOffsets(self, x, y):
+        self.x = x
+        self.y = y
+        self.x_base = x
+        self.y_base = y
 
     def removeBlackPixels(self):
         self.image = pal.removeBlackPixels(self.image)
@@ -179,6 +175,28 @@ def remapColor(image: Image.Image, color_name_old: str, color_name_new: str,  pa
     return Image.fromarray(data_out)
 
 
+def colorRemaps(image: Image.Image, first_remap: str, second_remap: str, third_remap: str, palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+
+    for color_names in [['1st Remap', first_remap], ['Pink', second_remap], ['Yellow', third_remap]]:
+        if color_names[1] == 'NoColor':
+            continue
+
+        color_old = palette.getColor(color_names[0])
+        color_new = palette.getRemapColor(color_names[1])
+
+        for i in range(12):
+
+            r1, g1, b1 = color_old[i]  # Original value
+            r2, g2, b2 = color_new[i]  # Value that we want to replace it with
+            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = (red == r1) & (green == g1) & (blue == b1)
+            data_out[:, :, :3][mask] = [r2, g2, b2]
+
+    return Image.fromarray(data_out)
+
+
 def colorFirstRemap(image: Image.Image, color_name: str,  palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
@@ -279,14 +297,14 @@ def changeBrightnessColor(image: Image.Image, step: int, color: str or list, pal
 
     if isinstance(color, str):
         color = [color]
-    
+
     for color_name in color:
-    
+
         if color_name not in palette.color_dict:
             continue
-    
+
         color_arr = palette.getColor(color_name)
-        
+
         if(step < 0):
             for i in range(-step):
                 data = _decrBr(data, color_arr)
@@ -314,16 +332,16 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
 def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
-    
+
     if isinstance(color, str):
         color = [color]
-    
+
     for color_name in color:
-    
+
         if color_name not in palette.color_dict:
             continue
         color_arr = palette.getColor(color_name)
-        
+
         for shade in color_arr:
             r1, g1, b1 = shade  # Original value
             red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]

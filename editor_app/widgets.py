@@ -174,26 +174,26 @@ class settingsTabSS(QWidget):
         if value == 0:
             self.diagonal_box.setEnabled(True)
             if self.diagonal_box.isChecked():
-                shape = self.o.Shape.QUARTERD
+                shape = obj.SmallScenery.Shape.QUARTERD
             else:
-                shape = self.o.Shape.QUARTER
+                shape = obj.SmallScenery.Shape.QUARTER
 
         elif value == 1:
             self.diagonal_box.setChecked(False)
             self.diagonal_box.setEnabled(False)
-            shape = self.o.Shape.HALF
+            shape = obj.SmallScenery.Shape.HALF
 
         elif value == 2:
             self.diagonal_box.setChecked(True)
             self.diagonal_box.setEnabled(False)
-            shape = self.o.Shape.THREEQ
+            shape = obj.SmallScenery.Shape.THREEQ
 
         elif value == 3:
              self.diagonal_box.setEnabled(True)
              if self.diagonal_box.isChecked():
-                 shape = self.o.Shape.FULLD
+                 shape = obj.SmallScenery.Shape.FULLD
              else:
-                 shape = self.o.Shape.FULL
+                 shape = obj.SmallScenery.Shape.FULL
 
         self.o.changeShape(shape)
         self.sprites_tab.updateMainView()
@@ -203,7 +203,7 @@ class settingsTabSS(QWidget):
         self.sprites_tab.updateMainView()
 
     def authorChanged(self, value):
-        self.o['authors'] = value
+        self.o['authors'] = value.split(',')
 
     def authorIdChanged(self, value):
         self.object_tab.saved = False
@@ -244,10 +244,10 @@ class settingsTabSS(QWidget):
 
         shape = self.o.shape
 
-        if shape == self.o.Shape.FULLD:
+        if shape == obj.SmallScenery.Shape.FULLD:
             self.shape_box.setCurrentIndex(3)
             self.diagonal_box.setChecked(True)
-        elif shape == self.o.Shape.QUARTERD:
+        elif shape == obj.SmallScenery.Shape.QUARTERD:
             self.shape_box.setCurrentIndex(0)
             self.diagonal_box.setChecked(True)
         else:
@@ -266,7 +266,8 @@ class settingsTabSS(QWidget):
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
-        self.author_field.setText(self.o.data.get('authors',''))
+        authors = ', '.join(self.o.data.get('authors',''))
+        self.author_field.setText(authors)
         self.author_id_field.setText(author_id)
 
 
@@ -352,7 +353,7 @@ class spritesTabSS(QWidget):
         self.sprite_view_main.customContextMenuRequested.connect(self.showSpriteMenu)
 
 
-        self.offset = 16 if (self.o.shape == self.o.Shape.QUARTER or self.o.shape == self.o.Shape.QUARTERD) else 32
+        self.offset = 16 if (self.o.shape == obj.SmallScenery.Shape.QUARTER or self.o.shape == obj.SmallScenery.Shape.QUARTERD) else 32
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
             self.sprite_preview[rot].mousePressEvent = (lambda e, rot=rot: self.previewClicked(rot))
@@ -408,8 +409,9 @@ class spritesTabSS(QWidget):
 
     def showSpriteMenu(self, pos):
         menu = QMenu()
-        paste_action = menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
-        action = menu.exec_(self.sprite_view_main.mapToGlobal(pos))
+        menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
+        menu.addAction("Delete Sprite", self.deleteSprite)
+        menu.exec_(self.sprite_view_main.mapToGlobal(pos))
 
     def pasteSpriteFromClipboard(self):
         image = ImageGrab.grabclipboard()
@@ -417,6 +419,12 @@ class spritesTabSS(QWidget):
         if image:
             sprite = spr.Sprite(image, palette = self.main_window.current_palette, use_transparency = True, transparent_color = self.main_window.current_import_color)
             self.o.setSprite(sprite)
+
+        self.updateMainView()
+
+    def deleteSprite(self):
+        sprite = spr.Sprite(None, palette = self.main_window.current_palette)
+        self.o.setSprite(sprite)
 
         self.updateMainView()
 
@@ -480,8 +488,6 @@ class spritesTabSS(QWidget):
     def updateMainView(self):
         im, x, y = self.o.show()
 
-        print(x,y)
-
         coords = (76+x, 200+y)
 
         canvas = Image.new('RGBA', (152, 271))
@@ -505,7 +511,7 @@ class spritesTabSS(QWidget):
         im = copy(im)
 
         im.thumbnail((72, 72), Image.NEAREST)
-        coords = (int(36-im.size[0]/2),int(36-im.size[1]/2))
+        coords = (int(34-im.size[0]/2),int(36-im.size[1]/2))
         # if im.size[1] > 72:
         #
         #     coords = (36+x,0)

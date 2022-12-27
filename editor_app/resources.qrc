@@ -1,5 +1,14 @@
 <RCC>
   <qresource prefix="images">
+    <file>res/base_half_0.png</file>
+    <file>res/base_half_1.png</file>
+    <file>res/base_diagonal_0.png</file>
+    <file>res/base_diagonal_1.png</file>
+    <file>res/base_full.png</file>
+    <file>res/base_three_quarter_0.png</file>
+    <file>res/base_three_quarter_1.png</file>
+    <file>res/base_three_quarter_2.png</file>
+    <file>res/base_three_quarter_3.png</file>
     <file>res/backbox_diagonal_0.png</file>
     <file>res/backbox_diagonal_1.png</file>
     <file>res/backbox_full.png</file>

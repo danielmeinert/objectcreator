@@ -26,7 +26,7 @@ import rctobject.sprites as spr
 import rctobject.datloader as dat
 import rctobject.constants as cts
 
-OPENRCTPATH = 'C:\\Users\\Daniel\\Documents\\OpenRCT2'
+OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 
 
 class RCTObject:
@@ -56,16 +56,37 @@ class RCTObject:
         self.data[item] = value
 
     @classmethod
-    def fromParkobj(cls, filepath: str):
+    def fromParkobj(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .parkobj file."""
         with TemporaryDirectory() as temp:
             unpack_archive(filename=filepath, extract_dir=temp, format='zip')
             # Raises error on incorrect object structure or missing json:
             data = jload(fp=open(f'{temp}/object.json', encoding='utf-8'))
-            sprites = {im['path']: spr.Sprite.fromFile(
-                f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+            dat_id = data.get('originalId',None)
+            # If an original Id was given and the sprites are supposed to be loaded from the dat file we do so (aka "official" openRCT objects).
+            if isinstance(data['images'][0], str) and dat_id:
+                dat_id = dat_id.split('|')[1].replace(' ', '')
+                with TemporaryDirectory() as temp:
+                    temp = temp.replace('\\', '/')
+                    result = run([f'{openpath}/bin/openrct2', 'sprite',
+                                 'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
+                    string = result.stdout
+                    string = string[string.find('{'):].replace(f'{temp}/', '')
+                    i = -1
+                    while string[i] != ',':
+                        i -= 1
 
-        dat_id = data.get('originalId',None)
+                    data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
+                    sprites = {im['path']: spr.Sprite.fromFile(
+                        f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+            # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
+            # The file is assumed to be called "object.json" in this case.
+            elif isinstance(data['images'][0], dict):
+                filename_len = len(filepath.split('/')[-1])
+                sprites = {im['path']: spr.Sprite.fromFile(
+                    f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+            else:
+                raise RuntimeError('Cannot extract images.')
 
         return cls(data=data, sprites=sprites, old_id = dat_id)
 
@@ -254,22 +275,32 @@ class SmallScenery(RCTObject):
                 if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
                     offset = 14
                     offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
-                    print('lol',offset)
 
                     for _, sprite in self.sprites.items():
-                       sprite.y -= offset
+                        sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
+
+            elif self.shape == SmallScenery.Shape.HALF:
+                offset = 12
+
+                for _, sprite in self.sprites.items():
+                    sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
 
     def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
         """Override save from base class."""
 
         # Adjust sprite offsets from flags
-        if self.shape != self.Shape.QUARTER and self.shape != self.Shape.QUARTERD:
-            if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
-                offset = 12
-                offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
+        if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
+            offset = 12
+            offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
 
-                for _, sprite in self.sprites.items():
-                    sprite.y += offset
+            for _, sprite in self.sprites.items():
+                sprite.y += offset
+
+        elif self.shape == SmallScenery.Shape.HALF:
+            offset = 12
+
+            for _, sprite in self.sprites.items():
+               sprite.y += offset
 
         super().save(path, name, no_zip, include_originalId)
 
@@ -547,7 +578,7 @@ def load(filepath: str, openpath = OPENRCTPATH):
     extension = splitext(filepath)[1].lower()
 
     if extension == '.parkobj':
-        obj = RCTObject.fromParkobj(filepath)
+        obj = RCTObject.fromParkobj(filepath, openpath)
     elif extension == '.dat':
         obj = RCTObject.fromDat(filepath, openpath)
     elif extension == '.json':
