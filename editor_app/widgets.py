@@ -20,7 +20,7 @@ from rctobject import objects as obj
 
 
 class objectTabSS(QWidget):
-    def __init__(self, o, main_window, filepath = None, author_id = None):
+    def __init__(self, o, main_window, filepath = None, author = None, author_id = None):
         super().__init__()
 
         self.o = o
@@ -31,7 +31,7 @@ class objectTabSS(QWidget):
         layout = QHBoxLayout()
 
         self.spritesTab = spritesTabSS(o, self)
-        self.settingsTab = settingsTabSS(o, self, self.spritesTab, author_id)
+        self.settingsTab = settingsTabSS(o, self, self.spritesTab, author, author_id)
 
         layout.addWidget(self.spritesTab)
         layout.addWidget(self.settingsTab)
@@ -80,7 +80,7 @@ class objectTabSS(QWidget):
 
 
 class settingsTabSS(QWidget):
-    def __init__(self, o, object_tab, sprites_tab, author_id):
+    def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
 
@@ -91,6 +91,9 @@ class settingsTabSS(QWidget):
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
+
+        self.button_set_defaults = self.findChild(QPushButton, "pushButton_applyDefaultSettings")
+        self.button_set_defaults.clicked.connect(self.setDefaults)
 
         ### Subtype combobox, for now only simple available
         self.subtype_box = self.findChild(
@@ -149,12 +152,18 @@ class settingsTabSS(QWidget):
         checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
         checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
 
+        ### Spinboxes
+
+        self.doubleSpinBox_price.valueChanged.connect(lambda value, name = 'price': self.spinBoxChanged(value, name))
+        self.doubleSpinBox_removalPrice.valueChanged.connect(lambda value, name = 'removalPrice': self.spinBoxChanged(value, name))
+        self.doubleSpinBox_version.valueChanged.connect(lambda value, name = 'version': self.spinBoxChanged(value, name))
+
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
 
         self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOrginalId")
 
-        self.loadObjectSettings(author_id)
+        self.loadObjectSettings(author, author_id)
 
 
     def tabChanged(self, index):
@@ -215,9 +224,15 @@ class settingsTabSS(QWidget):
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
+    def spinBoxChanged(self, value, name):
+        if name == 'version':
+            self.o['version'] = str(value)
+        else:
+            self.o['properties'][name] = value
+
     def nameChangedLang(self, value):
         if self.language_index == 0:
-            self.o['strings']['name']['en-GB'] = value
+            self.o['strings']['name']['en-GB'] = int(value)
 
     def languageChanged(self, value):
         lang = list(cts.languages)[self.language_index]
@@ -238,7 +253,7 @@ class settingsTabSS(QWidget):
         self.hasTertiaryColour.setEnabled(not bool(value))
 
 
-    def loadObjectSettings(self, author_id = None):
+    def loadObjectSettings(self, author = None, author_id = None):
 
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
 
@@ -266,10 +281,13 @@ class settingsTabSS(QWidget):
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
-        authors = ', '.join(self.o.data.get('authors',''))
-        self.author_field.setText(authors)
-        self.author_id_field.setText(author_id)
+        if author:
+            self.author_field.setText(author)
+        else:
+            authors = ', '.join(self.o.data.get('authors',''))
+            self.author_field.setText(authors)
 
+        self.author_id_field.setText(author_id)
 
         obj_id = self.o.data.get('id', False)
         if obj_id:
@@ -285,6 +303,25 @@ class settingsTabSS(QWidget):
 
         self.object_name_field.setText(self.o['strings']['name'].get('en-GB',''))
         self.object_name_lang_field.setText(self.o['strings']['name'].get('en-GB',''))
+
+        self.doubleSpinBox_price.setValue(self.o['properties'].get('price', 1))
+        self.doubleSpinBox_removalPrice.setValue(self.o['properties'].get('removalPrice', 1))
+        self.doubleSpinBox_version.setValue(float(self.o.data.get('version',1.0)))
+
+    def setDefaults(self):
+
+        settingsSS = self.main_window.settings['small_scenery_defaults']
+
+        for flag in settingsSS:
+            checkbox = self.findChild(QCheckBox, flag)
+            if checkbox:
+                checkbox.setChecked(settingsSS.get(flag, False))
+
+        self.doubleSpinBox_price.setValue(settingsSS.get('price', 1))
+        self.doubleSpinBox_removalPrice.setValue(settingsSS.get('removalPrice', 1))
+        self.doubleSpinBox_version.setValue(settingsSS.get('version',1.0))
+
+        self.cursor_box.setCurrentIndex(cts.cursors.index(settingsSS.get('cursor','CURSOR_BLANK')))
 
 
 class spritesTabSS(QWidget):
@@ -627,7 +664,7 @@ class ChangeSettingsUi(QDialog):
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_removalPrice")
         ss_defaults['removalPrice'] = spinbox.value()
 
-        ss_defaults['cursor'] = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor").currentText()
+        ss_defaults['cursor'] = self.tab_SS_default.findChild(QComboBox, "comboBox_cursor").currentText().replace(' ', '_')
 
         settings['small_scenery_defaults'] = ss_defaults
 

@@ -156,7 +156,9 @@ class MainWindowUi(QMainWindow):
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-        tab = wdg.objectTabSS(o, self, author_id = self.settings['author_id'])
+        tab = wdg.objectTabSS(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
+
+        tab.settingsTab.setDefaults()
 
         self.objectTabs.addTab(tab, name)
         self.objectTabs.setCurrentWidget(tab)
