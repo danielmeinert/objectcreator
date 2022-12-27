@@ -273,7 +273,7 @@ class SmallScenery(RCTObject):
             # Adjust sprite offsets from flags
             if self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ:
                 if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
-                    offset = 14
+                    offset = 12
                     offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
 
                     for _, sprite in self.sprites.items():

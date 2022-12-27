@@ -33,7 +33,7 @@ class BoundingBoxes():
         buffer.open(QtCore.QBuffer.ReadWrite)
         img.save(buffer, "PNG")
         image = Image.open(io.BytesIO(buffer.data()))
-        self.backbox_full = [image, (-32,-17)]
+        self.backbox_full = [image, (-32,-15)]
 
         img = QtGui.QImage(":/images/res/backbox_half_0.png")
         buffer.open(QtCore.QBuffer.ReadWrite)
@@ -53,7 +53,7 @@ class BoundingBoxes():
         buffer.open(QtCore.QBuffer.ReadWrite)
         img.save(buffer, "PNG")
         image_1 = Image.open(io.BytesIO(buffer.data()))
-        self.backbox_diagonal = [[image_1, (-32,-17)],[self.backbox_quarter[0],(-16,-17)]]
+        self.backbox_diagonal = [[image_1, (-32,-15)],[self.backbox_quarter[0],(-16,-15)]]
 
         img = QtGui.QImage(":/images/res/backbox_three_quarter_0.png")
         buffer.open(QtCore.QBuffer.ReadWrite)
@@ -63,7 +63,7 @@ class BoundingBoxes():
         buffer.open(QtCore.QBuffer.ReadWrite)
         img.save(buffer, "PNG")
         image_1 = Image.open(io.BytesIO(buffer.data()))
-        self.backbox_three_quarter = [[image_0, (-32,-17)],[self.backbox_half[0][0],(-16,-17)],[image_1, (-32,-17)],[self.backbox_half[1][0],(-32,-17)]]
+        self.backbox_three_quarter = [[image_0, (-32,-15)],[self.backbox_half[0][0],(-16,-15)],[image_1, (-32,-15)],[self.backbox_half[1][0],(-32,-15)]]
 
         img = QtGui.QImage(":/images/res/base_quarter.png")
         buffer.open(QtCore.QBuffer.ReadWrite)
@@ -75,7 +75,7 @@ class BoundingBoxes():
         buffer.open(QtCore.QBuffer.ReadWrite)
         img.save(buffer, "PNG")
         image = Image.open(io.BytesIO(buffer.data()))
-        self.base_full = [image, (-32,-17)]
+        self.base_full = [image, (-32,-15)]
 
         img = QtGui.QImage(":/images/res/base_half_0.png")
         buffer.open(QtCore.QBuffer.ReadWrite)
