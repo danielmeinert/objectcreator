@@ -32,17 +32,25 @@ class MainWindowUi(QMainWindow):
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
 
-        ##### Object Tabs ###
-        self.objectTabs = self.findChild(
+        ##### Tabs
+        self.object_tabs = self.findChild(
             QTabWidget, "tabWidget_objects")
+        self.sprite_tabs = self.findChild(
+            QTabWidget, "tabWidget_sprites")
 
+        self.object_tabs.removeTab(0)
+        self.sprite_tabs.removeTab(0)
 
-        # Close tab action
-        self.objectTabs.tabCloseRequested.connect(self.closeObject)
+        # Tab actions
+        self.object_tabs.tabCloseRequested.connect(self.closeObject)
+        self.object_tabs.currentChanged.connect(self.changeTab)
 
-        #Load empty object
-        self.objectTabs.removeTab(0)
-        self.newObject(cts.Type.SMALL)
+        #### Tools
+        # Color Panel
+        self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
+        self.active_shade = None
+        self.color_select_panel = colorSelectWidget(self.active_shade, pal.orct, True, True, True)
+        self.widget_color_panel.layout().addWidget(self.color_select_panel)
 
         #### Menubar
         self.actionSmallScenery.triggered.connect(lambda x: self.newObject(cts.Type.SMALL))
@@ -58,6 +66,10 @@ class MainWindowUi(QMainWindow):
 
         self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
         self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
+
+
+        #Load empty object
+        self.newObject(cts.Type.SMALL)
 
         self.show()
 
@@ -142,10 +154,16 @@ class MainWindowUi(QMainWindow):
             self.actionPaletteOld.setChecked(True)
 
         if update_tabs:
-            for index in range(self.objectTabs.count()):
-                tab = self.objectTabs.widget(index)
+            for index in range(self.object_tabs.count()):
+                tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
                 tab.spritesTab.updateAllViews()
+
+    def changeTab(self, index):
+        object_tab = self.object_tabs.widget(index)
+        if object_tab.locked:
+            self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.sprite_tab))
+
 
 
     def newObject(self, obj_type = cts.Type.SMALL):
@@ -156,15 +174,26 @@ class MainWindowUi(QMainWindow):
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-        tab = wdg.objectTabSS(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
+        object_tab = wdg.ObjectTabSS(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
+        sprite_tab = wdg.SpriteTab(self, object_tab)
 
-        tab.settingsTab.setDefaults()
+        object_tab.lockWithSpriteTab(sprite_tab)
 
-        self.objectTabs.addTab(tab, name)
-        self.objectTabs.setCurrentWidget(tab)
+        object_tab.settingsTab.setDefaults()
+
+        self.object_tabs.addTab(object_tab, name)
+        self.object_tabs.setCurrentWidget(object_tab)
+
+        self.sprite_tabs.addTab(sprite_tab, f"{name} (locked)")
+        self.sprite_tabs.setCurrentWidget(sprite_tab)
 
     def closeObject(self, index):
-        self.objectTabs.removeTab(index)
+        object_tab = self.object_tabs.widget(index)
+        if object_tab.locked:
+            self.sprite_tabs.removeTab(self.sprite_tabs.indexOf(object_tab.sprite_tab))
+
+        self.object_tabs.removeTab(index)
+
 
     def openObjectFile(self):
 
@@ -176,7 +205,7 @@ class MainWindowUi(QMainWindow):
             for filepath in filepaths:
                 try:
                     o = obj.load(filepath, openpath = self.openpath)
-                    name = o.data.get('id', None)
+                    name = o.data.get('id', '').split('.',2)[-1]
                     if not name:
                         if o.old_id:
                             name = o.old_id
@@ -207,18 +236,26 @@ class MainWindowUi(QMainWindow):
                     o.switchPalette(self.current_palette)
 
 
-                tab = wdg.objectTabSS(o, self, filepath, author_id)
+                object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
 
-                self.objectTabs.addTab(tab, name)
-                self.objectTabs.setCurrentWidget(tab)
+
+                sprite_tab = wdg.SpriteTab(self, object_tab)
+                object_tab.lockWithSpriteTab(sprite_tab)
+
+
+
+                self.object_tabs.addTab(object_tab, name)
+                self.object_tabs.setCurrentWidget(object_tab)
+                self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
+                self.sprite_tabs.setCurrentWidget(sprite_tab)
 
     def saveObject(self):
-        widget = self.objectTabs.currentWidget()
+        widget = self.object_tabs.currentWidget()
 
         widget.saveObject(get_path = False)
 
     def saveObjectAt(self):
-        widget = self.objectTabs.currentWidget()
+        widget = self.object_tabs.currentWidget()
 
         widget.saveObject(get_path = True)
 

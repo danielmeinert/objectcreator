@@ -19,8 +19,9 @@ class colorBar(QWidget):
         layout.setContentsMargins(left_margin, 0, 0, 0)
 
         color = palette.getColor(colorname)
-        for shade in color:
-            b = shadeButton(tuple(shade))
+        for i, shade in enumerate(color):
+            border_shade = (0,0,0) if i > 3 else (230,230,230)
+            b = shadeButton(tuple(shade), border_shade = tuple(border_shade))
             b.clicked.connect(button_func)
             layout.insertWidget(0, b)
            # addWidget(b,-1)
@@ -29,12 +30,12 @@ class colorBar(QWidget):
         self.checkbox.setToolTip(colorname)
         self.checkbox.setFixedSize(QtCore.QSize(13, 24))
         layout.addWidget(self.checkbox, 0)
-        
+
         self.setLayout(layout)
 
 
 class shadeButton(QPushButton):
-    def __init__(self, shade):
+    def __init__(self, shade, border_shade = (0,0,0)):
         super().__init__()
         self.setFixedSize(QtCore.QSize(13, 13))
         self.setCheckable(True)
@@ -48,11 +49,11 @@ class shadeButton(QPushButton):
                            "{"
                            f"background-color : rgb{shade};"
                            "}"
-                           "QPushButton:checked"
-                           "{"
-                           f"background-color : rgb{shade};"
-                           f"border : 2px solid black;"
-                           "}"
+                            "QPushButton:checked"
+                            "{"
+                            f"background-color : rgb{shade};"
+                            f"border : 2px solid rgb{border_shade};"
+                            "}"
                            )
 
 
@@ -63,7 +64,7 @@ class colorSelectWidget(QWidget):
         container.setContentsMargins(5,5,5,5)
         container.setSpacing(0)
         self.setLayout(container)
-        
+
         color_widget = QWidget()
         layout = QHBoxLayout()
         layout.setSpacing(0)
@@ -75,11 +76,11 @@ class colorSelectWidget(QWidget):
 
         self.active_color_button = None
         self.active_shade = active_shade
-        
+
         self.bars = {}
         for colorname in palette.color_dict:
             if colorname == '1st Remap':
-                if first_remap: 
+                if first_remap:
                     bar = colorBar(palette, colorname, self.shadeButtonClicked, 3)
                     layout.insertWidget(-1, bar)
             elif second_remap and colorname == 'Pink':
@@ -93,28 +94,28 @@ class colorSelectWidget(QWidget):
             else:
                 bar = colorBar(palette, colorname, self.shadeButtonClicked, 0)
                 layout.insertWidget(0,bar)
-            
+
             self.bars[colorname] = bar
-            
+
         container.addWidget(color_widget)
-        
+
         button_widget = QWidget()
         button_layout = QHBoxLayout()
         button_layout.setContentsMargins(3,3,0,0)
-        
+
         button_widget.setLayout(button_layout)
-        
-        self.select_all = QPushButton(text='Select All') 
-        self.invert_all = QPushButton(text='Invert') 
-        
+
+        self.select_all = QPushButton(text='Select All')
+        self.invert_all = QPushButton(text='Invert')
+
         self.select_all.clicked.connect(self.clickSelectAll)
         self.invert_all.clicked.connect(self.clickInvert)
-        
+
         button_layout.addWidget(self.select_all,0,QtCore.Qt.AlignLeft)
         button_layout.addWidget(self.invert_all,0,QtCore.Qt.AlignLeft)
-        
+
         container.addWidget(button_widget,0,QtCore.Qt.AlignLeft)
-        
+
     def shadeButtonClicked(self):
         button = self.sender()
         if button is self.active_color_button:
@@ -125,11 +126,11 @@ class colorSelectWidget(QWidget):
 
         self.active_color_button = button
         self.active_shade = button.shade
-        
+
     def clickSelectAll(self):
         for name, bar in self.bars.items():
             bar.checkbox.setChecked(True)
-            
+
     def clickInvert(self):
         for name, bar in self.bars.items():
             bar.checkbox.setChecked(not bar.checkbox.isChecked())
@@ -139,16 +140,16 @@ class colorSelectWidget(QWidget):
         for name, bar in self.bars.items():
             if bar.checkbox.isChecked():
                 ret.append(name)
-        
+
         return ret
-    
+
 class remapColorSelectWidget(QWidget):
     def __init__(self, palette ,parent, button_func, remap, window_button):
         super().__init__(parent=parent)
-        
+
         self.active_color_button = None
         self.button = window_button
-        
+
         self.setMinimumSize(QtCore.QSize(8*13,4*13))
 
         container = QGridLayout()
@@ -156,18 +157,18 @@ class remapColorSelectWidget(QWidget):
         container.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(container)
-        
+
         for color_name, i in pal.remapColors().items():
             if i == -1:
                 continue
-            
+
             shade = palette.getRemapColor(color_name)[6]
             b = shadeButton(tuple(shade))
             b.clicked.connect(lambda x, color_name = color_name, remap = remap, button_func = button_func: self.colorButtonClicked(color_name, remap, button_func))
             x = i % 8
             y = int(i/8)
             container.addWidget(b,y,x)
-        
+
     def colorButtonClicked(self, color_name, remap, button_func):
         button = self.sender()
         if button is self.active_color_button:
@@ -175,13 +176,12 @@ class remapColorSelectWidget(QWidget):
             button_func("NoColor", remap, self.button, None)
             self.hide()
             return
-            
+
         if self.active_color_button:
             self.active_color_button.setChecked(False)
-            
+
         self.active_color_button = button
 
         button_func(color_name, remap, self.button, button.shade)
-        
+
         self.hide()
-        

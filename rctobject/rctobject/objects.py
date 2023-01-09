@@ -82,9 +82,8 @@ class RCTObject:
             # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
             # The file is assumed to be called "object.json" in this case.
             elif isinstance(data['images'][0], dict):
-                filename_len = len(filepath.split('/')[-1])
                 sprites = {im['path']: spr.Sprite.fromFile(
-                    f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+                    f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
             else:
                 raise RuntimeError('Cannot extract images.')
 
@@ -169,6 +168,14 @@ class RCTObject:
         for key, val in dict(self.data['properties']).items():
             if isinstance(val, bool) and val == False:
                 self.data['properties'].pop(key)
+
+        # Remove empty name strings
+        for lang, lang_name in dict(self.data['strings']['name']).items():
+            if lang == 'en-GB':
+                continue
+
+            if not lang_name:
+                self.data['strings']['name'].pop(lang)
 
         # Remove an empty scenery group
         if self.data.get('sceneryGroup') == '' or  self.data.get('sceneryGroup') == '\x00\x00\x00\x00\x00\x00\x00\x00':

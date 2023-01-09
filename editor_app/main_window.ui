@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
+    <width>1296</width>
     <height>641</height>
    </rect>
   </property>
@@ -17,10 +17,7 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="spacing">
-     <number>4</number>
-    </property>
+   <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
      <number>10</number>
     </property>
@@ -33,265 +30,7 @@
     <property name="bottomMargin">
      <number>10</number>
     </property>
-    <item>
-     <widget class="QGroupBox" name="groupBox_tools">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>290</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="title">
-       <string>Tools</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QGroupBox" name="groupBox_Brushes">
-         <property name="title">
-          <string>Brushes</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_Colormani">
-         <property name="title">
-          <string>Color Manipulations</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_remapTo">
-            <property name="text">
-             <string>Remap to</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox_remapToColor"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_incrBrightness">
-            <property name="text">
-             <string>+ Brightness</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QPushButton" name="pushButton_decrBrightness">
-            <property name="text">
-             <string>- Brightness</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_deleteColor">
-            <property name="text">
-             <string>Delete</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_auxiliaries_2">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="title">
-          <string>Auxiliaries</string>
-         </property>
-         <widget class="QPushButton" name="pushButton_boundingBox_2">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>20</y>
-            <width>81</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string> Bounding Box</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-          <property name="autoDefault">
-           <bool>false</bool>
-          </property>
-          <property name="default">
-           <bool>false</bool>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_symmAxes_2">
-          <property name="geometry">
-           <rect>
-            <x>100</x>
-            <y>20</y>
-            <width>81</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Symm. Axes</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_clearence_2">
-          <property name="geometry">
-           <rect>
-            <x>59</x>
-            <y>80</y>
-            <width>51</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Clearence</string>
-          </property>
-         </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_clearence_2">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>80</y>
-            <width>41</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string notr="true">Object height</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <double>32.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_subtype_2">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>50</y>
-            <width>71</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <item>
-           <property name="text">
-            <string>Simple</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Animated</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Glass</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Gardens</string>
-           </property>
-          </item>
-         </widget>
-         <widget class="QLabel" name="label_subtype_2">
-          <property name="geometry">
-           <rect>
-            <x>90</x>
-            <y>50</y>
-            <width>51</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Type</string>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_subtype_3">
-          <property name="geometry">
-           <rect>
-            <x>140</x>
-            <y>50</y>
-            <width>71</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <item>
-           <property name="text">
-            <string>Simple</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Animated</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Glass</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Gardens</string>
-           </property>
-          </item>
-         </widget>
-         <widget class="QLabel" name="label_subtype_3">
-          <property name="geometry">
-           <rect>
-            <x>220</x>
-            <y>50</y>
-            <width>51</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Subtype</string>
-          </property>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
+    <item row="0" column="1">
      <widget class="QTabWidget" name="tabWidget_sprites">
       <property name="enabled">
        <bool>true</bool>
@@ -338,39 +77,76 @@ QTabBar::tab:selected {
       <property name="tabBarAutoHide">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="tab_Sprite">
+      <widget class="QWidget" name="tab_sprite">
        <property name="enabled">
         <bool>true</bool>
        </property>
        <attribute name="title">
         <string>Sprite 1</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="styleSheet">
-           <string notr="true">background-color: darkgrey;</string>
-          </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>571</width>
-             <height>552</height>
-            </rect>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QHBoxLayout" name="horizontalLayout_2"/>
       </widget>
      </widget>
     </item>
-    <item>
+    <item row="0" column="3">
+     <widget class="QTabWidget" name="tabWidget_objects">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">
+QTabWidget::pane {
+  border: 1px solid lightgray;
+  top:-1px; 
+  background: rgb(245, 245, 245);; 
+} 
+
+QTabBar::tab {
+  background: rgb(230, 230, 230); 
+  border: 1px solid lightgray; 
+  padding: 5px;
+} 
+QTabBar::tab:selected { 
+  background: rgb(245, 245, 245); 
+  margin-bottom: -1px; 
+}
+QToolButton {background : lightgrey;
+border: 1px solid darkgrey;}
+</string>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tab_object">
+       <attribute name="title">
+        <string>Object 1</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+      </widget>
+     </widget>
+    </item>
+    <item row="0" column="2">
      <widget class="QWidget" name="widget_spriteExchange" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -434,6 +210,9 @@ QTabBar::tab:selected {
        </item>
        <item alignment="Qt::AlignHCenter">
         <widget class="QToolButton" name="toolButton_lock">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="minimumSize">
           <size>
            <width>28</width>
@@ -480,62 +259,133 @@ QTabBar::tab:selected {
       </layout>
      </widget>
     </item>
-    <item>
-     <widget class="QTabWidget" name="tabWidget_objects">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox_tools">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>280</width>
         <height>0</height>
        </size>
       </property>
-      <property name="styleSheet">
-       <string notr="true">
-QTabWidget::pane {
-  border: 1px solid lightgray;
-  top:-1px; 
-  background: rgb(245, 245, 245);; 
-} 
-
-QTabBar::tab {
-  background: rgb(230, 230, 230); 
-  border: 1px solid lightgray; 
-  padding: 5px;
-} 
-QTabBar::tab:selected { 
-  background: rgb(245, 245, 245); 
-  margin-bottom: -1px; 
-}
-QToolButton {background : lightgrey;
-border: 1px solid darkgrey;}
-</string>
+      <property name="maximumSize">
+       <size>
+        <width>310</width>
+        <height>16777215</height>
+       </size>
       </property>
-      <property name="currentIndex">
-       <number>0</number>
+      <property name="title">
+       <string>Tools</string>
       </property>
-      <property name="documentMode">
-       <bool>false</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="movable">
-       <bool>false</bool>
-      </property>
-      <property name="tabBarAutoHide">
-       <bool>false</bool>
-      </property>
-      <widget class="QWidget" name="tab_object">
-       <attribute name="title">
-        <string>Object 1</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_3"/>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QGroupBox" name="groupBox_selectedColor">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>272</width>
+           <height>239</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Selected colors</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Colormani">
+         <property name="title">
+          <string>Color Manipulations (selected colors are affected)</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_allViews">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Apply to all views</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_remapTo">
+            <property name="text">
+             <string>Remap to</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="comboBox_remapToColor"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_incrBrightness">
+            <property name="text">
+             <string>+ Brightness</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_decrBrightness">
+            <property name="text">
+             <string>- Brightness</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_deleteColor">
+            <property name="text">
+             <string>Delete</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Brushes">
+         <property name="title">
+          <string>Brushes</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -545,7 +395,7 @@ border: 1px solid darkgrey;}
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1070</width>
+     <width>1296</width>
      <height>21</height>
     </rect>
    </property>

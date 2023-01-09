@@ -19,7 +19,7 @@ from rctobject import objects as obj
 
 
 
-class objectTabSS(QWidget):
+class ObjectTabSS(QWidget):
     def __init__(self, o, main_window, filepath = None, author = None, author_id = None):
         super().__init__()
 
@@ -27,6 +27,10 @@ class objectTabSS(QWidget):
         self.lastpath = filepath
         self.saved = False
         self.main_window = main_window
+
+        self.locked = False
+        self.sprite_tab = False
+
 
         layout = QHBoxLayout()
 
@@ -39,13 +43,12 @@ class objectTabSS(QWidget):
         self.setLayout(layout)
 
     def saveObject(self, get_path):
-        if self.settingsTab.author_id_field.text():
-            name = f"{self.settingsTab.author_id_field.text()}.{self.o.data.get('id','')}"
-        else:
-            name = self.o.data.get('id','')
+
+        name = self.o.data.get('id','')
 
         if get_path or not self.saved:
             if self.lastpath:
+                folder = self.lastpath
                 path = f"{self.lastpath}/{name}.parkobj"
             else:
                 folder = self.main_window.settings.get('savedefault', getcwd)
@@ -76,6 +79,14 @@ class objectTabSS(QWidget):
             self.lastpath = filepath
             self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
+
+    def lockWithSpriteTab(self, sprite_tab):
+        self.locked = True
+        self.sprite_tab = sprite_tab
+
+    def unlockSpriteTab(self):
+        self.locked = False
+        self.sprite_tab = None
 
 
 
@@ -163,7 +174,7 @@ class settingsTabSS(QWidget):
 
         self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOrginalId")
 
-        self.loadObjectSettings(author, author_id)
+        self.loadObjectSettings(author = author, author_id = author_id)
 
 
     def tabChanged(self, index):
@@ -215,10 +226,15 @@ class settingsTabSS(QWidget):
         self.o['authors'] = value.split(',')
 
     def authorIdChanged(self, value):
+        object_id = self.object_id_field.text()
+        object_type = self.o.object_type.value
+        self.o['id'] = f'{value}.{object_type}.{object_id}'
         self.object_tab.saved = False
 
     def idChanged(self, value):
-        self.o['id'] = value
+        author_id = self.author_id_field.text()
+        object_type = self.o.object_type.value
+        self.o['id'] = f'{author_id}.{object_type}.{value}'
         self.object_tab.saved = False
 
     def nameChanged(self, value):
@@ -232,7 +248,12 @@ class settingsTabSS(QWidget):
 
     def nameChangedLang(self, value):
         if self.language_index == 0:
-            self.o['strings']['name']['en-GB'] = int(value)
+            self.o['strings']['name']['en-GB'] = value
+            self.object_name_field.setText(value)
+        else:
+            lang = list(cts.languages)[self.language_index]
+            self.o['strings']['name'][lang] = value
+
 
     def languageChanged(self, value):
         lang = list(cts.languages)[self.language_index]
@@ -447,7 +468,20 @@ class spritesTabSS(QWidget):
     def showSpriteMenu(self, pos):
         menu = QMenu()
         menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
+
+        submenu_copy = QMenu("Copy Sprite to")
+        rot = self.o.rotation
+        submenu_copy.addAction(f"View {(rot + 1 )%4+1}", lambda view = (rot +1)%4: self.copySpriteToView(view))
+        submenu_copy.addAction(f"View {(rot + 2 )%4+1}", lambda view = (rot +2)%4: self.copySpriteToView(view))
+        submenu_copy.addAction(f"View {(rot + 3 )%4+1}", lambda view = (rot +3)%4: self.copySpriteToView(view))
+        submenu_copy.addAction("All Views", self.copySpriteToAllViews)
+
+
+        menu.addMenu(submenu_copy)
+
+
         menu.addAction("Delete Sprite", self.deleteSprite)
+
         menu.exec_(self.sprite_view_main.mapToGlobal(pos))
 
     def pasteSpriteFromClipboard(self):
@@ -458,6 +492,21 @@ class spritesTabSS(QWidget):
             self.o.setSprite(sprite)
 
         self.updateMainView()
+
+    def copySpriteToView(self, view):
+        rot = self.o.rotation
+
+        self.o.setSprite(self.o.giveSprite(), rotation = view)
+
+        self.updatePreview(view)
+
+    def copySpriteToAllViews(self):
+        rot = self.o.rotation
+
+        for view in range(4):
+            self.o.setSprite(self.o.giveSprite(), rotation = (rot + view + 1)% 4 )
+
+        self.updateAllViews()
 
     def deleteSprite(self):
         sprite = spr.Sprite(None, palette = self.main_window.current_palette)
@@ -541,7 +590,28 @@ class spritesTabSS(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_view_main.setPixmap(pixmap)
 
+        if self.object_tab.locked:
+            self.object_tab.sprite_tab.updateView()
+
         self.updatePreview(self.o.rotation)
+
+    def giveMainView(self):
+        im, x, y = self.o.show()
+
+        coords = (100+x, 100+y)
+
+        canvas = Image.new('RGBA', (200, 200))
+
+        if self.buttonBoundingBox.isChecked():
+            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
+            canvas.paste(backbox, (100+coords_backbox[0], 100+coords_backbox[1]), backbox)
+
+
+        #canvas.paste(self.frame_image, self.frame_image)
+        canvas.paste(im, coords, im)
+
+        return canvas
+
 
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
@@ -567,7 +637,45 @@ class spritesTabSS(QWidget):
         for rot in range(4):
             self.updatePreview(rot)
 
+#### Sprites Tab
 
+class SpriteTab(QWidget):
+    def __init__(self, main_window, object_tab = None, filepath = None):
+        super().__init__()
+        uic.loadUi('sprite.ui', self)
+
+
+        if object_tab:
+            self.locked = True
+            self.object_tab = object_tab
+            self.sprite = object_tab.o.giveSprite()
+        else:
+            self.locked = False
+            self.object_tab = None
+            self.sprite = spr.Sprite()
+
+        self.lastpath = filepath
+        self.saved = False
+        self.main_window = main_window
+
+
+        self.updateView()
+
+    def updateView(self):
+
+        if self.locked:
+            canvas = self.object_tab.spritesTab.giveMainView()
+
+            image = ImageQt(canvas)
+            pixmap = QtGui.QPixmap.fromImage(image)
+            self.view.setPixmap(pixmap)
+
+
+
+
+
+
+##### Settings window
 
 class ChangeSettingsUi(QDialog):
     def __init__(self, settings):
