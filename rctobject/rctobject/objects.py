@@ -292,24 +292,26 @@ class SmallScenery(RCTObject):
                 for _, sprite in self.sprites.items():
                     sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
-        """Override save from base class."""
+
+    def updateImageOffsets(self):
+        """Override method from base class."""
 
         # Adjust sprite offsets from flags
         if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
             offset = 12
             offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
 
-            for _, sprite in self.sprites.items():
-                sprite.y += offset
-
         elif self.shape == SmallScenery.Shape.HALF:
             offset = 12
 
-            for _, sprite in self.sprites.items():
-               sprite.y += offset
+        else:
+            offset = 0
 
-        super().save(path, name, no_zip, include_originalId)
+        for im in self.data['images']:
+            sprite = self.sprites[im['path']]
+
+            im['x'] = sprite.x
+            im['y'] = sprite.y + offset
 
 
     def show(self, rotation = None, animation_frame: int = -1, wither: int = 0):
