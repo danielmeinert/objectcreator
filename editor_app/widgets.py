@@ -30,7 +30,7 @@ class ObjectTabSS(QWidget):
 
         self.locked = False
         self.sprite_tab = False
-        
+
 
         layout = QHBoxLayout()
 
@@ -89,19 +89,33 @@ class ObjectTabSS(QWidget):
     def unlockSpriteTab(self):
         self.locked = False
         self.sprite_tab = None
-        
-    def colorRemapToAllViews(self, color_remap, selected_colors):
+
+    def colorRemapToAll(self, color_remap, selected_colors):
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.remapColor(color, color_remap)
-                
+
         self.spritesTab.updateAllViews()
 
     def colorRemapCurrentView(self, color_remap, selected_colors):
         sprite = self.o.giveSprite()
         for color in selected_colors:
             sprite.remapColor(color, color_remap)
-                
+
+        self.spritesTab.updateMainView()
+
+    def colorChangeBrightnessAll(self, step, selected_colors):
+        for _, sprite in self.o.sprites.items():
+            for color in selected_colors:
+                sprite.changeBrightnessColor(step, color)
+
+        self.spritesTab.updateAllViews()
+
+    def colorChangeBrightnessCurrentView(self, step, selected_colors):
+        sprite = self.o.giveSprite()
+        for color in selected_colors:
+            sprite.changeBrightnessColor(step, color)
+
         self.spritesTab.updateMainView()
 
 
@@ -160,7 +174,7 @@ class settingsTabSS(QWidget):
         self.name_lang_box = self.findChild(QComboBox, "comboBox_languageSelect")
         self.name_lang_box.currentIndexChanged.connect(self.languageChanged)
         self.language_index = 0
-        
+
         self.button_clear_all_languages = self.findChild(QPushButton, "pushButton_clearAllLang")
         self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
 
@@ -256,7 +270,7 @@ class settingsTabSS(QWidget):
 
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
-        
+
     def clearAllLanguages(self):
         for lang in self.o['strings']['name'].keys():
             self.o['strings']['name'][lang] = ''
@@ -683,10 +697,15 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
- 
+
     def colorRemap(self, color_remap, selected_colors):
         if self.locked:
             self.object_tab.colorRemapCurrentView(color_remap, selected_colors)
+
+    def colorChangeBrightness(self, step, selected_colors):
+        if self.locked:
+            self.object_tab.colorChangeBrightnessCurrentView(step, selected_colors)
+
 
     def updateView(self):
 

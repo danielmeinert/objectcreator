@@ -36,7 +36,7 @@ class Palette(np.ndarray):
 
     def __str__(self):
          return self.name
-     
+
     def __eq__(self, other):
         return self.name == other.name
 
@@ -48,15 +48,16 @@ class Palette(np.ndarray):
             color = 'Pink'
         elif color == '3rd Remap':
             color = 'Yellow'
-        
+
         if color != 'Sparkles':
-            if color not in self.color_dict.keys():
-                raise KeyError(f'Color {color} not in palette')
-            return self.__getitem__(self.color_dict[color])
+            i = self.color_dict.get(color, -1)
+            if i > -1:
+                return self.__getitem__(i)
         elif self.has_sparkles:
             return self.sparkles
-        else:
-            raise ValueError('Palette has no sparkles. Cannot return color.')
+
+        return None
+
 
     def getRemapColor(self, color_name: str):
         color = np.zeros((12, 3))
@@ -286,16 +287,15 @@ def removeColorWhenImport(image: Image.Image, color = None):
     ##If no color is given we remove the color from (0,0) pixel
     data_in = np.array(image)
     data_out = np.array(data_in)
-    
+
     if color:
         r1, g1, b1 = color
     else:
         r1, g1, b1 = data_in[0,0][:3]
-    
+
     red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
     mask = (red == r1) & (green == g1) & (blue == b1)
     data_out[:, :, :][mask] = [0, 0, 0, 0]
 
     return Image.fromarray(data_out)
-    
-    
+

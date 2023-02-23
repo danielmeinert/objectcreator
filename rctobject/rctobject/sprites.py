@@ -292,27 +292,44 @@ def _incrBr(data_in, color):
     return data_out
 
 
-def changeBrightnessColor(image: Image.Image, step: int, color: str or list, palette: pal.Palette = pal.orct):
-    data = np.array(image)
+def changeBrightnessColor(image: Image.Image, value: int, color: str or list, palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
 
     if isinstance(color, str):
         color = [color]
 
     for color_name in color:
 
-        if color_name not in palette.color_dict:
+        color = palette.getColor(color_name)
+
+        if not isinstance(color, np.ndarray):
             continue
 
-        color_arr = palette.getColor(color_name)
-
-        if(step < 0):
-            for i in range(-step):
-                data = _decrBr(data, color_arr)
+        if(value < 0):
+            for step in range(-value):
+                for i in range(12):
+                    j = i
+                    if(i > 0):
+                        j -= 1
+                    r1, g1, b1 = color[i]  # Original value
+                    r2, g2, b2 = color[j]  # Value that we want to replace it with
+                    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+                    mask = (red == r1) & (green == g1) & (blue == b1)
+                    data_out[:, :, :3][mask] = [r2, g2, b2]
         else:
-            for i in range(step):
-                data = _incrBr(data, color_arr)
+            for step in range(value):
+                for i in range(12):
+                    j = i
+                    if(i < 11):
+                        j += 1
+                    r1, g1, b1 = color[i]  # Original value
+                    r2, g2, b2 = color[j]  # Value that we want to replace it with
+                    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+                    mask = (red == r1) & (green == g1) & (blue == b1)
+                    data_out[:, :, :3][mask] = [r2, g2, b2]
 
-    return Image.fromarray(data)
+    return Image.fromarray(data_out)
 
 
 def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.orct, include_sparkles=False):

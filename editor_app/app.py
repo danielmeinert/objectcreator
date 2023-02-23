@@ -57,28 +57,28 @@ class MainWindowUi(QMainWindow):
         # Color Manipulations
         self.checkbox_all_views = self.findChild(
             QCheckBox, "checkBox_allViews")
-        
+
         self.button_remap_to = self.findChild(
             QPushButton, "pushButton_remapTo")
         self.combobox_remap_to_color = self.findChild(
             QComboBox, "comboBox_remapToColor")
-        
+
         self.combobox_remap_to_color.addItems(
             list(self.current_palette.color_dict))
         self.combobox_remap_to_color.setCurrentIndex(
             self.current_palette.color_dict['1st Remap'])
-        
+
         self.button_incr_brightness = self.findChild(
             QPushButton, "pushButton_incrBrightness")
         self.button_decr_brightness = self.findChild(
             QPushButton, "pushButton_decrBrightness")
         self.button_delete_color = self.findChild(
             QPushButton, "pushButton_deleteColor")
-        
+
         self.button_remap_to.clicked.connect(self.colorRemapTo)
-        #self.button_incr_brightness.clicked.connect(self.colorIncrBrightness)
-       # self.button_decr_brightness.clicked.connect(self.colorDecrBrightness)
-        #self.button_delete_color.clicked.connect(self.colorDelete)
+        self.button_incr_brightness.clicked.connect(lambda x, step = 1: self.colorChangeBrightness(step))
+        self.button_decr_brightness.clicked.connect(lambda x, step = -1: self.colorChangeBrightness(step))
+        self.button_delete_color.clicked.connect(self.colorDelete)
 
 
 
@@ -290,62 +290,38 @@ class MainWindowUi(QMainWindow):
         widget = self.object_tabs.currentWidget()
 
         widget.saveObject(get_path = True)
-        
+
     #### Tool functions
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
         selected_colors = self.color_select_panel.selectedColors()
-        
+
         if self.checkbox_all_views.isChecked():
             widget = self.object_tabs.currentWidget()
-            
-            widget.colorRemapToAllViews(color_remap, selected_colors)
-            
-        else:   
+
+            widget.colorRemapToAll(color_remap, selected_colors)
+
+        else:
             widget = self.sprite_tabs.currentWidget()
-            
+
             widget.colorRemap(color_remap, selected_colors)
 
 
-    """     
+    def colorChangeBrightness(self, step):
+        selected_colors = self.color_select_panel.selectedColors()
 
-    def colorIncrBrightness(self):
         if self.checkbox_all_views.isChecked():
-            for base in self.generator.bases:
-                for color in self.colorSelectPanel.selectedColors():
-                    base.changeBrightnessColor(1, color)
-                    
-            self.updatePreview(0)
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
-            
-        else:   
-            for color in self.colorSelectPanel.selectedColors():
-                self.generator.base.changeBrightnessColor(1, color)
-        
-        
-        self.updateMainView()
+            widget = self.object_tabs.currentWidget()
 
-    def colorDecrBrightness(self):
-        if self.checkbox_all_views.isChecked():
-            for base in self.generator.bases:
-                for color in self.colorSelectPanel.selectedColors():
-                    base.changeBrightnessColor(-1, color)
-                    
-            self.updatePreview(0)
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
-            
-        else:   
-            for color in self.colorSelectPanel.selectedColors():
-                self.generator.base.changeBrightnessColor(-1, color)
+            widget.colorChangeBrightnessAll(step, selected_colors)
 
-        self.updateMainView()
+        else:
+            widget = self.sprite_tabs.currentWidget()
 
-     """
+            widget.colorChangeBrightness(step, selected_colors)
 
+    def colorDelete(self):
+        pass
 
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
