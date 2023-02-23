@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>329</width>
-    <height>569</height>
+    <height>575</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -90,11 +90,14 @@ QTabBar::tab:selected {
           <property name="title">
            <string>Information</string>
           </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
           <widget class="QLineEdit" name="lineEdit_objectName">
            <property name="geometry">
             <rect>
              <x>10</x>
-             <y>160</y>
+             <y>170</y>
              <width>251</width>
              <height>20</height>
             </rect>
@@ -107,7 +110,7 @@ QTabBar::tab:selected {
            <property name="geometry">
             <rect>
              <x>10</x>
-             <y>140</y>
+             <y>145</y>
              <width>141</width>
              <height>16</height>
             </rect>
@@ -243,6 +246,19 @@ QTabBar::tab:selected {
            </property>
            <property name="text">
             <string>Keep</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_clearAllLang">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>143</y>
+             <width>111</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Clear All Languages</string>
            </property>
           </widget>
          </widget>
@@ -779,6 +795,9 @@ QTabBar::tab:selected {
           </property>
           <property name="title">
            <string>Animation Options</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
           </property>
           <widget class="QLabel" name="label_animSubtype">
            <property name="geometry">
