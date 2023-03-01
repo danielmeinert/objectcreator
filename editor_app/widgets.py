@@ -29,7 +29,7 @@ class ObjectTabSS(QWidget):
         self.main_window = main_window
 
         self.locked = False
-        self.sprite_tab = False
+        self.locked_sprite_tab = False
 
 
         layout = QHBoxLayout()
@@ -82,13 +82,22 @@ class ObjectTabSS(QWidget):
             self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
             self.saved = True
 
-    def lockWithSpriteTab(self, sprite_tab):
+    def lockWithSpriteTab(self, locked_sprite_tab):
         self.locked = True
-        self.sprite_tab = sprite_tab
+        self.locked_sprite_tab = locked_sprite_tab
 
     def unlockSpriteTab(self):
         self.locked = False
-        self.sprite_tab = None
+        self.locked_sprite_tab = None
+
+    def giveCurrentMainViewSprite(self):
+        return self.o.giveSprite()
+
+    def giveCurrentMainView(self):
+        return self.spritesTab.giveMainView()
+
+    def updateCurrentMainView(self):
+        self.spritesTab.updateMainView()
 
     def colorRemapToAll(self, color_remap, selected_colors):
         for _, sprite in self.o.sprites.items():
@@ -97,12 +106,6 @@ class ObjectTabSS(QWidget):
 
         self.spritesTab.updateAllViews()
 
-    def colorRemapCurrentView(self, color_remap, selected_colors):
-        sprite = self.o.giveSprite()
-        for color in selected_colors:
-            sprite.remapColor(color, color_remap)
-
-        self.spritesTab.updateMainView()
 
     def colorChangeBrightnessAll(self, step, selected_colors):
         for _, sprite in self.o.sprites.items():
@@ -111,12 +114,13 @@ class ObjectTabSS(QWidget):
 
         self.spritesTab.updateAllViews()
 
-    def colorChangeBrightnessCurrentView(self, step, selected_colors):
-        sprite = self.o.giveSprite()
-        for color in selected_colors:
-            sprite.changeBrightnessColor(step, color)
+    def colorRemoveAll(self, selected_colors):
+        for _, sprite in self.o.sprites.items():
+            for color in selected_colors:
+                sprite.removeColor(color)
 
-        self.spritesTab.updateMainView()
+        self.spritesTab.updateAllViews()
+
 
 
 class settingsTabSS(QWidget):
@@ -627,7 +631,7 @@ class spritesTabSS(QWidget):
         self.sprite_view_main.setPixmap(pixmap)
 
         if self.object_tab.locked:
-            self.object_tab.sprite_tab.updateView()
+            self.object_tab.locked_sprite_tab.updateView(skip_locked = True)
 
         self.updatePreview(self.o.rotation)
 
@@ -684,6 +688,8 @@ class SpriteTab(QWidget):
         if object_tab:
             self.locked = True
             self.object_tab = object_tab
+            object_tab.lockWithSpriteTab(self)
+
             self.sprite = object_tab.o.giveSprite()
         else:
             self.locked = False
@@ -700,21 +706,56 @@ class SpriteTab(QWidget):
 
     def colorRemap(self, color_remap, selected_colors):
         if self.locked:
-            self.object_tab.colorRemapCurrentView(color_remap, selected_colors)
+            sprite = self.object_tab.giveCurrentMainViewSprite()
+        else:
+            sprite = self.sprite
+
+        for color in selected_colors:
+            sprite.remapColor(color, color_remap)
+
+        self.updateView()
 
     def colorChangeBrightness(self, step, selected_colors):
         if self.locked:
-            self.object_tab.colorChangeBrightnessCurrentView(step, selected_colors)
+            sprite = self.object_tab.giveCurrentMainViewSprite()
+        else:
+            sprite = self.sprite
+
+        sprite.changeBrightnessColor(step, selected_colors)
+
+        self.updateView()
 
 
-    def updateView(self):
-
+    def colorRemove(self, selected_colors):
         if self.locked:
-            canvas = self.object_tab.spritesTab.giveMainView()
+            sprite = self.object_tab.giveCurrentMainViewSprite()
+        else:
+            sprite = self.sprite
 
-            image = ImageQt(canvas)
-            pixmap = QtGui.QPixmap.fromImage(image)
-            self.view.setPixmap(pixmap)
+        sprite.removeColor(selected_colors)
+
+        self.updateView()
+
+
+    def updateView(self, skip_locked = False):
+        if self.locked:
+            if not skip_locked:
+                self.object_tab.updateCurrentMainView()
+
+                return
+
+            canvas = self.object_tab.giveCurrentMainView()
+
+        else:
+            pass
+
+        canvas = canvas.resize((int(canvas.size[0]*self.main_window.zoom_factor), int(canvas.size[1]*self.main_window.zoom_factor)), resample=Image.NEAREST)
+
+        image = ImageQt(canvas)
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.view.resize(self.main_window.zoom_factor*self.view.size())
+        self.view.setPixmap(pixmap)
 
 
 

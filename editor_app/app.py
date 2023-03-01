@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -47,6 +47,11 @@ class MainWindowUi(QMainWindow):
         self.object_tabs.tabCloseRequested.connect(self.closeObject)
         self.object_tabs.currentChanged.connect(self.changeTab)
 
+        # Sprite zoom
+        self.zoom_factor = 1.0
+        self.slider_zoom = self.findChild(QScrollBar, "horizontalScrollBar_zoom")
+        self.slider_zoom.valueChanged.connect(self.zoomChanged)
+
         #### Tools
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
@@ -72,13 +77,13 @@ class MainWindowUi(QMainWindow):
             QPushButton, "pushButton_incrBrightness")
         self.button_decr_brightness = self.findChild(
             QPushButton, "pushButton_decrBrightness")
-        self.button_delete_color = self.findChild(
+        self.button_remove_color = self.findChild(
             QPushButton, "pushButton_deleteColor")
 
         self.button_remap_to.clicked.connect(self.colorRemapTo)
         self.button_incr_brightness.clicked.connect(lambda x, step = 1: self.colorChangeBrightness(step))
         self.button_decr_brightness.clicked.connect(lambda x, step = -1: self.colorChangeBrightness(step))
-        self.button_delete_color.clicked.connect(self.colorDelete)
+        self.button_remove_color.clicked.connect(self.colorRemove)
 
 
 
@@ -193,7 +198,7 @@ class MainWindowUi(QMainWindow):
     def changeTab(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab and object_tab.locked:
-            self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.sprite_tab))
+            self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
 
 
@@ -270,11 +275,7 @@ class MainWindowUi(QMainWindow):
 
                 object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
 
-
                 sprite_tab = wdg.SpriteTab(self, object_tab)
-                object_tab.lockWithSpriteTab(sprite_tab)
-
-
 
                 self.object_tabs.addTab(object_tab, name)
                 self.object_tabs.setCurrentWidget(object_tab)
@@ -290,6 +291,15 @@ class MainWindowUi(QMainWindow):
         widget = self.object_tabs.currentWidget()
 
         widget.saveObject(get_path = True)
+
+    ### Viewfunctions
+    def zoomChanged(self, val):
+        self.zoom_factor = val
+
+        widget = self.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.updateView()
 
     #### Tool functions
     def colorRemapTo(self):
@@ -320,8 +330,19 @@ class MainWindowUi(QMainWindow):
 
             widget.colorChangeBrightness(step, selected_colors)
 
-    def colorDelete(self):
-        pass
+    def colorRemove(self):
+        selected_colors = self.color_select_panel.selectedColors()
+
+        if self.checkbox_all_views.isChecked():
+            widget = self.object_tabs.currentWidget()
+
+            widget.colorRemoveAll(selected_colors)
+
+        else:
+            widget = self.sprite_tabs.currentWidget()
+
+            widget.colorRemove(selected_colors)
+
 
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))

@@ -91,6 +91,10 @@ class Sprite:
         self.image = changeBrightnessColor(
             self.image, step, color, self.palette)
 
+    def removeColor(self, color: str or list):
+        self.image = removeColor(self.image, color, self.palette)
+
+
     def remapColor(self, color_name_old: str, color_name_new: str):
         self.image = remapColor(
             self.image, color_name_old, color_name_new,  self.palette)
