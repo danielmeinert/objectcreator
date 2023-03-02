@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
@@ -638,14 +638,15 @@ class spritesTabSS(QWidget):
     def giveMainView(self):
         im, x, y = self.o.show()
 
-        coords = (100+x, 100+y)
 
-        canvas = Image.new('RGBA', (200, 200))
+        canvas_size = 200
+        canvas = Image.new('RGBA', (canvas_size, canvas_size))
 
         if self.buttonBoundingBox.isChecked():
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
-            canvas.paste(backbox, (100+coords_backbox[0], 100+coords_backbox[1]), backbox)
+            canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size/2)+coords_backbox[1]), backbox)
 
+        coords = (int(canvas_size/2)+x, int(canvas_size/2)+y)
 
         #canvas.paste(self.frame_image, self.frame_image)
         canvas.paste(im, coords, im)
@@ -684,6 +685,10 @@ class SpriteTab(QWidget):
         super().__init__()
         uic.loadUi('sprite.ui', self)
 
+        # Sprite zoom
+        self.zoom_factor = 1.0
+        self.slider_zoom.valueChanged.connect(self.zoomChanged)
+
 
         if object_tab:
             self.locked = True
@@ -700,6 +705,12 @@ class SpriteTab(QWidget):
         self.saved = False
         self.main_window = main_window
 
+
+        self.updateView()
+        
+        
+    def zoomChanged(self, val):
+        self.zoom_factor = val
 
         self.updateView()
 
@@ -749,15 +760,20 @@ class SpriteTab(QWidget):
         else:
             pass
 
-        canvas = canvas.resize((int(canvas.size[0]*self.main_window.zoom_factor), int(canvas.size[1]*self.main_window.zoom_factor)), resample=Image.NEAREST)
+        canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
 
         image = ImageQt(canvas)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.view.resize(self.main_window.zoom_factor*self.view.size())
+        self.view.resize(self.zoom_factor*self.view.size())
         self.view.setPixmap(pixmap)
+        
+        geometry = self.scroll_area.geometry()
+        scroll_width = max(self.view.size().width(), geometry.width())
+        scroll_height = max(self.view.size().height(), geometry.height())
 
-
+        self.scroll_area_content.resize(scroll_width, scroll_height)
+  
 
 ##### Settings window
 

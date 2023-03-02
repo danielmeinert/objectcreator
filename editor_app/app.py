@@ -47,10 +47,6 @@ class MainWindowUi(QMainWindow):
         self.object_tabs.tabCloseRequested.connect(self.closeObject)
         self.object_tabs.currentChanged.connect(self.changeTab)
 
-        # Sprite zoom
-        self.zoom_factor = 1.0
-        self.slider_zoom = self.findChild(QScrollBar, "horizontalScrollBar_zoom")
-        self.slider_zoom.valueChanged.connect(self.zoomChanged)
 
         #### Tools
         # Color Panel
@@ -226,7 +222,7 @@ class MainWindowUi(QMainWindow):
     def closeObject(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab.locked:
-            self.sprite_tabs.removeTab(self.sprite_tabs.indexOf(object_tab.sprite_tab))
+            self.sprite_tabs.removeTab(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
         self.object_tabs.removeTab(index)
 
@@ -292,14 +288,7 @@ class MainWindowUi(QMainWindow):
 
         widget.saveObject(get_path = True)
 
-    ### Viewfunctions
-    def zoomChanged(self, val):
-        self.zoom_factor = val
-
-        widget = self.sprite_tabs.currentWidget()
-
-        if widget:
-            widget.updateView()
+   
 
     #### Tool functions
     def colorRemapTo(self):

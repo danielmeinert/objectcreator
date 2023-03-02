@@ -30,62 +30,133 @@
     <property name="bottomMargin">
      <number>10</number>
     </property>
-    <item row="0" column="3">
-     <widget class="QTabWidget" name="tabWidget_objects">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox_tools">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>280</width>
         <height>0</height>
        </size>
       </property>
-      <property name="styleSheet">
-       <string notr="true">
-QTabWidget::pane {
-  border: 1px solid lightgray;
-  top:-1px; 
-  background: rgb(245, 245, 245);; 
-} 
-
-QTabBar::tab {
-  background: rgb(230, 230, 230); 
-  border: 1px solid lightgray; 
-  padding: 5px;
-} 
-QTabBar::tab:selected { 
-  background: rgb(245, 245, 245); 
-  margin-bottom: -1px; 
-}
-QToolButton {background : lightgrey;
-border: 1px solid darkgrey;}
-</string>
+      <property name="maximumSize">
+       <size>
+        <width>310</width>
+        <height>16777215</height>
+       </size>
       </property>
-      <property name="currentIndex">
-       <number>0</number>
+      <property name="title">
+       <string>Tools</string>
       </property>
-      <property name="documentMode">
-       <bool>false</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="movable">
-       <bool>false</bool>
-      </property>
-      <property name="tabBarAutoHide">
-       <bool>false</bool>
-      </property>
-      <widget class="QWidget" name="tab_object">
-       <attribute name="title">
-        <string>Object 1</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_3"/>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QGroupBox" name="groupBox_selectedColor">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>272</width>
+           <height>239</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Selected colors</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Colormani">
+         <property name="title">
+          <string>Color Manipulations (selected colors are affected)</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_allViews">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Apply to all views</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_remapTo">
+            <property name="text">
+             <string>Remap to</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="comboBox_remapToColor"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_incrBrightness">
+            <property name="text">
+             <string>+ Brightness</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_decrBrightness">
+            <property name="text">
+             <string>- Brightness</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_deleteColor">
+            <property name="text">
+             <string>Delete</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Brushes">
+         <property name="title">
+          <string>Brushes</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="0" column="1">
@@ -259,146 +330,62 @@ QTabBar::tab:selected {
       </layout>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QGroupBox" name="groupBox_tools">
+    <item row="0" column="3">
+     <widget class="QTabWidget" name="tabWidget_objects">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
        <size>
-        <width>280</width>
+        <width>0</width>
         <height>0</height>
        </size>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>310</width>
-        <height>16777215</height>
-       </size>
+      <property name="styleSheet">
+       <string notr="true">
+QTabWidget::pane {
+  border: 1px solid lightgray;
+  top:-1px; 
+  background: rgb(245, 245, 245);; 
+} 
+
+QTabBar::tab {
+  background: rgb(230, 230, 230); 
+  border: 1px solid lightgray; 
+  padding: 5px;
+} 
+QTabBar::tab:selected { 
+  background: rgb(245, 245, 245); 
+  margin-bottom: -1px; 
+}
+QToolButton {background : lightgrey;
+border: 1px solid darkgrey;}
+</string>
       </property>
-      <property name="title">
-       <string>Tools</string>
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QGroupBox" name="groupBox_selectedColor">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>272</width>
-           <height>239</height>
-          </size>
-         </property>
-         <property name="title">
-          <string>Selected colors</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_Colormani">
-         <property name="title">
-          <string>Color Manipulations (selected colors are affected)</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBox_allViews">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Apply to all views</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_remapTo">
-            <property name="text">
-             <string>Remap to</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="comboBox_remapToColor"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_incrBrightness">
-            <property name="text">
-             <string>+ Brightness</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QPushButton" name="pushButton_decrBrightness">
-            <property name="text">
-             <string>- Brightness</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="pushButton_deleteColor">
-            <property name="text">
-             <string>Delete</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_Brushes">
-         <property name="title">
-          <string>Brushes</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QScrollBar" name="horizontalScrollBar_zoom">
-      <property name="minimum">
-       <number>1</number>
+      <property name="documentMode">
+       <bool>false</bool>
       </property>
-      <property name="maximum">
-       <number>20</number>
+      <property name="tabsClosable">
+       <bool>true</bool>
       </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+      <property name="movable">
+       <bool>false</bool>
       </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tab_object">
+       <attribute name="title">
+        <string>Object 1</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+      </widget>
      </widget>
     </item>
    </layout>
