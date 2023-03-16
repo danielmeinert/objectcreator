@@ -708,12 +708,28 @@ class SpriteTab(QWidget):
 
         self.updateView()
         
-        
+    
+    def wheelEvent(self, e):
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == QtCore.Qt.ControlModifier:   
+            if e.angleDelta().y() > 0 and self.zoom_factor != self.slider_zoom.maximum():
+                self.slider_zoom.setValue(int(self.zoom_factor+1))
+            elif  e.angleDelta().y() < 0 and self.zoom_factor != self.slider_zoom.minimum():
+                self.slider_zoom.setValue(int(self.zoom_factor-1))
+    
+    
+    
     def zoomChanged(self, val):
         self.zoom_factor = val
-
+        
         self.updateView()
+        
+        horizontal_bar = self.scroll_area.horizontalScrollBar()
+        horizontal_bar.setValue(int(horizontal_bar.maximum()/2)+1)
 
+        vertical_bar = self.scroll_area.verticalScrollBar()
+        vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)  
+    
 
     def colorRemap(self, color_remap, selected_colors):
         if self.locked:

@@ -23,7 +23,16 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: darkgrey;</string>
+      <string notr="true"/>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOn</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOn</enum>
      </property>
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustIgnored</enum>
@@ -37,8 +46,8 @@
      <widget class="QWidget" name="scroll_area_content">
       <property name="geometry">
        <rect>
-        <x>157</x>
-        <y>153</y>
+        <x>149</x>
+        <y>145</y>
         <width>118</width>
         <height>118</height>
        </rect>
@@ -101,6 +110,9 @@
      </property>
      <property name="maximum">
       <number>20</number>
+     </property>
+     <property name="pageStep">
+      <number>5</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
