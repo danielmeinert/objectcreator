@@ -297,7 +297,7 @@ class SmallScenery(RCTObject):
         """Override method from base class."""
 
         # Adjust sprite offsets from flags
-        if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
+        if (self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ ) and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
             offset = 12
             offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
 

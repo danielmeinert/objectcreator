@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab
 from PIL.ImageQt import ImageQt
@@ -688,6 +688,7 @@ class SpriteTab(QWidget):
         # Sprite zoom
         self.zoom_factor = 1.0
         self.slider_zoom.valueChanged.connect(self.zoomChanged)
+        self.scroll_area.setSliderZoom(self.slider_zoom)
 
 
         if object_tab:
@@ -707,29 +708,19 @@ class SpriteTab(QWidget):
 
 
         self.updateView()
-        
-    
-    def wheelEvent(self, e):
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.ControlModifier:   
-            if e.angleDelta().y() > 0 and self.zoom_factor != self.slider_zoom.maximum():
-                self.slider_zoom.setValue(int(self.zoom_factor+1))
-            elif  e.angleDelta().y() < 0 and self.zoom_factor != self.slider_zoom.minimum():
-                self.slider_zoom.setValue(int(self.zoom_factor-1))
-    
-    
-    
+
+
     def zoomChanged(self, val):
         self.zoom_factor = val
-        
+
         self.updateView()
-        
+
         horizontal_bar = self.scroll_area.horizontalScrollBar()
         horizontal_bar.setValue(int(horizontal_bar.maximum()/2)+1)
 
         vertical_bar = self.scroll_area.verticalScrollBar()
-        vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)  
-    
+        vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)
+
 
     def colorRemap(self, color_remap, selected_colors):
         if self.locked:
@@ -783,13 +774,39 @@ class SpriteTab(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.view.resize(self.zoom_factor*self.view.size())
         self.view.setPixmap(pixmap)
-        
+
         geometry = self.scroll_area.geometry()
         scroll_width = max(self.view.size().width(), geometry.width())
         scroll_height = max(self.view.size().height(), geometry.height())
 
         self.scroll_area_content.resize(scroll_width, scroll_height)
-  
+
+class spriteViewWidget(QScrollArea):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.slider_zoom = None
+
+    def setSliderZoom(self, slider_zoom):
+        self.slider_zoom = slider_zoom
+
+
+    def wheelEvent(self, e):
+        modifiers = QApplication.keyboardModifiers()
+
+        if not self.slider_zoom:
+            super().wheelEvent()
+            return
+
+        if modifiers == QtCore.Qt.ControlModifier:
+            zoom_factor = self.slider_zoom.value()
+            if e.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
+                self.slider_zoom.setValue(int(zoom_factor+1))
+            elif  e.angleDelta().y() < 0 and zoom_factor != self.slider_zoom.minimum():
+                self.slider_zoom.setValue(int(zoom_factor-1))
+        else:
+            super().wheelEvent(e)
+
 
 ##### Settings window
 

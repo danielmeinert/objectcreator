@@ -288,7 +288,7 @@ class MainWindowUi(QMainWindow):
 
         widget.saveObject(get_path = True)
 
-   
+
 
     #### Tool functions
     def colorRemapTo(self):
@@ -361,7 +361,7 @@ def main():
 
     main = MainWindowUi()
     main.show()
-    app.exec_()
+   # app.exec_()
 
 
     return main
