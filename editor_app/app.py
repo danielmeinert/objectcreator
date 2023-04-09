@@ -373,7 +373,7 @@ def main():
 
     main = MainWindowUi()
     main.show()
-   # app.exec_()
+    app.exec_()
 
 
     return main
