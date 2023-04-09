@@ -6,6 +6,14 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 import traceback
 import sys
+
+# if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+#     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+# if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+#     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
+
 import io
 from os import getcwd
 from os.path import splitext, split
@@ -19,6 +27,7 @@ import auxiliaries as aux
 from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
+
 
 
 
@@ -357,7 +366,10 @@ def main():
     #     app = QApplication(sys.argv)
     # else:
     #     app = QApplication.instance()
+
     app = QApplication(sys.argv)
+
+
 
     main = MainWindowUi()
     main.show()

@@ -1,0 +1,48 @@
+{
+"template_type" : "path_tile_small",
+"json":{ 
+    "id": "quarter",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_small",
+    "properties": {
+        "price": 1,
+        "removalPrice": -1,
+	"cursor": "CURSOR_PATH_DOWN",
+        "height": 8,
+    "shape": "1/4",
+    "isRotatable": true,
+    "hasPrimaryColour": true,
+    "isStackable": true,
+    "hasNoSupports": true
+  },
+    "images": [
+    {
+      "path": "images/0.png",
+      "x": -16,
+      "y": -7
+    },
+    {
+      "path": "images/1.png",
+      "x": -16,
+      "y": -7
+    },
+    {
+      "path": "images/2.png",
+      "x": -16,
+      "y": -7
+    },
+    {
+      "path": "images/3.png",
+      "x": -16,
+      "y": -7
+    }
+  ],
+    "strings": {
+        "name": {
+            "en-GB": "Quarter"
+        }
+    }
+}
+}

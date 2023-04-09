@@ -21,14 +21,46 @@
         ]
     },
     "images": [
-  	{ "path": "images/00.png"},
-	{ "path": "images/01.png"},
-	{ "path": "images/02.png"},
-	{ "path": "images/03.png"},
-	{ "path": "images/00.png"},
-	{ "path": "images/01.png"},	
-	{ "path": "images/02.png"},
-	{ "path": "images/03.png"}
+  	{
+      "path": "images/00.png",
+      "x": -32,
+      "y": 31
+    },
+    {
+      "path": "images/01.png",
+      "x": -32,
+      "y": 31
+    },
+    {
+      "path": "images/02.png",
+      "x": -32,
+      "y": 31
+    },
+    {
+      "path": "images/03.png",
+      "x": -32,
+      "y": 31
+    },
+    {
+      "path": "images/00.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/01.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/02.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/03.png",
+      "x": -32,
+      "y": -8
+    }
     ],
     "strings": {
         "name": {

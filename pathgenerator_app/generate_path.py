@@ -28,8 +28,9 @@ class pathObject:
 
         data['authors'] = settings['author']
         data['version'] = settings['version']
-        data['id'] = settings['author_id'] + '.scenery_large.' + \
-            settings['object_id'] + '_' + data['id']
+
+
+        data['id'] = f"{settings['author_id']}.{data['objectType']}.{settings['object_id']}_{data['id']}"
 
         if settings['hasPrimaryColour']:
             data['properties']['hasPrimaryColour'] = settings['hasPrimaryColour']
@@ -37,7 +38,7 @@ class pathObject:
             data['properties']['hasSecondaryColour'] = settings['hasSecondaryColour']
         if settings['hasTertiaryColour']:
             data['properties']['hasTertiaryColour'] = settings['hasTertiaryColour']
-            
+
         data['properties']['cursor'] = settings['cursor']
 
         if settings['autoNaming']:
@@ -73,21 +74,14 @@ class pathObject:
             image = spr.pasteOnMask(mask, base[rot].image)
 
             bbox = image.getbbox()
-
-            if i < 4:
-                x = -32 + bbox[0]
-                y = 16 + bbox[1]
-            else:
-                x = -32 + bbox[0]
-                y = -8 + bbox[1]
-
             image = image.crop(bbox)
-            sprites[im['path']] = spr.Sprite(image, (x, y))
+
+            sprites[im['path']] = spr.Sprite(image, (im['x'], im['y']))
             rot = (rot + 1) % 4
 
         self.object = obj.new(data, sprites)
 
-        # Create preview thumbnails for multile objects
+        # Create preview thumbnails for multitile objects
         if template.num_tiles > 1:
             self.object.createThumbnails()
 
@@ -104,11 +98,11 @@ class pathGenerator:
         self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
         self.base = self.bases[0]
         self.current_rotation = 0
-        
+
         self.current_palette = pal.orct
         self.selected_colors = {
             color: False for color in self.current_palette.color_dict}
-        
+
         self.fix_mask = fix_mask
 
     def loadSettings(self):
@@ -159,15 +153,15 @@ class pathGenerator:
         sprite.crop()
         sprite.x = -int(sprite.image.size[0]/2)
         sprite.y = 0
-        
+
         self.bases[self.current_rotation] = sprite
         self.base = self.bases[self.current_rotation]
-        
+
     def importBases(self, bases):
         for i, base in enumerate(bases):
             self.bases[i] = spr.Sprite(base, (-32,0))
-        
-        
+
+
     def resetAllBases(self):
         self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
         self.base = self.bases[0]
@@ -201,14 +195,14 @@ class pathGenerator:
 
         self.current_rotation = rot
         self.base = self.bases[self.current_rotation]
-        
+
     def generateRotations(self, direction):
-        
-        
+
+
         sprite = self.bases[0].image
         x = self.bases[0].x
         y = self.bases[0].y
-        
+
         if direction == 0:
             self.bases[1] = spr.Sprite(sprite.transpose(Image.FLIP_LEFT_RIGHT), (x,y))
             self.bases[2] = spr.Sprite((sprite.transpose(Image.FLIP_LEFT_RIGHT)
@@ -228,15 +222,15 @@ class pathGenerator:
         primary_check = False
         secondary_check = False
         tertiary_check = False
-        
+
         for base in self.bases:
             if base.image.size == (1,1):
                 return 'Not all base images loaded!'
-            
+
             primary_check = (base.checkPrimaryColor() or primary_check)
             secondary_check = (base.checkSecondaryColor() or secondary_check)
             tertiary_check = (base.checkTertiaryColor() or tertiary_check)
-            
+
             if self.settings['rotationMode'] == 0:
                 break
 
@@ -244,7 +238,7 @@ class pathGenerator:
         self.settings['hasSecondaryColour'] = secondary_check
         self.settings['hasTertiaryColour']= tertiary_check
 
-        
+
         if self.selected_templates == []:
             return 'No templates selected!'
 

@@ -29,18 +29,66 @@
         ]
     },
     "images": [
-	{ "path": "images/00.png"},
-	{ "path": "images/01.png"},
-	{ "path": "images/02.png"},
-	{ "path": "images/03.png"},
-	{ "path": "images/04.png"},
-	{ "path": "images/05.png"},
-	{ "path": "images/06.png"},
-	{ "path": "images/07.png"},
-	{ "path": "images/08.png"},
-	{ "path": "images/09.png"},
-	{ "path": "images/10.png"},
-	{ "path": "images/11.png"}
+	{
+      "path": "images/00.png",
+      "x": -32,
+      "y": 37
+    },
+    {
+      "path": "images/01.png",
+      "x": -32,
+      "y": 37
+    },
+    {
+      "path": "images/02.png",
+      "x": -32,
+      "y": 37
+    },
+    {
+      "path": "images/03.png",
+      "x": -32,
+      "y": 37
+    },
+    {
+      "path": "images/04.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/05.png",
+      "x": -24,
+      "y": -8
+    },
+    {
+      "path": "images/06.png",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "path": "images/07.png",
+      "x": -32,
+      "y": 7
+    },
+    {
+      "path": "images/08.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/09.png",
+      "x": -32,
+      "y": -8
+    },
+    {
+      "path": "images/10.png",
+      "x": -22,
+      "y": -8
+    },
+    {
+      "path": "images/11.png",
+      "x": -32,
+      "y": -5
+    }
     ],
     "strings": {
         "name": {
