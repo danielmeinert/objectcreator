@@ -534,8 +534,6 @@ class spritesTabSS(QWidget):
         self.updateMainView()
 
     def copySpriteToView(self, view):
-        rot = self.o.rotation
-
         self.o.setSprite(self.o.giveSprite(), rotation = view)
 
         self.updatePreview(view)
@@ -660,11 +658,6 @@ class spritesTabSS(QWidget):
 
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(34-im.size[0]/2),int(36-im.size[1]/2))
-        # if im.size[1] > 72:
-        #
-        #     coords = (36+x,0)
-        # else:
-        #     coords = (36+x, 40+y)
 
         canvas = Image.new('RGBA', (72, 72))
         canvas.paste(im, coords, im)
@@ -685,10 +678,11 @@ class SpriteTab(QWidget):
         super().__init__()
         uic.loadUi('sprite.ui', self)
 
+        self.scroll_area.connectTab(self)
+
         # Sprite zoom
         self.zoom_factor = 1.0
         self.slider_zoom.valueChanged.connect(self.zoomChanged)
-        self.scroll_area.setSliderZoom(self.slider_zoom)
 
 
         if object_tab:
@@ -715,11 +709,11 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
-        horizontal_bar = self.scroll_area.horizontalScrollBar()
-        horizontal_bar.setValue(int(horizontal_bar.maximum()/2)+1)
+        #horizontal_bar = self.scroll_area.horizontalScrollBar()
+        #horizontal_bar.setValue(int(horizontal_bar.maximum()/2)+1)
 
-        vertical_bar = self.scroll_area.verticalScrollBar()
-        vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)
+        #vertical_bar = self.scroll_area.verticalScrollBar()
+        #vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)
 
 
     def colorRemap(self, color_remap, selected_colors):
@@ -781,31 +775,103 @@ class SpriteTab(QWidget):
 
         self.scroll_area_content.resize(scroll_width, scroll_height)
 
-class spriteViewWidget(QScrollArea):
+class SpriteViewWidget(QScrollArea):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.tab = None
+
         self.slider_zoom = None
+        self.current_pressed_key = None
+        self.mousepos = QtCore.QPoint(0, 0)
 
-    def setSliderZoom(self, slider_zoom):
-        self.slider_zoom = slider_zoom
+        self.setVerticalScrollBar(
+            KeepPositionScrollBar(QtCore.Qt.Vertical, self))
+        self.setHorizontalScrollBar(
+            KeepPositionScrollBar(QtCore.Qt.Horizontal, self))
+
+    def connectTab(self,tab):
+        self.tab = tab
+        self.slider_zoom = tab.slider_zoom
 
 
-    def wheelEvent(self, e):
+    def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
         if not self.slider_zoom:
             super().wheelEvent()
             return
 
-        if modifiers == QtCore.Qt.ControlModifier:
+        if modifiers == QtCore.Qt.ShiftModifier:
             zoom_factor = self.slider_zoom.value()
-            if e.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
+            if event.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
                 self.slider_zoom.setValue(int(zoom_factor+1))
-            elif  e.angleDelta().y() < 0 and zoom_factor != self.slider_zoom.minimum():
+            elif  event.angleDelta().y() < 0 and zoom_factor != self.slider_zoom.minimum():
                 self.slider_zoom.setValue(int(zoom_factor-1))
         else:
-            super().wheelEvent(e)
+            super().wheelEvent(event)
+
+
+    def mousePressEvent(self, event):
+        cursor = self.tab.scroll_area_content.cursor().pos()
+        modifiers = QApplication.keyboardModifiers()
+
+        if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
+            self.setCursor(QtCore.Qt.OpenHandCursor)
+            self.mousepos = event.localPos()
+
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+
+
+        delta = event.localPos() - self.mousepos
+
+        # panning area
+        if event.buttons() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
+            h = self.horizontalScrollBar().value()
+            v = self.verticalScrollBar().value()
+
+            self.horizontalScrollBar().setValue(int(h - delta.x()))
+            self.verticalScrollBar().setValue(int(v - delta.y()))
+
+        self.mousepos = event.localPos()
+
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+
+        self.unsetCursor()
+        self.mousepos = event.localPos()
+        super().mouseReleaseEvent(event)
+
+    # def keyPressEvent(self, event):
+    #     self.current_pressed_key = event.key()
+    #     print(self.current_pressed_key)
+
+    # def keyReleaseEvent(self, event):
+    #     self.current_pressed_key = None
+
+class KeepPositionScrollBar(QScrollBar):
+    defaultRatio = .5
+    ratio = .5
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rangeChanged.connect(self.restoreRatio)
+        self.valueChanged.connect(self.updateRatio)
+
+    def restoreRatio(self):
+        absValue = (self.maximum() - self.minimum()) * self.ratio
+        self.setValue(round(self.minimum() + absValue))
+
+    def updateRatio(self):
+        if self.maximum() - self.minimum():
+            absValue = self.value() - self.minimum()
+            self.ratio = absValue / (self.maximum() - self.minimum())
+        else:
+            self.ratio = self.defaultRatio
+
 
 
 ##### Settings window
