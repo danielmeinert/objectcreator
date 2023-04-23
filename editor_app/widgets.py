@@ -690,7 +690,7 @@ class SpriteTab(QWidget):
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
 
-            self.sprite = object_tab.o.giveSprite()
+            self.sprite = object_tab.giveCurrentMainViewSprite()
         else:
             self.locked = False
             self.object_tab = None
@@ -699,6 +699,8 @@ class SpriteTab(QWidget):
         self.lastpath = filepath
         self.saved = False
         self.main_window = main_window
+
+        self.view.mousePressEvent = self.clickView
 
 
         self.updateView()
@@ -749,6 +751,15 @@ class SpriteTab(QWidget):
         self.updateView()
 
 
+    def clickView(self, event):
+        screen_pos = tuple(event.localPos())
+
+        sprite_x = int(screen_pos[0]/self.zoom_factor)-100
+        sprite_y = int(screen_pos[1]/self.zoom_factor)-100
+
+        print(sprite_x, sprite_y)
+
+
     def updateView(self, skip_locked = False):
         if self.locked:
             if not skip_locked:
@@ -766,8 +777,9 @@ class SpriteTab(QWidget):
         image = ImageQt(canvas)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.view.resize(self.zoom_factor*self.view.size())
+#        self.view.resize(self.zoom_factor*self.view.size())
         self.view.setPixmap(pixmap)
+
 
         geometry = self.scroll_area.geometry()
         scroll_width = max(self.view.size().width(), geometry.width())
@@ -785,10 +797,9 @@ class SpriteViewWidget(QScrollArea):
         self.current_pressed_key = None
         self.mousepos = QtCore.QPoint(0, 0)
 
-        self.setVerticalScrollBar(
-            KeepPositionScrollBar(QtCore.Qt.Vertical, self))
-        self.setHorizontalScrollBar(
-            KeepPositionScrollBar(QtCore.Qt.Horizontal, self))
+        self.setVerticalScrollBar(self.KeepPositionScrollBar(QtCore.Qt.Vertical, self))
+        self.setHorizontalScrollBar(self.KeepPositionScrollBar(QtCore.Qt.Horizontal, self))
+
 
     def connectTab(self,tab):
         self.tab = tab
@@ -853,24 +864,24 @@ class SpriteViewWidget(QScrollArea):
     # def keyReleaseEvent(self, event):
     #     self.current_pressed_key = None
 
-class KeepPositionScrollBar(QScrollBar):
-    defaultRatio = .5
-    ratio = .5
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.rangeChanged.connect(self.restoreRatio)
-        self.valueChanged.connect(self.updateRatio)
+    class KeepPositionScrollBar(QScrollBar):
+        defaultRatio = .5
+        ratio = .5
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.rangeChanged.connect(self.restoreRatio)
+            self.valueChanged.connect(self.updateRatio)
 
-    def restoreRatio(self):
-        absValue = (self.maximum() - self.minimum()) * self.ratio
-        self.setValue(round(self.minimum() + absValue))
+        def restoreRatio(self):
+            absValue = (self.maximum() - self.minimum()) * self.ratio
+            self.setValue(round(self.minimum() + absValue))
 
-    def updateRatio(self):
-        if self.maximum() - self.minimum():
-            absValue = self.value() - self.minimum()
-            self.ratio = absValue / (self.maximum() - self.minimum())
-        else:
-            self.ratio = self.defaultRatio
+        def updateRatio(self):
+            if self.maximum() - self.minimum():
+                absValue = self.value() - self.minimum()
+                self.ratio = absValue / (self.maximum() - self.minimum())
+            else:
+                self.ratio = self.defaultRatio
 
 
 
