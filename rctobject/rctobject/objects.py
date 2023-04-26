@@ -609,25 +609,29 @@ def loadFromId(identifier: str):
 def new(data, sprites):
     """Instantiates a new object from given data and sprites."""
 
-    obj_type = data.get("objectType", False)
-    if obj_type == 'scenery_small':
+    object_type = data.get("objectType", False)
+    if object_type == 'scenery_small':
         return SmallScenery(data, sprites)
-    elif obj_type == 'scenery_large':
+    elif object_type == 'scenery_large':
         return LargeScenery(data, sprites)
     else:
-        raise NotImplementedError(f"Object type unsupported by now.")
+        raise NotImplementedError(f"Object type {object_type} unsupported by now.")
 
 def newEmpty(object_type: cts.Type):
+    """Instantiates a new empty object of given type."""
+
     data = {}
-    sprite = spr.Sprite(None)
 
     if object_type == cts.Type.SMALL:
         data = cts.data_template_small
     elif object_type == cts.Type.LARGE:
             data = cts.data_template_large
+    else:
+        raise NotImplementedError(f"Object type {object_type.value} unsupported by now.")
 
 
-    sprites = {im['path']: sprite for im in data['images']}
+
+    sprites = {im['path']: spr.Sprite(None) for im in data['images']}
 
     return new(data,sprites)
 

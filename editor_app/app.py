@@ -19,6 +19,7 @@ from os import getcwd
 from os.path import splitext, split
 from json import load as jload
 from json import dump as jdump
+from enum import Enum
 
 from customwidgets import colorSelectWidget
 import widgets as wdg
@@ -58,10 +59,15 @@ class MainWindowUi(QMainWindow):
 
 
         #### Tools
+        self.tool = self.Tools.PEN
+        self.toolsize = 1
+
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
-        self.active_shade = None
-        self.color_select_panel = colorSelectWidget(self.active_shade, pal.orct, True, True, True)
+
+        self.color_select_panel = colorSelectWidget(pal.orct, True, True, True)
+        self.giveActiveShade = self.color_select_panel.giveActiveShade #this is a function wrapper to get the current active shade
+
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
 
         # Color Manipulations
@@ -340,6 +346,23 @@ class MainWindowUi(QMainWindow):
             widget = self.sprite_tabs.currentWidget()
 
             widget.colorRemove(selected_colors)
+
+    class Tools(Enum):
+        PEN = 0, 'Pen'
+        ERASER = 1, 'Eraser'
+        EYEDROPPER = 2, 'Eyedropper'
+        AIRBRUSH = 3, 'Airbrush'
+        BRIGHTNESS = 4, 'Brightness Tool'
+        REMAP = 5, 'Remap Tool'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value
 
 
 def excepthook(exc_type, exc_value, exc_tb):

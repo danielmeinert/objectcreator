@@ -699,7 +699,8 @@ class SpriteTab(QWidget):
         self.saved = False
         self.main_window = main_window
 
-        self.view.mousePressEvent = self.clickView
+        self.view.mousePressEvent = self.viewMousePressEvent
+        self.view.mouseMoveEvent = self.viewMouseMoveEvent
 
         self.updateView()
 
@@ -733,33 +734,66 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
+    def draw(self, x, y, shade):
+        sprite = self.giveSprite()
+        canvas = self.giveCanvas()
 
-    def clickView(self, event):
+        canvas.putpixel((x,y), shade)
+
+        #bbox = canvas.getbbox()
+
+        #canvas = canvas.crop(bbox)
+        x_offset = -int(self.canvas_size/2)# + bbox[0]
+        y_offset = -int(self.canvas_size/2) #+ bbox[1]
+
+        sprite.image = canvas
+        sprite.x = x_offset
+        sprite.y = y_offset
+
+        self.updateView()
+
+
+
+    def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
         # Shift modifier = sprite control, dealt with by parent
         if modifiers == QtCore.Qt.ShiftModifier:
             event.ignore()
             return
-        
-        sprite = self.giveSprite()
-        canvas = self.giveCanvas()
-        
+
         screen_pos = event.localPos()
-        sprite_x = int(screen_pos.x()/self.zoom_factor)#-100-sprite.x
-        sprite_y = int(screen_pos.y()/self.zoom_factor)#-100-sprite.y
+        x = int(screen_pos.x()/self.zoom_factor)
+        y = int(screen_pos.y()/self.zoom_factor)
 
-        print(sprite_x, sprite_y)
-        canvas.putpixel((sprite_x,sprite_y), (255,255,255))
-        
-        new_sprite = spr.Sprite(canvas, (-int(self.canvas_size/2),-int(self.canvas_size/2)))
-        new_sprite.crop()
-        
-        sprite.image = new_sprite.image
-        sprite.x = new_sprite.x
-        sprite.y = new_sprite.y
+        if self.main_window.tool == self.main_window.Tools.PEN:
+            if event.button() == QtCore.Qt.LeftButton:
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
 
-        self.updateView()
+            self.draw(x,y,shade)
+
+    def viewMouseMoveEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+
+        # Shift modifier = sprite control, dealt with by parent
+        if modifiers == QtCore.Qt.ShiftModifier:
+            event.ignore()
+            return
+        if event.buttons() == QtCore.Qt.LeftButton:
+            screen_pos = event.localPos()
+            x = int(screen_pos.x()/self.zoom_factor)
+            y = int(screen_pos.y()/self.zoom_factor)
+
+            if self.main_window.tool == self.main_window.Tools.PEN:
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
+
+                self.draw(x,y,shade)
+
+
 
 
     def updateView(self, skip_locked = False):
@@ -788,13 +822,13 @@ class SpriteTab(QWidget):
         scroll_height = max(self.view.size().height(), geometry.height())
 
         self.scroll_area_content.resize(scroll_width, scroll_height)
-        
+
     def giveSprite(self):
         if self.locked:
             return self.object_tab.giveCurrentMainViewSprite()
         else:
             return self.sprite
-        
+
     def giveCanvas(self):
         if self.locked:
             return self.object_tab.giveCurrentMainView(self.canvas_size, add_auxilaries = False)

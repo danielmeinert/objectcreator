@@ -58,7 +58,7 @@ class shadeButton(QPushButton):
 
 
 class colorSelectWidget(QWidget):
-    def __init__(self, active_shade, palette, first_remap: bool = False, second_remap: bool = False, third_remap: bool = False):
+    def __init__(self, palette, first_remap: bool = False, second_remap: bool = False, third_remap: bool = False):
         super().__init__()
         container = QVBoxLayout()
         container.setContentsMargins(5,5,5,5)
@@ -75,7 +75,7 @@ class colorSelectWidget(QWidget):
 
 
         self.active_color_button = None
-        self.active_shade = active_shade
+        self.active_shade = None
 
         self.bars = {}
         for colorname in palette.color_dict:
@@ -142,6 +142,9 @@ class colorSelectWidget(QWidget):
                 ret.append(name)
 
         return ret
+
+    def giveActiveShade(self):
+        return self.active_shade
 
 class remapColorSelectWidget(QWidget):
     def __init__(self, palette ,parent, button_func, remap, window_button):
