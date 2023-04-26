@@ -93,8 +93,8 @@ class ObjectTabSS(QWidget):
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
 
-    def giveCurrentMainView(self):
-        return self.spritesTab.giveMainView()
+    def giveCurrentMainView(self, canvas_size = 200, add_auxilaries = False):
+        return self.spritesTab.giveMainView(canvas_size, add_auxilaries)
 
     def updateCurrentMainView(self):
         self.spritesTab.updateMainView()
@@ -633,14 +633,13 @@ class spritesTabSS(QWidget):
 
         self.updatePreview(self.o.rotation)
 
-    def giveMainView(self):
+    def giveMainView(self, canvas_size, add_auxiliaries):
         im, x, y = self.o.show()
 
 
-        canvas_size = 200
         canvas = Image.new('RGBA', (canvas_size, canvas_size))
 
-        if self.buttonBoundingBox.isChecked():
+        if add_auxiliaries and self.buttonBoundingBox.isChecked():
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size/2)+coords_backbox[1]), backbox)
 
@@ -679,11 +678,11 @@ class SpriteTab(QWidget):
         uic.loadUi('sprite.ui', self)
 
         self.scroll_area.connectTab(self)
+        self.canvas_size = 200
 
         # Sprite zoom
         self.zoom_factor = 1.0
         self.slider_zoom.valueChanged.connect(self.zoomChanged)
-
 
         if object_tab:
             self.locked = True
@@ -702,7 +701,6 @@ class SpriteTab(QWidget):
 
         self.view.mousePressEvent = self.clickView
 
-
         self.updateView()
 
 
@@ -711,18 +709,9 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
-        #horizontal_bar = self.scroll_area.horizontalScrollBar()
-        #horizontal_bar.setValue(int(horizontal_bar.maximum()/2)+1)
-
-        #vertical_bar = self.scroll_area.verticalScrollBar()
-        #vertical_bar.setValue(int(vertical_bar.maximum()/2)+1)
-
 
     def colorRemap(self, color_remap, selected_colors):
-        if self.locked:
-            sprite = self.object_tab.giveCurrentMainViewSprite()
-        else:
-            sprite = self.sprite
+        sprite = self.giveSprite()
 
         for color in selected_colors:
             sprite.remapColor(color, color_remap)
@@ -730,10 +719,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def colorChangeBrightness(self, step, selected_colors):
-        if self.locked:
-            sprite = self.object_tab.giveCurrentMainViewSprite()
-        else:
-            sprite = self.sprite
+        sprite = self.giveSprite()
 
         sprite.changeBrightnessColor(step, selected_colors)
 
@@ -741,10 +727,7 @@ class SpriteTab(QWidget):
 
 
     def colorRemove(self, selected_colors):
-        if self.locked:
-            sprite = self.object_tab.giveCurrentMainViewSprite()
-        else:
-            sprite = self.sprite
+        sprite = self.giveSprite()
 
         sprite.removeColor(selected_colors)
 
@@ -752,12 +735,31 @@ class SpriteTab(QWidget):
 
 
     def clickView(self, event):
-        screen_pos = tuple(event.localPos())
+        modifiers = QApplication.keyboardModifiers()
 
-        sprite_x = int(screen_pos[0]/self.zoom_factor)-100
-        sprite_y = int(screen_pos[1]/self.zoom_factor)-100
+        # Shift modifier = sprite control, dealt with by parent
+        if modifiers == QtCore.Qt.ShiftModifier:
+            event.ignore()
+            return
+        
+        sprite = self.giveSprite()
+        canvas = self.giveCanvas()
+        
+        screen_pos = event.localPos()
+        sprite_x = int(screen_pos.x()/self.zoom_factor)#-100-sprite.x
+        sprite_y = int(screen_pos.y()/self.zoom_factor)#-100-sprite.y
 
         print(sprite_x, sprite_y)
+        canvas.putpixel((sprite_x,sprite_y), (255,255,255))
+        
+        new_sprite = spr.Sprite(canvas, (-int(self.canvas_size/2),-int(self.canvas_size/2)))
+        new_sprite.crop()
+        
+        sprite.image = new_sprite.image
+        sprite.x = new_sprite.x
+        sprite.y = new_sprite.y
+
+        self.updateView()
 
 
     def updateView(self, skip_locked = False):
@@ -767,7 +769,7 @@ class SpriteTab(QWidget):
 
                 return
 
-            canvas = self.object_tab.giveCurrentMainView()
+            canvas = self.object_tab.giveCurrentMainView(self.canvas_size, add_auxilaries = True)
 
         else:
             pass
@@ -786,6 +788,18 @@ class SpriteTab(QWidget):
         scroll_height = max(self.view.size().height(), geometry.height())
 
         self.scroll_area_content.resize(scroll_width, scroll_height)
+        
+    def giveSprite(self):
+        if self.locked:
+            return self.object_tab.giveCurrentMainViewSprite()
+        else:
+            return self.sprite
+        
+    def giveCanvas(self):
+        if self.locked:
+            return self.object_tab.giveCurrentMainView(self.canvas_size, add_auxilaries = False)
+        else:
+            pass
 
 class SpriteViewWidget(QScrollArea):
     def __init__(self, *args, **kwargs):
@@ -824,12 +838,12 @@ class SpriteViewWidget(QScrollArea):
 
 
     def mousePressEvent(self, event):
-        cursor = self.tab.scroll_area_content.cursor().pos()
         modifiers = QApplication.keyboardModifiers()
 
         if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
             self.setCursor(QtCore.Qt.OpenHandCursor)
             self.mousepos = event.localPos()
+            return
 
         super().mousePressEvent(event)
 
