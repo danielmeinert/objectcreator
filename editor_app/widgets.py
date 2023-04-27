@@ -752,6 +752,25 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
+    def erase(self, x,y):
+        sprite = self.giveSprite()
+        canvas = self.giveCanvas()
+
+        canvas.putpixel((x,y),(0,0,0,0))
+
+        #bbox = canvas.getbbox()
+
+        #canvas = canvas.crop(bbox)
+        x_offset = -int(self.canvas_size/2)# + bbox[0]
+        y_offset = -int(self.canvas_size/2) #+ bbox[1]
+
+        sprite.image = canvas
+        sprite.x = x_offset
+        sprite.y = y_offset
+
+        self.updateView()
+
+
 
 
     def viewMousePressEvent(self, event):
@@ -773,6 +792,12 @@ class SpriteTab(QWidget):
                     return
 
             self.draw(x,y,shade)
+            return
+
+        if event.button() == QtCore.Qt.LeftButton:
+            if self.main_window.tool == self.main_window.Tools.ERASER:
+                self.erase(x,y)
+                return
 
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -781,6 +806,7 @@ class SpriteTab(QWidget):
         if modifiers == QtCore.Qt.ShiftModifier:
             event.ignore()
             return
+
         if event.buttons() == QtCore.Qt.LeftButton:
             screen_pos = event.localPos()
             x = int(screen_pos.x()/self.zoom_factor)
@@ -792,6 +818,11 @@ class SpriteTab(QWidget):
                     return
 
                 self.draw(x,y,shade)
+                return
+
+            elif self.main_window.tool == self.main_window.Tools.ERASER:
+                self.erase(x,y)
+                return
 
 
 

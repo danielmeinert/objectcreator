@@ -51,6 +51,7 @@ class Sprite:
 
     def resetSprite(self):
         self.image = self.image_base
+        self.resetOffsets()
 
     def resetOffsets(self):
         self.x = int(self.x_base)

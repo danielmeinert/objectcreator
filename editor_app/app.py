@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -61,6 +61,24 @@ class MainWindowUi(QMainWindow):
         #### Tools
         self.tool = self.Tools.PEN
         self.toolsize = 1
+
+        self.widget_tools = self.findChild(QWidget, "widget_tools")
+        container = QGridLayout()
+
+        self.tool_buttons = {}
+
+        for tool in self.Tools:
+            btn = QToolButton()
+            btn.setCheckable(True)
+            btn.setText(tool.fullname)
+            btn.clicked.connect(lambda x, tool = tool: self.selectTool(tool))
+            container.addWidget(btn, tool.value % 3, int(tool.value/3))
+            self.tool_buttons[tool] = btn
+
+        self.widget_tools.setLayout(container)
+        self.tool = self.Tools.PEN
+        self.tool_buttons[self.Tools.PEN].setChecked(True)
+
 
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
@@ -306,6 +324,14 @@ class MainWindowUi(QMainWindow):
 
 
     #### Tool functions
+    def selectTool(self, tool):
+        if tool == self.tool:
+            return
+
+        self.tool_buttons[self.tool].setChecked(False)
+        self.tool = tool
+
+
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
         selected_colors = self.color_select_panel.selectedColors()

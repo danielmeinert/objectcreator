@@ -55,6 +55,9 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
+        <widget class="QWidget" name="widget_tools" native="true"/>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox_selectedColor">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
