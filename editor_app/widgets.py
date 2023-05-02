@@ -745,7 +745,7 @@ class SpriteTab(QWidget):
 
         draw = ImageDraw.Draw(canvas)
         if self.main_window.brushsize != 1:
-            draw.rectangle([(int((x-brushsize/2)),int(y-brushsize/2)),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.brushsize)
+            draw.rectangle([(int((x-brushsize/2)+1),int(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.brushsize)
         else:
             draw.point((x,y), shade)
         
