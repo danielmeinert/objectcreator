@@ -741,14 +741,25 @@ class SpriteTab(QWidget):
         canvas = self.giveCanvas()
 
         #canvas.putpixel((x,y), shade)
+        brushsize = self.main_window.brushsize 
 
         draw = ImageDraw.Draw(canvas)
-        draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.brushsize)
+        if self.main_window.brushsize != 1:
+            draw.rectangle([(int((x-brushsize/2)),int(y-brushsize/2)),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.brushsize)
+        else:
+            draw.point((x,y), shade)
+        
+        if self.lastpos != (x,y):
+            draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.brushsize)
         bbox = canvas.getbbox()
-
-        canvas = canvas.crop(bbox)
-        x_offset = -int(self.canvas_size/2) + bbox[0]
-        y_offset = -int(self.canvas_size*2/3) + bbox[1]
+        
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -int(self.canvas_size/2) + bbox[0]
+            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+        else:
+            x_offset = 0
+            y_offset = 0
 
         sprite.image = canvas
         sprite.x = x_offset

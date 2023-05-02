@@ -334,6 +334,9 @@ border: 1px solid darkgrey;}
              <property name="maximum">
               <number>10</number>
              </property>
+             <property name="pageStep">
+              <number>1</number>
+             </property>
              <property name="tracking">
               <bool>false</bool>
              </property>
@@ -342,6 +345,9 @@ border: 1px solid darkgrey;}
              </property>
              <property name="wrapping">
               <bool>false</bool>
+             </property>
+             <property name="notchTarget">
+              <double>1.000000000000000</double>
              </property>
              <property name="notchesVisible">
               <bool>true</bool>

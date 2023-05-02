@@ -59,9 +59,6 @@ class MainWindowUi(QMainWindow):
 
 
         #### Tools
-        self.tool = self.Tools.PEN
-        self.brushsize = 1
-
         self.widget_tools = self.findChild(QWidget, "widget_tools")
         container = QGridLayout()
 
@@ -88,11 +85,17 @@ class MainWindowUi(QMainWindow):
             btn = self.findChild(QPushButton, f'pushButton_brush{brush.fullname}')
 
             btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
-            self.tool_buttons[tool] = btn
+            self.brush_buttons[brush] = btn
+            
+        self.brush = self.Brushes.SOLID
+        self.brush_buttons[self.Brushes.SOLID].setChecked(True)
 
         self.dial_brushsize = self.findChild(QDial, 'dial_Brushsize')
 
         self.dial_brushsize.valueChanged.connect(self.setBrushsize)
+        
+        self.brushsize = 1
+
 
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
