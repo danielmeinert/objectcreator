@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
-from PIL import Image, ImageGrab
+from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
 from copy import copy
 import io
@@ -641,9 +641,9 @@ class spritesTabSS(QWidget):
 
         if add_auxiliaries and self.buttonBoundingBox.isChecked():
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
-            canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size/2)+coords_backbox[1]), backbox)
+            canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
-        coords = (int(canvas_size/2)+x, int(canvas_size/2)+y)
+        coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
 
         #canvas.paste(self.frame_image, self.frame_image)
         canvas.paste(im, coords, im)
@@ -679,6 +679,8 @@ class SpriteTab(QWidget):
 
         self.scroll_area.connectTab(self)
         self.canvas_size = 200
+
+        self.lastpos = (0,0)
 
         # Sprite zoom
         self.zoom_factor = 1.0
@@ -738,37 +740,26 @@ class SpriteTab(QWidget):
         sprite = self.giveSprite()
         canvas = self.giveCanvas()
 
-        canvas.putpixel((x,y), shade)
+        #canvas.putpixel((x,y), shade)
 
-        #bbox = canvas.getbbox()
+        draw = ImageDraw.Draw(canvas)
+        draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.brushsize)
+        bbox = canvas.getbbox()
 
-        #canvas = canvas.crop(bbox)
-        x_offset = -int(self.canvas_size/2)# + bbox[0]
-        y_offset = -int(self.canvas_size/2) #+ bbox[1]
+        canvas = canvas.crop(bbox)
+        x_offset = -int(self.canvas_size/2) + bbox[0]
+        y_offset = -int(self.canvas_size*2/3) + bbox[1]
 
         sprite.image = canvas
         sprite.x = x_offset
         sprite.y = y_offset
+
+        self.lastpos = (x,y)
 
         self.updateView()
 
     def erase(self, x,y):
-        sprite = self.giveSprite()
-        canvas = self.giveCanvas()
-
-        canvas.putpixel((x,y),(0,0,0,0))
-
-        #bbox = canvas.getbbox()
-
-        #canvas = canvas.crop(bbox)
-        x_offset = -int(self.canvas_size/2)# + bbox[0]
-        y_offset = -int(self.canvas_size/2) #+ bbox[1]
-
-        sprite.image = canvas
-        sprite.x = x_offset
-        sprite.y = y_offset
-
-        self.updateView()
+        self.draw(x,y,(0,0,0,0))
 
 
 
@@ -784,6 +775,8 @@ class SpriteTab(QWidget):
         screen_pos = event.localPos()
         x = int(screen_pos.x()/self.zoom_factor)
         y = int(screen_pos.y()/self.zoom_factor)
+
+        self.lastpos = (x,y)
 
         if self.main_window.tool == self.main_window.Tools.PEN:
             if event.button() == QtCore.Qt.LeftButton:
@@ -906,7 +899,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
-            self.setCursor(QtCore.Qt.OpenHandCursor)
+            self.setCursor(QtCore.Qt.ClosedHandCursor)
             self.mousepos = event.localPos()
             return
 

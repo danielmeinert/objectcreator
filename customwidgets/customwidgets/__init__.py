@@ -121,6 +121,7 @@ class colorSelectWidget(QWidget):
         if button is self.active_color_button:
             self.active_color_button = None
             self.active_shade = None
+            return
         elif self.active_color_button:
             self.active_color_button.setChecked(False)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -60,7 +60,7 @@ class MainWindowUi(QMainWindow):
 
         #### Tools
         self.tool = self.Tools.PEN
-        self.toolsize = 1
+        self.brushsize = 1
 
         self.widget_tools = self.findChild(QWidget, "widget_tools")
         container = QGridLayout()
@@ -75,10 +75,24 @@ class MainWindowUi(QMainWindow):
             container.addWidget(btn, tool.value % 3, int(tool.value/3))
             self.tool_buttons[tool] = btn
 
+
         self.widget_tools.setLayout(container)
         self.tool = self.Tools.PEN
         self.tool_buttons[self.Tools.PEN].setChecked(True)
 
+
+        # Brushes
+        self.brush_buttons = {}
+
+        for brush in self.Brushes:
+            btn = self.findChild(QPushButton, f'pushButton_brush{brush.fullname}')
+
+            btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
+            self.tool_buttons[tool] = btn
+
+        self.dial_brushsize = self.findChild(QDial, 'dial_Brushsize')
+
+        self.dial_brushsize.valueChanged.connect(self.setBrushsize)
 
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
@@ -326,11 +340,22 @@ class MainWindowUi(QMainWindow):
     #### Tool functions
     def selectTool(self, tool):
         if tool == self.tool:
+            self.sender().setChecked(True)
             return
 
         self.tool_buttons[self.tool].setChecked(False)
         self.tool = tool
 
+    def selectBrush(self, brush):
+        if brush == self.brush:
+            self.sender().setChecked(True)
+            return
+
+        self.brush_buttons[self.brush].setChecked(False)
+        self.brush = brush
+
+    def setBrushsize(self, val):
+        self.brushsize = val
 
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
@@ -374,12 +399,25 @@ class MainWindowUi(QMainWindow):
             widget.colorRemove(selected_colors)
 
     class Tools(Enum):
-        PEN = 0, 'Pen'
-        ERASER = 1, 'Eraser'
-        EYEDROPPER = 2, 'Eyedropper'
-        AIRBRUSH = 3, 'Airbrush'
-        BRIGHTNESS = 4, 'Brightness Tool'
-        REMAP = 5, 'Remap Tool'
+        PEN = 0, 'Draw'
+        ERASER = 1, 'Erase'
+        EYEDROPPER = 2, 'Eyedrop'
+        BRIGHTNESS = 3, 'Brightn.'
+        REMAP = 4, 'Remap',
+        FLOOD = 5, 'Fill'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value
+
+    class Brushes(Enum):
+        SOLID = 0, 'Solid'
+        AIRBRUSH = 1, 'Airbrush'
 
         def __new__(cls, value, name):
             member = object.__new__(cls)
