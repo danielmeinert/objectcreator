@@ -541,7 +541,7 @@ class spritesTabSS(QWidget):
     def copySpriteToAllViews(self):
         rot = self.o.rotation
 
-        for view in range(4):
+        for view in range(3):
             self.o.setSprite(self.o.giveSprite(), rotation = (rot + view + 1)% 4 )
 
         self.updateAllViews()
@@ -654,7 +654,6 @@ class spritesTabSS(QWidget):
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
         im = copy(im)
-
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(34-im.size[0]/2),int(36-im.size[1]/2))
 
@@ -739,6 +738,9 @@ class SpriteTab(QWidget):
     def draw(self, x, y, shade):
         sprite = self.giveSprite()
         canvas = self.giveCanvas()
+        
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+        protected_pixels = sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors())
 
         #canvas.putpixel((x,y), shade)
         brushsize = self.main_window.brushsize 
@@ -751,6 +753,9 @@ class SpriteTab(QWidget):
         
         if self.lastpos != (x,y):
             draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.brushsize)
+        
+        canvas.paste(sprite.image, coords, protected_pixels)
+        
         bbox = canvas.getbbox()
         
         if bbox:
@@ -789,17 +794,16 @@ class SpriteTab(QWidget):
 
         self.lastpos = (x,y)
 
-        if self.main_window.tool == self.main_window.Tools.PEN:
-            if event.button() == QtCore.Qt.LeftButton:
+        if event.button() == QtCore.Qt.LeftButton:
+            if self.main_window.tool == self.main_window.Tools.PEN:
+            
                 shade = self.main_window.giveActiveShade()
                 if not shade:
                     return
 
-            self.draw(x,y,shade)
-            return
-
-        if event.button() == QtCore.Qt.LeftButton:
-            if self.main_window.tool == self.main_window.Tools.ERASER:
+                self.draw(x,y,shade)
+                return
+            elif self.main_window.tool == self.main_window.Tools.ERASER:
                 self.erase(x,y)
                 return
 

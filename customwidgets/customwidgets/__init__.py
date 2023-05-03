@@ -30,6 +30,7 @@ class colorBar(QWidget):
         self.checkbox.setToolTip(colorname)
         self.checkbox.setFixedSize(QtCore.QSize(13, 24))
         layout.addWidget(self.checkbox, 0)
+        self.checkbox.setChecked(True)
 
         self.setLayout(layout)
 
@@ -83,12 +84,10 @@ class colorSelectWidget(QWidget):
                 if first_remap:
                     bar = colorBar(palette, colorname, self.shadeButtonClicked, 3)
                     layout.insertWidget(-1, bar)
-            elif second_remap and colorname == 'Pink':
-                colorname = '2nd Remap'
+            elif second_remap and colorname == '2nd Remap':
                 bar = colorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
-            elif third_remap and colorname == 'Yellow':
-                colorname = '3rd Remap'
+            elif third_remap and colorname == '3rd Remap':
                 bar = colorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
             else:
@@ -140,6 +139,14 @@ class colorSelectWidget(QWidget):
         ret = []
         for name, bar in self.bars.items():
             if bar.checkbox.isChecked():
+                ret.append(name)
+
+        return ret
+    
+    def notSelectedColors(self):
+        ret = []
+        for name, bar in self.bars.items():
+            if not bar.checkbox.isChecked():
                 ret.append(name)
 
         return ret
