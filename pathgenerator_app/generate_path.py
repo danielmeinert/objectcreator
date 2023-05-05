@@ -16,12 +16,12 @@ from os import listdir
 from copy import deepcopy
 
 
-class pathObject:
+class PathObject:
 
     def __init__(self, bases: list):
         self.bases = bases
 
-    def generateObject(self, template: templ.pathTemplate, settings_input: dict):
+    def generateObject(self, template: templ.PathTemplate, settings_input: dict):
 
         data = deepcopy(template.data)
         settings = deepcopy(settings_input)
@@ -90,7 +90,7 @@ class pathObject:
             self.object.save(filepath, no_zip=no_zip)
 
 
-class pathGenerator:
+class PathGenerator:
     def __init__(self, fix_mask):
         self.loadSettings()
         self.loadTemplatesAtStart()
@@ -129,12 +129,12 @@ class pathGenerator:
         self.templates = {}
         for file in listdir("templates"):
             if file.endswith(".template"):
-                template = templ.pathTemplate.fromFile(f'templates/{file}')
+                template = templ.PathTemplate.fromFile(f'templates/{file}')
                 if template:
                     self.templates[template.name] = template
 
     def loadTemplate(self, path: str):
-        template = templ.pathTemplate.fromFile(path)
+        template = templ.PathTemplate.fromFile(path)
 
         if template:
             # only add template if not already loaded
@@ -247,7 +247,7 @@ class pathGenerator:
 
         else:
             self.fixBaseToMask()
-            path_obj = pathObject(self.bases)
+            path_obj = PathObject(self.bases)
             for name in self.selected_templates:
                 template = self.templates[name]
                 path_obj.generateObject(template, self.settings)

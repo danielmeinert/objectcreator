@@ -12,7 +12,7 @@ from shutil import unpack_archive, make_archive
 from tempfile import TemporaryDirectory
 
 
-class pathTemplate:
+class PathTemplate:
 
     def __init__(self, data: dict, images: dict, num_tiles: int, is_small: bool):
         """Instantiate object directly given JSON and image data."""

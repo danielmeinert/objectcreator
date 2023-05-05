@@ -7,11 +7,11 @@ from PIL.ImageQt import ImageQt
 import traceback
 import sys
 
-# if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-#     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-# if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-#     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
 import io
@@ -21,7 +21,8 @@ from json import load as jload
 from json import dump as jdump
 from enum import Enum
 
-from customwidgets import colorSelectWidget
+from customwidgets import ColorSelectWidget, ToolBoxWidget
+import customwidgets as cwdg
 import widgets as wdg
 import auxiliaries as aux
 
@@ -59,48 +60,20 @@ class MainWindowUi(QMainWindow):
 
 
         #### Tools
-        self.widget_tools = self.findChild(QWidget, "widget_tools")
-        container = QGridLayout()
-
-        self.tool_buttons = {}
-
-        for tool in self.Tools:
-            btn = QToolButton()
-            btn.setCheckable(True)
-            btn.setText(tool.fullname)
-            btn.clicked.connect(lambda x, tool = tool: self.selectTool(tool))
-            container.addWidget(btn, tool.value % 3, int(tool.value/3))
-            self.tool_buttons[tool] = btn
-
-
-        self.widget_tools.setLayout(container)
-        self.tool = self.Tools.PEN
-        self.tool_buttons[self.Tools.PEN].setChecked(True)
-
-
-        # Brushes
-        self.brush_buttons = {}
-
-        for brush in self.Brushes:
-            btn = self.findChild(QPushButton, f'pushButton_brush{brush.fullname}')
-
-            btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
-            self.brush_buttons[brush] = btn
-            
-        self.brush = self.Brushes.SOLID
-        self.brush_buttons[self.Brushes.SOLID].setChecked(True)
-
-        self.dial_brushsize = self.findChild(QDial, 'dial_Brushsize')
-
-        self.dial_brushsize.valueChanged.connect(self.setBrushsize)
         
-        self.brushsize = 1
+        widget_tool_box = self.findChild(QWidget, "widget_tool_box")
+        self.toolbox = ToolBoxWidget()
+        self.giveTool = self.toolbox.giveTool
+        self.giveBrush = self.toolbox.giveBrush
+        self.giveBrushsize = self.toolbox.giveBrushsize
+        
+        widget_tool_box.layout().addWidget(self.toolbox)
 
 
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
 
-        self.color_select_panel = colorSelectWidget(pal.orct, True, True, True)
+        self.color_select_panel = ColorSelectWidget(pal.orct, True, True, True)
         self.giveActiveShade = self.color_select_panel.giveActiveShade #this is a function wrapper to get the current active shade
 
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
@@ -160,7 +133,7 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open('config.json'))
         except FileNotFoundError:
             self.settings = {}
-            self.changeSettings(update_tabs = False)
+            self.changeSettings(update_widgets = False)
 
             #If user refused to enter settings, use hard coded settings
             if not self.settings:
@@ -177,7 +150,7 @@ class MainWindowUi(QMainWindow):
 
         self.openpath = self.settings['openpath']
         self.setCurrentImportColor(self.settings['transparency_color'])
-        self.setCurrentPalette(self.settings['palette'], update_tabs = False)
+        self.setCurrentPalette(self.settings['palette'], update_widgets = False)
 
 
 
@@ -186,7 +159,7 @@ class MainWindowUi(QMainWindow):
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
 
-    def changeSettings(self, update_tabs = True):
+    def changeSettings(self, update_widgets = True):
         dialog = wdg.ChangeSettingsUi(self.settings)
 
         if dialog.exec():
@@ -194,7 +167,7 @@ class MainWindowUi(QMainWindow):
 
             self.openpath = self.settings['openpath']
             self.setCurrentImportColor(self.settings['transparency_color'])
-            self.setCurrentPalette(self.settings['palette'], update_tabs = update_tabs)
+            self.setCurrentPalette(self.settings['palette'], update_widgets = update_widgets)
 
             self.saveSettings()
 
@@ -225,7 +198,7 @@ class MainWindowUi(QMainWindow):
             self.actionUpper_Left_Pixel.setChecked(False)
             self.actionCustom_Color.setChecked(True)
 
-    def setCurrentPalette(self, palette, update_tabs = True):
+    def setCurrentPalette(self, palette, update_widgets = True):
         if palette == 0:
             self.current_palette = pal.orct
             self.actionPaletteOpenRCT.setChecked(True)
@@ -234,8 +207,9 @@ class MainWindowUi(QMainWindow):
             self.current_palette = pal.green_remap
             self.actionPaletteOpenRCT.setChecked(False)
             self.actionPaletteOld.setChecked(True)
-
-        if update_tabs:
+        
+        if update_widgets:
+            self.color_select_panel.switchPalette(self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
@@ -340,26 +314,6 @@ class MainWindowUi(QMainWindow):
 
 
 
-    #### Tool functions
-    def selectTool(self, tool):
-        if tool == self.tool:
-            self.sender().setChecked(True)
-            return
-
-        self.tool_buttons[self.tool].setChecked(False)
-        self.tool = tool
-
-    def selectBrush(self, brush):
-        if brush == self.brush:
-            self.sender().setChecked(True)
-            return
-
-        self.brush_buttons[self.brush].setChecked(False)
-        self.brush = brush
-
-    def setBrushsize(self, val):
-        self.brushsize = val
-
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
         selected_colors = self.color_select_panel.selectedColors()
@@ -401,35 +355,6 @@ class MainWindowUi(QMainWindow):
 
             widget.colorRemove(selected_colors)
 
-    class Tools(Enum):
-        PEN = 0, 'Draw'
-        ERASER = 1, 'Erase'
-        EYEDROPPER = 2, 'Eyedrop'
-        BRIGHTNESS = 3, 'Brightn.'
-        REMAP = 4, 'Remap',
-        FLOOD = 5, 'Fill'
-
-        def __new__(cls, value, name):
-            member = object.__new__(cls)
-            member._value_ = value
-            member.fullname = name
-            return member
-
-        def __int__(self):
-            return self.value
-
-    class Brushes(Enum):
-        SOLID = 0, 'Solid'
-        AIRBRUSH = 1, 'Airbrush'
-
-        def __new__(cls, value, name):
-            member = object.__new__(cls)
-            member._value_ = value
-            member.fullname = name
-            return member
-
-        def __int__(self):
-            return self.value
 
 
 def excepthook(exc_type, exc_value, exc_tb):

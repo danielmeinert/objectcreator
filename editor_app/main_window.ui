@@ -287,7 +287,7 @@ border: 1px solid darkgrey;}
         <number>0</number>
        </property>
        <item>
-        <widget class="QWidget" name="widget_tools_container" native="true">
+        <widget class="QWidget" name="widget_tool_box" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <property name="leftMargin">
            <number>0</number>
@@ -301,92 +301,6 @@ border: 1px solid darkgrey;}
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QWidget" name="widget_tools" native="true"/>
-          </item>
-          <item>
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_tool_settings">
-            <property name="title">
-             <string>Brush Options</string>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-            <widget class="QDial" name="dial_Brushsize">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>20</y>
-               <width>61</width>
-               <height>61</height>
-              </rect>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>10</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="tracking">
-              <bool>false</bool>
-             </property>
-             <property name="invertedAppearance">
-              <bool>false</bool>
-             </property>
-             <property name="wrapping">
-              <bool>false</bool>
-             </property>
-             <property name="notchTarget">
-              <double>1.000000000000000</double>
-             </property>
-             <property name="notchesVisible">
-              <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="pushButton_brushSolid">
-             <property name="geometry">
-              <rect>
-               <x>64</x>
-               <y>20</y>
-               <width>51</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Solid</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="pushButton_brushAirbrush">
-             <property name="geometry">
-              <rect>
-               <x>64</x>
-               <y>50</y>
-               <width>50</width>
-               <height>20</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Airbrush</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
