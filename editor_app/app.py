@@ -7,11 +7,11 @@ from PIL.ImageQt import ImageQt
 import traceback
 import sys
 
-# if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-#     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-# if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-#     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
 import io
@@ -21,7 +21,7 @@ from json import load as jload
 from json import dump as jdump
 from enum import Enum
 
-from customwidgets import colorSelectWidget
+from customwidgets import ColorSelectWidget
 import widgets as wdg
 import auxiliaries as aux
 
@@ -100,7 +100,7 @@ class MainWindowUi(QMainWindow):
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
 
-        self.color_select_panel = colorSelectWidget(pal.orct, True, True, True)
+        self.color_select_panel = ColorSelectWidget(pal.orct, True, True, True)
         self.giveActiveShade = self.color_select_panel.giveActiveShade #this is a function wrapper to get the current active shade
 
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
@@ -160,7 +160,7 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open('config.json'))
         except FileNotFoundError:
             self.settings = {}
-            self.changeSettings(update_tabs = False)
+            self.changeSettings(update_widgets = False)
 
             #If user refused to enter settings, use hard coded settings
             if not self.settings:
@@ -177,7 +177,7 @@ class MainWindowUi(QMainWindow):
 
         self.openpath = self.settings['openpath']
         self.setCurrentImportColor(self.settings['transparency_color'])
-        self.setCurrentPalette(self.settings['palette'], update_tabs = False)
+        self.setCurrentPalette(self.settings['palette'], update_widgets = False)
 
 
 
@@ -186,7 +186,7 @@ class MainWindowUi(QMainWindow):
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
 
-    def changeSettings(self, update_tabs = True):
+    def changeSettings(self, update_widgets = True):
         dialog = wdg.ChangeSettingsUi(self.settings)
 
         if dialog.exec():
@@ -194,7 +194,7 @@ class MainWindowUi(QMainWindow):
 
             self.openpath = self.settings['openpath']
             self.setCurrentImportColor(self.settings['transparency_color'])
-            self.setCurrentPalette(self.settings['palette'], update_tabs = update_tabs)
+            self.setCurrentPalette(self.settings['palette'], update_widgets = update_widgets)
 
             self.saveSettings()
 
@@ -225,7 +225,7 @@ class MainWindowUi(QMainWindow):
             self.actionUpper_Left_Pixel.setChecked(False)
             self.actionCustom_Color.setChecked(True)
 
-    def setCurrentPalette(self, palette, update_tabs = True):
+    def setCurrentPalette(self, palette, update_widgets = True):
         if palette == 0:
             self.current_palette = pal.orct
             self.actionPaletteOpenRCT.setChecked(True)
@@ -234,8 +234,9 @@ class MainWindowUi(QMainWindow):
             self.current_palette = pal.green_remap
             self.actionPaletteOpenRCT.setChecked(False)
             self.actionPaletteOld.setChecked(True)
-
-        if update_tabs:
+        
+        if update_widgets:
+            self.color_select_panel.switchPalette(self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)

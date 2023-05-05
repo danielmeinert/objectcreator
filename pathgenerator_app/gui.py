@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QGroupB
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageEnhance
 from PIL.ImageQt import ImageQt
-from customwidgets import colorSelectWidget
+from customwidgets import ColorSelectWidget
 import sys
 import io
 from os import getcwd
@@ -27,7 +27,7 @@ class PathGeneratorUi(QMainWindow):
         uic.loadUi('pathgenerator.ui', self)
         self.setWindowIcon(QtGui.QIcon(":/images/res/icon.png"))
 
-        self.generator = gen.pathGenerator(self.loadFixMask())
+        self.generator = gen.PathGenerator(self.loadFixMask())
         self.loadFrame()
 
         # Define Widgets
@@ -90,7 +90,7 @@ class PathGeneratorUi(QMainWindow):
 
         # Color Panel
         self.widgetColorPanel = self.findChild(QGroupBox, "groupBox_selectedColor")
-        self.colorSelectPanel = colorSelectWidget(pal.orct, True, False, False)
+        self.colorSelectPanel = ColorSelectWidget(pal.orct, True, False, False)
         self.widgetColorPanel.layout().addWidget(self.colorSelectPanel)
 
         # Sprite control buttons

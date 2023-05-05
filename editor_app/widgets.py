@@ -9,7 +9,7 @@ import io
 import os.path
 from os import getcwd
 
-from customwidgets import remapColorSelectWidget
+from customwidgets import RemapColorSelectWidget
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -34,8 +34,8 @@ class ObjectTabSS(QWidget):
 
         layout = QHBoxLayout()
 
-        self.spritesTab = spritesTabSS(o, self)
-        self.settingsTab = settingsTabSS(o, self, self.spritesTab, author, author_id)
+        self.spritesTab = SpritesTabSS(o, self)
+        self.settingsTab = SettingsTabSS(o, self, self.spritesTab, author, author_id)
 
         layout.addWidget(self.spritesTab)
         layout.addWidget(self.settingsTab)
@@ -123,7 +123,7 @@ class ObjectTabSS(QWidget):
 
 
 
-class settingsTabSS(QWidget):
+class SettingsTabSS(QWidget):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
         uic.loadUi('settingsSS.ui', self)
@@ -385,7 +385,7 @@ class settingsTabSS(QWidget):
         self.cursor_box.setCurrentIndex(cts.cursors.index(settingsSS.get('cursor','CURSOR_BLANK')))
 
 
-class spritesTabSS(QWidget):
+class SpritesTabSS(QWidget):
     def __init__(self, o, object_tab):
         super().__init__()
         uic.loadUi('spritesSS.ui', self)
@@ -463,19 +463,19 @@ class spritesTabSS(QWidget):
         coords_group = (groupRemap.x(),groupRemap.y())
 
         self.buttonFirstRemap = self.findChild(QPushButton, 'pushButton_firstRemap')
-        self.firstRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.buttonFirstRemap)
+        self.firstRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.buttonFirstRemap)
         self.firstRemapSelectPanel.setGeometry(coords_group[0] + self.buttonFirstRemap.x(), coords_group[1] +  self.buttonFirstRemap.y()-50, 104, 52)
         self.firstRemapSelectPanel.hide()
         self.buttonFirstRemap.clicked.connect(lambda x, panel = self.firstRemapSelectPanel: self.clickRemapButton(panel = panel))
 
         self.buttonSecondRemap = self.findChild(QPushButton, 'pushButton_secondRemap')
-        self.secondRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
+        self.secondRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
         self.secondRemapSelectPanel.setGeometry(coords_group[0] + self.buttonSecondRemap.x(), coords_group[1] +  self.buttonSecondRemap.y()-50, 104, 52)
         self.secondRemapSelectPanel.hide()
         self.buttonSecondRemap.clicked.connect(lambda x, panel = self.secondRemapSelectPanel: self.clickRemapButton(panel = panel))
 
         self.buttonThirdRemap = self.findChild(QPushButton, 'pushButton_thirdRemap')
-        self.thirdRemapSelectPanel = remapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
+        self.thirdRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
         self.thirdRemapSelectPanel.setGeometry(coords_group[0] + self.buttonThirdRemap.x(), coords_group[1] +  self.buttonThirdRemap.y()-50, 104, 52)
         self.thirdRemapSelectPanel.hide()
         self.buttonThirdRemap.clicked.connect(lambda x, panel = self.thirdRemapSelectPanel: self.clickRemapButton(panel = panel))
