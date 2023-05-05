@@ -48,7 +48,10 @@ class Sprite:
 
     def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
         return colorRemaps(self.image, first_remap, second_remap, third_remap)
-
+    
+    def giveProtectedPixelMask(self, color: str or list):
+        return protectColorMask(self.image, color, self.palette)
+        
     def resetSprite(self):
         self.image = self.image_base
         self.resetOffsets()
@@ -83,7 +86,6 @@ class Sprite:
             self.image, self.palette, palette_new, include_sparkles)
         self.palette = palette_new
 
-
     def changeBrightness(self, step: int, include_sparkles: bool = False):
         self.image = changeBrightness(
             self.image, step, self.palette, include_sparkles)
@@ -94,7 +96,6 @@ class Sprite:
 
     def removeColor(self, color: str or list):
         self.image = removeColor(self.image, color, self.palette)
-
 
     def remapColor(self, color_name_old: str, color_name_new: str):
         self.image = remapColor(
@@ -354,6 +355,9 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
 def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
+    
+    mask = np.full(image.size, False).T
+
 
     if isinstance(color, str):
         color = [color]
@@ -367,7 +371,38 @@ def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = p
         for shade in color_arr:
             r1, g1, b1 = shade  # Original value
             red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
-            mask = (red == r1) & (green == g1) & (blue == b1)
-            data_out[:, :, :][mask] = [0, 0, 0, 0]
+            mask = mask | ((red == r1) & (green == g1) & (blue == b1))
+
+    data_out[:, :, :][mask] = [0, 0, 0, 0]
+
 
     return Image.fromarray(data_out)
+
+
+def protectColorMask(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+
+    mask = np.full(image.size, True).T
+
+    if isinstance(color, str):
+        color = [color]
+
+    for color_name in color:
+
+        if color_name not in palette.color_dict:
+            continue
+        color_arr = palette.getColor(color_name)
+
+        for shade in color_arr:
+            r1, g1, b1 = shade  # Original value
+            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = mask &  ~((red == r1) & (green == g1) & (blue == b1))
+                
+            
+    return Image.fromarray(~mask)
+    
+    
+    
+    
+    
+    

@@ -542,7 +542,7 @@ class SpritesTabSS(QWidget):
     def copySpriteToAllViews(self):
         rot = self.o.rotation
 
-        for view in range(4):
+        for view in range(3):
             self.o.setSprite(self.o.giveSprite(), rotation = (rot + view + 1)% 4 )
 
         self.updateAllViews()
@@ -655,7 +655,6 @@ class SpritesTabSS(QWidget):
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
         im = copy(im)
-
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(34-im.size[0]/2),int(36-im.size[1]/2))
 
@@ -740,6 +739,9 @@ class SpriteTab(QWidget):
     def draw(self, x, y, shade):
         sprite = self.giveSprite()
         canvas = self.giveCanvas()
+        
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+        protected_pixels = sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors())
 
         #canvas.putpixel((x,y), shade)
         brushsize = self.main_window.giveBrushsize() 
@@ -751,7 +753,10 @@ class SpriteTab(QWidget):
             draw.point((x,y), shade)
         
         if self.lastpos != (x,y):
-            draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.giveBrushsize())
+            draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)        
+        
+        canvas.paste(sprite.image, coords, protected_pixels)
+        
         bbox = canvas.getbbox()
         
         if bbox:
@@ -790,17 +795,18 @@ class SpriteTab(QWidget):
 
         self.lastpos = (x,y)
 
-        if self.main_window.giveTool() == cwdg.Tools.PEN:
-            if event.button() == QtCore.Qt.LeftButton:
+
+        if event.button() == QtCore.Qt.LeftButton:
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+            
                 shade = self.main_window.giveActiveShade()
                 if not shade:
                     return
 
-            self.draw(x,y,shade)
-            return
-
-        if event.button() == QtCore.Qt.LeftButton:
+                self.draw(x,y,shade)
+                return
             if self.main_window.giveTool() == cwdg.Tools.ERASER:
+
                 self.erase(x,y)
                 return
 

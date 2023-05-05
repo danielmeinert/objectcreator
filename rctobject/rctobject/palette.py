@@ -44,10 +44,10 @@ class Palette(np.ndarray):
     #     return str(self.name)
 
     def getColor(self, color: str):
-        if color == '2nd Remap':
-            color = 'Pink'
-        elif color == '3rd Remap':
-            color = 'Yellow'
+        if color == 'Pink':
+            color = '2nd Remap'
+        elif color == 'Yellow':
+            color = '3rd Remap'
 
         if color != 'Sparkles':
             i = self.color_dict.get(color, -1)
@@ -79,7 +79,7 @@ def allColors(sparkles=False):
             'Grey': 0,
             'Dark Olive': 1,
             'Light Brown': 2,
-            'Yellow': 3,
+            '3rd Remap': 3,
             'Bordeaux': 4,
             'Grass Green': 5,
             'Light Olive': 6,
@@ -92,7 +92,7 @@ def allColors(sparkles=False):
             'Red': 13,
             'Orange': 14,
             'Teal': 15,
-            'Pink': 16,
+            '2nd Remap': 16,
             'Brown': 17,
             '1st Remap': 18
         }
@@ -101,7 +101,7 @@ def allColors(sparkles=False):
             'Grey': 0,
             'Dark Olive': 1,
             'Light Brown': 2,
-            'Yellow': 3,
+            '3rd Remap': 3,
             'Bordeaux': 4,
             'Grass Green': 5,
             'Light Olive': 6,
@@ -114,7 +114,7 @@ def allColors(sparkles=False):
             'Red': 13,
             'Orange': 14,
             'Teal': 15,
-            'Pink': 16,
+            '2nd Remap': 16,
             'Brown': 17,
             '1st Remap': 18,
             'Sparkles': 19

@@ -15,6 +15,7 @@ from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd
 from os.path import splitext
+import copy
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
@@ -317,10 +318,10 @@ class SmallScenery(RCTObject):
     def show(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
 
-        if not rotation:
-            rotation = self.rotation
-        else:
+        if isinstance(rotation, int):
             rotation = rotation % 4
+        else:
+            rotation = self.rotation
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
@@ -336,10 +337,10 @@ class SmallScenery(RCTObject):
     def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
 
-        if not rotation:
-            rotation = self.rotation
-        else:
+        if isinstance(rotation, int):
             rotation = rotation % 4
+        else:
+            rotation = self.rotation
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
@@ -348,19 +349,20 @@ class SmallScenery(RCTObject):
 
         return self.sprites[self.data['images'][sprite_index]['path']]
 
-    def setSprite(self, sprite: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
+    def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
+        sprite = copy.deepcopy(sprite_in)
 
-        if not rotation:
-            rotation = self.rotation
-        else:
+        if isinstance(rotation, int):
             rotation = rotation % 4
+        else:
+            rotation = self.rotation
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
         else:
             sprite_index = rotation
-
+        
         self.sprites[self.data['images'][sprite_index]['path']] = sprite
 
     def rotateObject(self, rot = None):

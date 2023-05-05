@@ -167,6 +167,7 @@ class ColorBar(QWidget):
         self.checkbox.setToolTip(colorname)
         self.checkbox.setFixedSize(QtCore.QSize(13, 24))
         layout.addWidget(self.checkbox, 0)
+        self.checkbox.setChecked(True)
 
         self.setLayout(layout)
 
@@ -277,6 +278,14 @@ class ColorSelectWidget(QWidget):
         ret = []
         for name, bar in self.bars.items():
             if bar.checkbox.isChecked():
+                ret.append(name)
+
+        return ret
+    
+    def notSelectedColors(self):
+        ret = []
+        for name, bar in self.bars.items():
+            if not bar.checkbox.isChecked():
                 ret.append(name)
 
         return ret
