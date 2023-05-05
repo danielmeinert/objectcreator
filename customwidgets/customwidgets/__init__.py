@@ -4,10 +4,147 @@ Created on Thu Mar 31 17:00:22 2022
 
 @author: puvlh
 """
-from PyQt5.QtWidgets import QMainWindow, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
 from PyQt5 import uic, QtGui, QtCore
 
+from enum import Enum
+
 from rctobject import palette as pal
+
+class ToolBoxWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        outer_container = QHBoxLayout()
+        outer_container.setContentsMargins(0,0,0,0)
+
+        tool_button_widget = QWidget()
+        seperator = QFrame()
+        seperator.setFrameShape(QFrame.VLine)
+        seperator.setFrameShadow(QFrame.Shadow.Sunken)
+        brush_widget = QGroupBox(title='Brush Options')
+        brush_widget.setFlat(True)
+
+
+        outer_container.addWidget(tool_button_widget)
+        outer_container.addWidget(seperator)
+        outer_container.addWidget(brush_widget)
+
+        self.setLayout(outer_container)
+
+        container = QGridLayout()
+
+        self.tool_buttons = {}
+
+        for tool in Tools:
+            btn = QToolButton()
+            btn.setCheckable(True)
+            btn.setText(tool.fullname)
+            btn.clicked.connect(lambda x, tool = tool: self.selectTool(tool))
+            container.addWidget(btn, tool.value % 3, int(tool.value/3))
+            self.tool_buttons[tool] = btn
+
+
+        tool_button_widget.setLayout(container)
+        self.tool = Tools.PEN
+        self.tool_buttons[Tools.PEN].setChecked(True)
+
+        container_lr = QHBoxLayout()
+        container_lr.setContentsMargins(0,0,0,0)
+        container_btn = QVBoxLayout()
+        brush_buttons = QWidget()
+
+        self.dial_brushsize = QDial()
+        self.dial_brushsize.setMaximum(10)
+        self.dial_brushsize.setMinimum(1)
+        self.dial_brushsize.setSingleStep(1)
+        self.dial_brushsize.setPageStep(1)
+        self.dial_brushsize.setTracking(False)
+        self.dial_brushsize.setNotchesVisible(True)
+
+        self.dial_brushsize.valueChanged.connect(self.setBrushsize)
+
+        container_lr.addWidget(self.dial_brushsize)
+        container_lr.addWidget(brush_buttons)
+
+        brush_widget.setLayout(container_lr)
+        
+        self.brush_buttons = {}
+
+        for brush in Brushes:
+            btn = QToolButton()
+            btn.setCheckable(True)
+            btn.setText(brush.fullname)
+
+            btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
+            self.brush_buttons[brush] = btn
+            container_btn.addWidget(btn)
+
+        brush_buttons.setLayout(container_btn)
+        self.brush = Brushes.SOLID
+        self.brush_buttons[Brushes.SOLID].setChecked(True)
+
+        self.brushsize = 1
+
+    def selectTool(self, tool):
+        if tool == self.tool:
+            self.sender().setChecked(True)
+            return
+
+        self.tool_buttons[self.tool].setChecked(False)
+        self.tool = tool
+
+    def selectBrush(self, brush):
+        if brush == self.brush:
+            self.sender().setChecked(True)
+            return
+
+        self.brush_buttons[self.brush].setChecked(False)
+        self.brush = brush
+
+    def setBrushsize(self, val):
+        self.brushsize = val
+
+    def giveTool(self):
+        return self.tool
+    
+    def giveBrush(self):
+        return self.brush
+    
+    def giveBrushsize(self):
+        return self.brushsize 
+
+
+class Tools(Enum):
+        PEN = 0, 'Draw'
+        ERASER = 1, 'Erase'
+        EYEDROPPER = 2, 'Eyedrop'
+        BRIGHTNESS = 3, 'Brightn.'
+        REMAP = 4, 'Remap',
+        FLOOD = 5, 'Fill'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value
+
+class Brushes(Enum):
+        SOLID = 0, 'Solid'
+        AIRBRUSH = 1, 'Airbrush'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value   
+
 
 
 class ColorBar(QWidget):

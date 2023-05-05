@@ -10,6 +10,7 @@ import os.path
 from os import getcwd
 
 from customwidgets import RemapColorSelectWidget
+import customwidgets as cwdg
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -741,16 +742,16 @@ class SpriteTab(QWidget):
         canvas = self.giveCanvas()
 
         #canvas.putpixel((x,y), shade)
-        brushsize = self.main_window.brushsize 
+        brushsize = self.main_window.giveBrushsize() 
 
         draw = ImageDraw.Draw(canvas)
-        if self.main_window.brushsize != 1:
-            draw.rectangle([(int((x-brushsize/2)+1),int(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.brushsize)
+        if self.main_window.giveBrushsize() != 1:
+            draw.rectangle([(int((x-brushsize/2)+1),int(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.giveBrushsize())
         else:
             draw.point((x,y), shade)
         
         if self.lastpos != (x,y):
-            draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.brushsize)
+            draw.line([self.lastpos, (x,y)], fill=shade, width=self.main_window.giveBrushsize())
         bbox = canvas.getbbox()
         
         if bbox:
@@ -789,7 +790,7 @@ class SpriteTab(QWidget):
 
         self.lastpos = (x,y)
 
-        if self.main_window.tool == self.main_window.Tools.PEN:
+        if self.main_window.giveTool() == cwdg.Tools.PEN:
             if event.button() == QtCore.Qt.LeftButton:
                 shade = self.main_window.giveActiveShade()
                 if not shade:
@@ -799,7 +800,7 @@ class SpriteTab(QWidget):
             return
 
         if event.button() == QtCore.Qt.LeftButton:
-            if self.main_window.tool == self.main_window.Tools.ERASER:
+            if self.main_window.giveTool() == cwdg.Tools.ERASER:
                 self.erase(x,y)
                 return
 
@@ -816,7 +817,7 @@ class SpriteTab(QWidget):
             x = int(screen_pos.x()/self.zoom_factor)
             y = int(screen_pos.y()/self.zoom_factor)
 
-            if self.main_window.tool == self.main_window.Tools.PEN:
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
                 shade = self.main_window.giveActiveShade()
                 if not shade:
                     return
@@ -824,7 +825,7 @@ class SpriteTab(QWidget):
                 self.draw(x,y,shade)
                 return
 
-            elif self.main_window.tool == self.main_window.Tools.ERASER:
+            elif self.main_window.giveTool() == cwdg.Tools.ERASER:
                 self.erase(x,y)
                 return
 
