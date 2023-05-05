@@ -8,6 +8,7 @@ from copy import copy
 import io
 import os.path
 from os import getcwd
+import numpy as np
 
 from customwidgets import RemapColorSelectWidget
 import customwidgets as cwdg
@@ -741,7 +742,14 @@ class SpriteTab(QWidget):
         canvas = self.giveCanvas()
         
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
-        protected_pixels = sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors())
+        
+        protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
+        protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
+
+        if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
+            noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[.9, .1]).T)
+            protected_pixels.paste(noise_mask, mask = noise_mask)
+
 
         #canvas.putpixel((x,y), shade)
         brushsize = self.main_window.giveBrushsize() 
@@ -755,7 +763,7 @@ class SpriteTab(QWidget):
         if self.lastpos != (x,y):
             draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)        
         
-        canvas.paste(sprite.image, coords, protected_pixels)
+        canvas.paste(self.giveCanvas(), mask=protected_pixels)
         
         bbox = canvas.getbbox()
         
