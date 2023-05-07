@@ -12,6 +12,11 @@ from enum import Enum
 from rctobject import palette as pal
 
 class ToolBoxWidget(QWidget):
+
+    #define signals
+    toolChanged = QtCore.pyqtSignal(object, int, name='toolChanged')
+
+
     def __init__(self):
         super().__init__()
 
@@ -68,7 +73,7 @@ class ToolBoxWidget(QWidget):
         container_lr.addWidget(brush_buttons)
 
         brush_widget.setLayout(container_lr)
-        
+
         self.brush_buttons = {}
 
         for brush in Brushes:
@@ -86,6 +91,7 @@ class ToolBoxWidget(QWidget):
 
         self.brushsize = 1
 
+
     def selectTool(self, tool):
         if tool == self.tool:
             self.sender().setChecked(True)
@@ -93,6 +99,8 @@ class ToolBoxWidget(QWidget):
 
         self.tool_buttons[self.tool].setChecked(False)
         self.tool = tool
+
+        self.toolChanged.emit(self.tool, self.brushsize)
 
     def selectBrush(self, brush):
         if brush == self.brush:
@@ -105,14 +113,17 @@ class ToolBoxWidget(QWidget):
     def setBrushsize(self, val):
         self.brushsize = val
 
+        self.toolChanged.emit(self.tool, self.brushsize)
+
+
     def giveTool(self):
         return self.tool
-    
+
     def giveBrush(self):
         return self.brush
-    
+
     def giveBrushsize(self):
-        return self.brushsize 
+        return self.brushsize
 
 
 class Tools(Enum):
@@ -143,7 +154,7 @@ class Brushes(Enum):
             return member
 
         def __int__(self):
-            return self.value   
+            return self.value
 
 
 
@@ -221,12 +232,10 @@ class ColorSelectWidget(QWidget):
                 if first_remap:
                     bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
                     layout.insertWidget(-1, bar)
-            elif second_remap and colorname == 'Pink':
-                colorname = '2nd Remap'
+            elif second_remap and colorname == '2nd Remap':
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
-            elif third_remap and colorname == 'Yellow':
-                colorname = '3rd Remap'
+            elif third_remap and colorname == '3rd Remap':
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
             else:
@@ -281,7 +290,7 @@ class ColorSelectWidget(QWidget):
                 ret.append(name)
 
         return ret
-    
+
     def notSelectedColors(self):
         ret = []
         for name, bar in self.bars.items():
@@ -292,7 +301,7 @@ class ColorSelectWidget(QWidget):
 
     def giveActiveShade(self):
         return self.active_shade
-    
+
     def switchPalette(self, palette):
         layout = self.color_widget.layout()
 

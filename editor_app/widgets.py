@@ -701,11 +701,13 @@ class SpriteTab(QWidget):
         self.lastpath = filepath
         self.saved = False
         self.main_window = main_window
+        self.main_window.toolbox.toolChanged.connect(self.toolChanged)
 
         self.view.mousePressEvent = self.viewMousePressEvent
         self.view.mouseMoveEvent = self.viewMouseMoveEvent
 
         self.updateView()
+
 
 
     def zoomChanged(self, val):
@@ -740,9 +742,9 @@ class SpriteTab(QWidget):
     def draw(self, x, y, shade):
         sprite = self.giveSprite()
         canvas = self.giveCanvas()
-        
+
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
-        
+
         protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
         protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
 
@@ -752,21 +754,21 @@ class SpriteTab(QWidget):
 
 
         #canvas.putpixel((x,y), shade)
-        brushsize = self.main_window.giveBrushsize() 
+        brushsize = self.main_window.giveBrushsize()
 
         draw = ImageDraw.Draw(canvas)
         if self.main_window.giveBrushsize() != 1:
             draw.rectangle([(int((x-brushsize/2)+1),int(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.giveBrushsize())
         else:
             draw.point((x,y), shade)
-        
+
         if self.lastpos != (x,y):
-            draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)        
-        
+            draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)
+
         canvas.paste(self.giveCanvas(), mask=protected_pixels)
-        
+
         bbox = canvas.getbbox()
-        
+
         if bbox:
             canvas = canvas.crop(bbox)
             x_offset = -int(self.canvas_size/2) + bbox[0]
@@ -787,7 +789,8 @@ class SpriteTab(QWidget):
         self.draw(x,y,(0,0,0,0))
 
 
-
+    def toolChanged(self, tool, brushsize):
+        print(tool, brushsize)
 
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -806,7 +809,7 @@ class SpriteTab(QWidget):
 
         if event.button() == QtCore.Qt.LeftButton:
             if self.main_window.giveTool() == cwdg.Tools.PEN:
-            
+
                 shade = self.main_window.giveActiveShade()
                 if not shade:
                     return
