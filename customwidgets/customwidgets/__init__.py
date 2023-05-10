@@ -7,14 +7,37 @@ Created on Thu Mar 31 17:00:22 2022
 from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
 from PyQt5 import uic, QtGui, QtCore
 
+from PIL import Image, ImageDraw
+from PIL.ImageQt import ImageQt
+
 from enum import Enum
 
 from rctobject import palette as pal
 
+
+class ToolCursors(QtGui.QCursor):
+    def __init__(self, toolbox, zoom_factor):
+        tool = toolbox.giveTool()
+        brushsize = toolbox.giveBrushsize()
+        brush = toolbox.giveBrush()
+        
+        if tool == Tools.EYEDROPPER:
+            super().__init__(QtCore.Qt.CrossCursor)
+        else:
+            size = int(brushsize*zoom_factor)+
+            im = Image.new('RGBA', (size, size))
+            draw = ImageDraw.Draw(im)
+            draw.line([(0,0), (size,0), (size,size), (0,size), (0,0)], fill = (200,200,200,255), width =1)
+            
+            im_qt = ImageQt(im)
+            
+            super().__init__(QtGui.QPixmap.fromImage(im_qt))
+            
+
 class ToolBoxWidget(QWidget):
 
     #define signals
-    toolChanged = QtCore.pyqtSignal(object, int, name='toolChanged')
+    toolChanged = QtCore.pyqtSignal(object, name='toolChanged')
 
 
     def __init__(self):
@@ -99,8 +122,8 @@ class ToolBoxWidget(QWidget):
 
         self.tool_buttons[self.tool].setChecked(False)
         self.tool = tool
-
-        self.toolChanged.emit(self.tool, self.brushsize)
+        
+        self.toolChanged.emit(self)
 
     def selectBrush(self, brush):
         if brush == self.brush:
@@ -113,7 +136,7 @@ class ToolBoxWidget(QWidget):
     def setBrushsize(self, val):
         self.brushsize = val
 
-        self.toolChanged.emit(self.tool, self.brushsize)
+        self.toolChanged.emit(self)
 
 
     def giveTool(self):

@@ -677,6 +677,8 @@ class SpriteTab(QWidget):
     def __init__(self, main_window, object_tab = None, filepath = None):
         super().__init__()
         uic.loadUi('sprite.ui', self)
+        
+        self.main_window = main_window
 
         self.scroll_area.connectTab(self)
         self.canvas_size = 200
@@ -684,8 +686,10 @@ class SpriteTab(QWidget):
         self.lastpos = (0,0)
 
         # Sprite zoom
-        self.zoom_factor = 1.0
+        self.zoom_factor = 1
         self.slider_zoom.valueChanged.connect(self.zoomChanged)
+        self.slider_zoom.valueChanged.connect(lambda x, toolbox = self.main_window.toolbox: self.toolChanged(toolbox))
+
 
         if object_tab:
             self.locked = True
@@ -700,7 +704,6 @@ class SpriteTab(QWidget):
 
         self.lastpath = filepath
         self.saved = False
-        self.main_window = main_window
         self.main_window.toolbox.toolChanged.connect(self.toolChanged)
 
         self.view.mousePressEvent = self.viewMousePressEvent
@@ -789,9 +792,16 @@ class SpriteTab(QWidget):
         self.draw(x,y,(0,0,0,0))
 
 
-    def toolChanged(self, tool, brushsize):
-        print(tool, brushsize)
+    def toolChanged(self, toolbox):
+        tool = toolbox.giveTool()
+        
+        if tool == cwdg.Tools.EYEDROPPER:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        else:
+            cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
+            self.setCursor(cursor)
 
+    
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 

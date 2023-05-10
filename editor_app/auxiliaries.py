@@ -15,11 +15,6 @@ from rctobject import palette as pal
 
 import resources_rc
 
-class Cursors():
-    def __init__(self):
-        pass
-
-
 
 class BoundingBoxes():
     def __init__(self):
