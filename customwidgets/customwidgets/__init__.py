@@ -24,7 +24,7 @@ class ToolCursors(QtGui.QCursor):
         if tool == Tools.EYEDROPPER:
             super().__init__(QtCore.Qt.CrossCursor)
         else:
-            size = int(brushsize*zoom_factor)+
+            size = int(brushsize*zoom_factor)
             im = Image.new('RGBA', (size, size))
             draw = ImageDraw.Draw(im)
             draw.line([(0,0), (size,0), (size,size), (0,size), (0,0)], fill = (200,200,200,255), width =1)
