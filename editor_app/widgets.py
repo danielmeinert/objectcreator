@@ -677,7 +677,7 @@ class SpriteTab(QWidget):
     def __init__(self, main_window, object_tab = None, filepath = None):
         super().__init__()
         uic.loadUi('sprite.ui', self)
-        
+
         self.main_window = main_window
 
         self.scroll_area.connectTab(self)
@@ -705,6 +705,7 @@ class SpriteTab(QWidget):
         self.lastpath = filepath
         self.saved = False
         self.main_window.toolbox.toolChanged.connect(self.toolChanged)
+        self.toolChanged(self.main_window.toolbox)
 
         self.view.mousePressEvent = self.viewMousePressEvent
         self.view.mouseMoveEvent = self.viewMouseMoveEvent
@@ -718,6 +719,14 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
+    def toolChanged(self, toolbox):
+        tool = toolbox.giveTool()
+
+        if tool == cwdg.Tools.EYEDROPPER:
+            self.view.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
+        else:
+            cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
+            self.view.setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
         sprite = self.giveSprite()
@@ -795,17 +804,6 @@ class SpriteTab(QWidget):
     def erase(self, x,y):
         self.draw(x,y,(0,0,0,0))
 
-
-    def toolChanged(self, toolbox):
-        tool = toolbox.giveTool()
-        
-        if tool == cwdg.Tools.EYEDROPPER:
-            self.view.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
-        else:
-            cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
-            self.view.setCursor(cursor)
-
-    
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 

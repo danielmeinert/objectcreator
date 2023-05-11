@@ -20,19 +20,19 @@ class ToolCursors(QtGui.QCursor):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
         brush = toolbox.giveBrush()
-        
+
         if tool == Tools.EYEDROPPER:
             super().__init__(QtCore.Qt.CrossCursor)
         else:
-            size = int(brushsize*zoom_factor)
+            size = int(brushsize*zoom_factor)+2
             im = Image.new('RGBA', (size, size))
             draw = ImageDraw.Draw(im)
-            draw.line([(0,0), (size,0), (size,size), (0,size), (0,0)], fill = (200,200,200,255), width =1)
-            
+            draw.line([(0,0), (size-1,0), (size-1,size-1), (0,size-1), (0,0)], fill = (255,255,255,255), width =1)
+
             im_qt = ImageQt(im)
-            
-            super().__init__(QtGui.QPixmap.fromImage(im_qt))
-            
+
+            super().__init__(QtGui.QPixmap.fromImage(im_qt), hotX=int(size/2), hotY=int(size/2))
+
 
 class ToolBoxWidget(QWidget):
 
@@ -122,7 +122,7 @@ class ToolBoxWidget(QWidget):
 
         self.tool_buttons[self.tool].setChecked(False)
         self.tool = tool
-        
+
         self.toolChanged.emit(self)
 
     def selectBrush(self, brush):

@@ -60,13 +60,13 @@ class MainWindowUi(QMainWindow):
 
 
         #### Tools
-        
+
         widget_tool_box = self.findChild(QWidget, "widget_tool_box")
         self.toolbox = ToolBoxWidget()
         self.giveTool = self.toolbox.giveTool
         self.giveBrush = self.toolbox.giveBrush
         self.giveBrushsize = self.toolbox.giveBrushsize
-        
+
         widget_tool_box.layout().addWidget(self.toolbox)
 
 
@@ -207,7 +207,7 @@ class MainWindowUi(QMainWindow):
             self.current_palette = pal.green_remap
             self.actionPaletteOpenRCT.setChecked(False)
             self.actionPaletteOld.setChecked(True)
-        
+
         if update_widgets:
             self.color_select_panel.switchPalette(self.current_palette)
             for index in range(self.object_tabs.count()):
