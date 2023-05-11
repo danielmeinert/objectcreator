@@ -744,9 +744,13 @@ class SpriteTab(QWidget):
 
     def draw(self, x, y, shade):
         sprite = self.giveSprite()
-        canvas = self.giveCanvas()
+        canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
+        canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
 
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+
+        canvas.paste(sprite.image, coords, mask = sprite.image)
+        canvas_protect.paste(sprite.image, coords, mask = sprite.image)
 
         protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
         protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
@@ -768,7 +772,7 @@ class SpriteTab(QWidget):
         if self.lastpos != (x,y):
             draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)
 
-        canvas.paste(self.giveCanvas(), mask=protected_pixels)
+        canvas.paste(canvas_protect, mask=protected_pixels)
 
         bbox = canvas.getbbox()
 
@@ -796,10 +800,10 @@ class SpriteTab(QWidget):
         tool = toolbox.giveTool()
         
         if tool == cwdg.Tools.EYEDROPPER:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.view.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
         else:
             cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
-            self.setCursor(cursor)
+            self.view.setCursor(cursor)
 
     
     def viewMousePressEvent(self, event):
@@ -811,8 +815,8 @@ class SpriteTab(QWidget):
             return
 
         screen_pos = event.localPos()
-        x = int(screen_pos.x()/self.zoom_factor)
-        y = int(screen_pos.y()/self.zoom_factor)
+        x = int(screen_pos.x()/self.zoom_factor-0.5)
+        y = int(screen_pos.y()/self.zoom_factor-0.5)
 
         self.lastpos = (x,y)
 
@@ -892,11 +896,6 @@ class SpriteTab(QWidget):
         else:
             return self.sprite
 
-    def giveCanvas(self):
-        if self.locked:
-            return self.object_tab.giveCurrentMainView(self.canvas_size, add_auxilaries = False)
-        else:
-            pass
 
 class SpriteViewWidget(QScrollArea):
     def __init__(self, *args, **kwargs):
