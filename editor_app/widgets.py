@@ -773,13 +773,17 @@ class SpriteTab(QWidget):
         brushsize = self.main_window.giveBrushsize()
 
         draw = ImageDraw.Draw(canvas)
-        if self.main_window.giveBrushsize() != 1:
-            draw.rectangle([(int((x-brushsize/2)+1),int(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.giveBrushsize())
+        if brushsize != 1:
+            draw.rectangle([(x,y),(x+brushsize-1,y+brushsize-1)],  fill=shade)
+           # else:
+           #     draw.rectangle([(round((x-brushsize/2)+1),round(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.giveBrushsize())
+
+
         else:
             draw.point((x,y), shade)
 
         if self.lastpos != (x,y):
-            draw.line([self.lastpos, (x,y)], fill=shade, width=brushsize)
+            draw.line([(int(self.lastpos[0]+brushsize/2), int(self.lastpos[1]+brushsize/2)), (int(x+brushsize/2),int(y+brushsize/2))], fill=shade, width=brushsize)
 
         canvas.paste(canvas_protect, mask=protected_pixels)
 
@@ -813,8 +817,9 @@ class SpriteTab(QWidget):
             return
 
         screen_pos = event.localPos()
-        x = int(screen_pos.x()/self.zoom_factor-0.5)
-        y = int(screen_pos.y()/self.zoom_factor-0.5)
+        x = round(screen_pos.x()/self.zoom_factor)
+        y = round(screen_pos.y()/self.zoom_factor)
+
 
         self.lastpos = (x,y)
 
@@ -843,8 +848,8 @@ class SpriteTab(QWidget):
 
         if event.buttons() == QtCore.Qt.LeftButton:
             screen_pos = event.localPos()
-            x = int(screen_pos.x()/self.zoom_factor)
-            y = int(screen_pos.y()/self.zoom_factor)
+            x = round(screen_pos.x()/self.zoom_factor)
+            y = round(screen_pos.y()/self.zoom_factor)
 
             if self.main_window.giveTool() == cwdg.Tools.PEN:
                 shade = self.main_window.giveActiveShade()

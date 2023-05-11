@@ -31,7 +31,7 @@ class ToolCursors(QtGui.QCursor):
 
             im_qt = ImageQt(im)
 
-            super().__init__(QtGui.QPixmap.fromImage(im_qt), hotX=int(size/2), hotY=int(size/2))
+            super().__init__(QtGui.QPixmap.fromImage(im_qt), hotX=1, hotY= 1)
 
 
 class ToolBoxWidget(QWidget):
