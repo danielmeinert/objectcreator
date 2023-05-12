@@ -768,22 +768,27 @@ class SpriteTab(QWidget):
             noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[.9, .1]).T)
             protected_pixels.paste(noise_mask, mask = noise_mask)
 
-
-        #canvas.putpixel((x,y), shade)
         brushsize = self.main_window.giveBrushsize()
 
         draw = ImageDraw.Draw(canvas)
         if brushsize != 1:
             draw.rectangle([(x,y),(x+brushsize-1,y+brushsize-1)],  fill=shade)
-           # else:
-           #     draw.rectangle([(round((x-brushsize/2)+1),round(y-brushsize/2)+1),(int(x+brushsize/2),int(y+brushsize/2))],  fill=shade, width=self.main_window.giveBrushsize())
-
-
         else:
             draw.point((x,y), shade)
 
         if self.lastpos != (x,y):
-            draw.line([(int(self.lastpos[0]+brushsize/2), int(self.lastpos[1]+brushsize/2)), (int(x+brushsize/2),int(y+brushsize/2))], fill=shade, width=brushsize)
+            x0, y0 = self.lastpos
+            if brushsize % 2 == 0:
+                x_mod = -1 if y > y0 else 0
+                y_mod = -1 if x > x0 else 0
+            else:
+                x_mod = 0
+                y_mod = 0
+
+            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(x+brushsize/2)+x_mod,int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
+            
+            self.lastpos = (x,y)
+
 
         canvas.paste(canvas_protect, mask=protected_pixels)
 
@@ -800,8 +805,6 @@ class SpriteTab(QWidget):
         sprite.image = canvas
         sprite.x = x_offset
         sprite.y = y_offset
-
-        self.lastpos = (x,y)
 
         self.updateView()
 
@@ -940,7 +943,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
-            self.setCursor(QtCore.Qt.ClosedHandCursor)
+            QApplication.setOverrideCursor(QtCore.Qt.ClosedHandCursor)
             self.mousepos = event.localPos()
             return
 
@@ -966,7 +969,7 @@ class SpriteViewWidget(QScrollArea):
 
     def mouseReleaseEvent(self, event):
 
-        self.unsetCursor()
+        QApplication.restoreOverrideCursor()
         self.mousepos = event.localPos()
         super().mouseReleaseEvent(event)
 
