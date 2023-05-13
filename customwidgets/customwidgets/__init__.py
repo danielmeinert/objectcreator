@@ -190,11 +190,13 @@ class ColorBar(QWidget):
         layout.setContentsMargins(left_margin, 0, 0, 0)
 
         color = palette.getColor(colorname)
+        self.buttons = []
         for i, shade in enumerate(color):
             border_shade = (0,0,0) if i > 3 else (230,230,230)
             b = ShadeButton(tuple(shade), border_shade = tuple(border_shade))
             b.clicked.connect(button_func)
             layout.insertWidget(0, b)
+            self.buttons.append(b)
            # addWidget(b,-1)
 
         self.checkbox = QCheckBox()
@@ -305,6 +307,17 @@ class ColorSelectWidget(QWidget):
     def clickInvert(self):
         for name, bar in self.bars.items():
             bar.checkbox.setChecked(not bar.checkbox.isChecked())
+
+    def setColor(self, indices):
+        color, shade = indices
+        bar = self.bars[color]
+
+        btn = bar.buttons[shade]
+
+        if not btn.isChecked():
+            btn.click()
+
+
 
     def selectedColors(self):
         ret = []

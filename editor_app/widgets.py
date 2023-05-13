@@ -786,7 +786,7 @@ class SpriteTab(QWidget):
                 y_mod = 0
 
             draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(x+brushsize/2)+x_mod,int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
-            
+
             self.lastpos = (x,y)
 
 
@@ -810,6 +810,19 @@ class SpriteTab(QWidget):
 
     def erase(self, x,y):
         self.draw(x,y,(0,0,0,0))
+
+    def eyedrop(self, x,y):
+        sprite = self.giveSprite()
+
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+
+        indices = sprite.giveShade((x-coords[0],y-coords[1]))
+
+
+        if not indices:
+            return
+
+        self.main_window.color_select_panel.setColor(indices)
 
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -836,10 +849,19 @@ class SpriteTab(QWidget):
 
                 self.draw(x,y,shade)
                 return
+
             if self.main_window.giveTool() == cwdg.Tools.ERASER:
 
                 self.erase(x,y)
                 return
+
+            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
+
+                #since the hotspot of the is in the middle we have to round differently
+                x = int(screen_pos.x()/self.zoom_factor)
+                y = int(screen_pos.y()/self.zoom_factor)
+
+                self.eyedrop(x,y)
 
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()

@@ -48,10 +48,10 @@ class Sprite:
 
     def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
         return colorRemaps(self.image, first_remap, second_remap, third_remap)
-    
+
     def giveProtectedPixelMask(self, color: str or list):
         return protectColorMask(self.image, color, self.palette)
-        
+
     def resetSprite(self):
         self.image = self.image_base
         self.resetOffsets()
@@ -107,6 +107,28 @@ class Sprite:
         self.image = self.image.crop(bbox)
         self.x = self.x + bbox[0]
         self.y = self.y + bbox[1]
+
+    def giveShade(self, coords):
+        if coords[0] < 0 or coords[1] < 0:
+            return None
+
+        try:
+            r,g,b,a = self.image.getpixel(coords)
+        except IndexError:
+            return None
+
+        if a == 0:
+            return None
+
+        arr = self.palette.arr()
+        red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+        truth_arr = (red == r) & (green == g) & (blue == b)
+
+        index = list(truth_arr.flatten()).index(True)
+
+        color = list(self.palette.color_dict.keys())[int(index/12)]
+
+        return (color, index %12)
 
 
 def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
@@ -355,7 +377,7 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
 def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
-    
+
     mask = np.full(image.size, False).T
 
 
@@ -397,12 +419,11 @@ def protectColorMask(image: Image.Image, color: str or list, palette: pal.Palett
             r1, g1, b1 = shade  # Original value
             red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
             mask = mask &  ~((red == r1) & (green == g1) & (blue == b1))
-                
-            
+
+
     return Image.fromarray(~mask)
-    
-    
-    
-    
-    
-    
+
+
+
+
+
