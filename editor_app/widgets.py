@@ -702,6 +702,9 @@ class SpriteTab(QWidget):
             self.object_tab = None
             self.sprite = spr.Sprite()
 
+        self.history = []
+        self.history_redo = []
+
         self.lastpath = filepath
         self.saved = False
         self.main_window.toolbox.toolChanged.connect(self.toolChanged)
@@ -709,6 +712,7 @@ class SpriteTab(QWidget):
 
         self.view.mousePressEvent = self.viewMousePressEvent
         self.view.mouseMoveEvent = self.viewMouseMoveEvent
+        self.view.wheelEvent = self.viewWheelEvent
 
         self.updateView()
 
@@ -722,7 +726,7 @@ class SpriteTab(QWidget):
     def toolChanged(self, toolbox):
         tool = toolbox.giveTool()
 
-        if tool == cwdg.Tools.EYEDROPPER:
+        if tool == cwdg.Tools.EYEDROPPER or tool == cwdg.Tools.FILL:
             self.view.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
         else:
             cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
@@ -742,7 +746,6 @@ class SpriteTab(QWidget):
         sprite.changeBrightnessColor(step, selected_colors)
 
         self.updateView()
-
 
     def colorRemove(self, selected_colors):
         sprite = self.giveSprite()
@@ -822,7 +825,65 @@ class SpriteTab(QWidget):
         if not indices:
             return
 
-        self.main_window.color_select_panel.setColor(indices)
+        self.main_window.color_select_panel.setColor(indices[0], indices[1])
+
+    def overdraw(self, x, y):
+        sprite = self.working_sprite
+        canvas_mask = Image.new('1', (self.canvas_size,self.canvas_size), color=1)
+        canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
+
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+
+        canvas_protect.paste(sprite.image, coords, mask = sprite.image)
+
+        protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
+        protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
+
+        if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
+            noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[.9, .1]).T)
+            protected_pixels.paste(noise_mask, mask = noise_mask)
+
+        brushsize = self.main_window.giveBrushsize()
+
+        draw = ImageDraw.Draw(canvas)
+        if brushsize != 1:
+            draw.rectangle([(x,y),(x+brushsize-1,y+brushsize-1)],  fill=shade)
+        else:
+            draw.point((x,y), shade)
+
+        if self.lastpos != (x,y):
+            x0, y0 = self.lastpos
+            if brushsize % 2 == 0:
+                x_mod = -1 if y > y0 else 0
+                y_mod = -1 if x > x0 else 0
+            else:
+                x_mod = 0
+                y_mod = 0
+
+            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(x+brushsize/2)+x_mod,int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
+
+            self.lastpos = (x,y)
+
+
+        canvas.paste(canvas_protect, mask=protected_pixels)
+
+        bbox = canvas.getbbox()
+
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -int(self.canvas_size/2) + bbox[0]
+            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+        else:
+            x_offset = 0
+            y_offset = 0
+
+        sprite.image = canvas
+        sprite.x = x_offset
+        sprite.y = y_offset
+
+        self.updateView()
+
+
 
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -847,11 +908,13 @@ class SpriteTab(QWidget):
                 if not shade:
                     return
 
+                self.addSpriteToHistory()
                 self.draw(x,y,shade)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.ERASER:
 
+                self.addSpriteToHistory()
                 self.erase(x,y)
                 return
 
@@ -862,6 +925,46 @@ class SpriteTab(QWidget):
                 y = int(screen_pos.y()/self.zoom_factor)
 
                 self.eyedrop(x,y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.REMAP:
+
+                self.addSpriteToHistory()
+                self.working_sprite = copy(self.giveSprite())
+
+                color_remap = self.main_window.color_select_panel.getColorIndices()[0]
+
+                for color in self.main_window.color_select_panel.selectedColors():
+                    self.working_sprite.remapColor(color, color_remap)
+
+                self.overdraw(x,y)
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+
+                self.addSpriteToHistory()
+                self.working_sprite = copy(self.giveSprite())
+
+                color_remap = self.main_window.color_select_panel.getColorIndices()[0]
+
+                for color in self.main_window.color_select_panel.selectedColors():
+                    self.working_sprite.changeBrightnessColor(1,color)
+
+                self.overdraw(x,y)
+
+
+        if event.button() == QtCore.Qt.RightButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+
+                self.addSpriteToHistory()
+                self.working_sprite = copy(self.giveSprite())
+
+                color_remap = self.main_window.color_select_panel.getColorIndices()[0]
+
+                for color in self.main_window.color_select_panel.selectedColors():
+                    self.working_sprite.changeBrightnessColor(-1,color)
+
+                self.overdraw(x,y)
 
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -888,7 +991,18 @@ class SpriteTab(QWidget):
                 self.erase(x,y)
                 return
 
+    def viewWheelEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
 
+
+        if modifiers == QtCore.Qt.ControlModifier:
+            color, shade = self.main_window.color_select_panel.getColorIndices()
+
+            if color:
+                if event.angleDelta().y() > 0 and shade != 11:
+                    self.main_window.color_select_panel.setColor(color, shade+1)
+                elif  event.angleDelta().y() < 0 and shade != 0:
+                    self.main_window.color_select_panel.setColor(color, shade-1)
 
 
     def updateView(self, skip_locked = False):
@@ -904,13 +1018,10 @@ class SpriteTab(QWidget):
             pass
 
         canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
-
         image = ImageQt(canvas)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-#        self.view.resize(self.zoom_factor*self.view.size())
         self.view.setPixmap(pixmap)
-
 
         geometry = self.scroll_area.geometry()
         scroll_width = max(self.view.size().width(), geometry.width())
@@ -923,6 +1034,54 @@ class SpriteTab(QWidget):
             return self.object_tab.giveCurrentMainViewSprite()
         else:
             return self.sprite
+
+    def addSpriteToHistory(self):
+        sprite = copy(self.giveSprite())
+
+
+        if len(self.history) == self.main_window.settings['history_maximum']:
+            self.history.pop(0)
+
+
+        self.history.append(sprite)
+        self.history_redo = []
+
+        return sprite
+
+
+    def undo(self):
+        if len(self.history) == 0:
+            return
+
+
+        sprite_new = self.history.pop(-1)
+        sprite_old = self.giveSprite()
+
+        self.history_redo.append(copy(sprite_old))
+
+        sprite_old.image = sprite_new.image
+        sprite_old.x = sprite_new.x
+        sprite_old.y = sprite_new.y
+
+        self.updateView()
+
+    def redo(self):
+        if len(self.history_redo) == 0:
+            return
+
+        sprite_new = self.history_redo.pop(-1)
+        sprite_old = self.giveSprite()
+
+        self.history.append(copy(sprite_old))
+
+
+        sprite_old.image = sprite_new.image
+        sprite_old.x = sprite_new.x
+        sprite_old.y = sprite_new.y
+
+        self.updateView()
+
+
 
 
 class SpriteViewWidget(QScrollArea):
@@ -946,6 +1105,10 @@ class SpriteViewWidget(QScrollArea):
 
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
+
+        #we ignore the event when Control is pressed as it is the color change movement
+        if modifiers == QtCore.Qt.ControlModifier:
+            return
 
         if not self.slider_zoom:
             super().wheelEvent()
@@ -974,6 +1137,11 @@ class SpriteViewWidget(QScrollArea):
     def mouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
+        # Skip scrolling when Ctrl is pressed (Colorselect)
+        if modifiers == QtCore.ControlModifier:
+            event.ignore()
+            return
+
 
         delta = event.localPos() - self.mousepos
 
@@ -995,12 +1163,6 @@ class SpriteViewWidget(QScrollArea):
         self.mousepos = event.localPos()
         super().mouseReleaseEvent(event)
 
-    # def keyPressEvent(self, event):
-    #     self.current_pressed_key = event.key()
-    #     print(self.current_pressed_key)
-
-    # def keyReleaseEvent(self, event):
-    #     self.current_pressed_key = None
 
     class KeepPositionScrollBar(QScrollBar):
         defaultRatio = .5
@@ -1054,6 +1216,7 @@ class ChangeSettingsUi(QDialog):
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
 
         self.comboBox_palette.setCurrentIndex(settings.get('palette', 0))
+        self.spinBox_history_maximum.setValue(settings.get('history_maximum', 5))
 
 
         self.loadSSSettings(settings)
@@ -1105,6 +1268,7 @@ class ChangeSettingsUi(QDialog):
         settings['transparency_color'] = self.comboBox_transparencycolor.currentIndex()
         settings['import_color'] = [self.spinBox_R.value(),self.spinBox_G.value(),self.spinBox_B.value()]
         settings['palette'] = self.comboBox_palette.currentIndex()
+        settings['history_maximum'] = self.spinBox_history_maximum.value()
 
 
         ss_defaults = {}

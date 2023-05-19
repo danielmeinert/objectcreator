@@ -75,6 +75,7 @@ class ToolBoxWidget(QWidget):
 
         tool_button_widget.setLayout(container)
         self.tool = Tools.PEN
+        self.last_tool = Tools.PEN
         self.tool_buttons[Tools.PEN].setChecked(True)
 
         container_lr = QHBoxLayout()
@@ -117,13 +118,18 @@ class ToolBoxWidget(QWidget):
 
     def selectTool(self, tool):
         if tool == self.tool:
-            self.sender().setChecked(True)
+            self.tool_buttons[tool].setChecked(True)
             return
 
+        self.tool_buttons[tool].setChecked(True)
         self.tool_buttons[self.tool].setChecked(False)
+        self.last_tool = self.tool
         self.tool = tool
 
         self.toolChanged.emit(self)
+
+    def restoreTool(self):
+        self.selectTool(self.last_tool)
 
     def selectBrush(self, brush):
         if brush == self.brush:
@@ -155,7 +161,7 @@ class Tools(Enum):
         EYEDROPPER = 2, 'Eyedrop'
         BRIGHTNESS = 3, 'Brightn.'
         REMAP = 4, 'Remap',
-        FLOOD = 5, 'Fill'
+        FILL = 5, 'Fill'
 
         def __new__(cls, value, name):
             member = object.__new__(cls)
@@ -193,7 +199,7 @@ class ColorBar(QWidget):
         self.buttons = []
         for i, shade in enumerate(color):
             border_shade = (0,0,0) if i > 3 else (230,230,230)
-            b = ShadeButton(tuple(shade), border_shade = tuple(border_shade))
+            b = ShadeButton(tuple(shade), border_shade = tuple(border_shade), color_name = colorname, index = i)
             b.clicked.connect(button_func)
             layout.insertWidget(0, b)
             self.buttons.append(b)
@@ -209,8 +215,10 @@ class ColorBar(QWidget):
 
 
 class ShadeButton(QPushButton):
-    def __init__(self, shade, border_shade = (0,0,0)):
+    def __init__(self, shade, border_shade = (0,0,0), color_name = None, index = 0):
         super().__init__()
+        self.color_name = color_name
+        self.index = index
         self.setFixedSize(QtCore.QSize(13, 13))
         self.setCheckable(True)
         self.shade = shade
@@ -308,16 +316,19 @@ class ColorSelectWidget(QWidget):
         for name, bar in self.bars.items():
             bar.checkbox.setChecked(not bar.checkbox.isChecked())
 
-    def setColor(self, indices):
-        color, shade = indices
+    def setColor(self, color: str, shade_index: int):
         bar = self.bars[color]
 
-        btn = bar.buttons[shade]
+        btn = bar.buttons[shade_index]
 
         if not btn.isChecked():
             btn.click()
 
-
+    def getColorIndices(self):
+        if self.active_color_button:
+            return self.active_color_button.color_name, self.active_color_button.index
+        else:
+            return None, None
 
     def selectedColors(self):
         ret = []

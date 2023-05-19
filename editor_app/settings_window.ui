@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>437</width>
-    <height>411</height>
+    <width>434</width>
+    <height>448</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -369,6 +369,29 @@
        </property>
        <property name="text">
         <string>...</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_history_maximum">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>340</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>340</y>
+         <width>241</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Maximum number of sprites stored in history</string>
        </property>
       </widget>
      </widget>

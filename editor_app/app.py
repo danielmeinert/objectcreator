@@ -112,8 +112,11 @@ class MainWindowUi(QMainWindow):
         self.actionOpenFile.triggered.connect(self.openObjectFile)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
-        self.actionSettings.triggered.connect(self.changeSettings)
 
+        self.actionUndo.triggered.connect(self.spriteUndo)
+        self.actionRedo.triggered.connect(self.spriteRedo)
+
+        self.actionSettings.triggered.connect(self.changeSettings)
         self.actionBlack.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
         self.actionWhite.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
         self.actionUpper_Left_Pixel.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
@@ -147,6 +150,7 @@ class MainWindowUi(QMainWindow):
                 self.settings['transparency_color'] = 0
                 self.settings['import_color'] = [0,0,0]
                 self.settings['palette'] = 0
+                self.settings['history_maximum'] = 5
 
         self.openpath = self.settings['openpath']
         self.setCurrentImportColor(self.settings['transparency_color'])
@@ -170,7 +174,6 @@ class MainWindowUi(QMainWindow):
             self.setCurrentPalette(self.settings['palette'], update_widgets = update_widgets)
 
             self.saveSettings()
-
 
     def setCurrentImportColor(self, mode):
         if mode == 0:
@@ -220,8 +223,6 @@ class MainWindowUi(QMainWindow):
         if object_tab and object_tab.locked:
             self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
-
-
     def newObject(self, obj_type = cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
@@ -249,7 +250,6 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.removeTab(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
         self.object_tabs.removeTab(index)
-
 
     def openObjectFile(self):
         folder = self.settings.get('opendefault','')
@@ -312,7 +312,15 @@ class MainWindowUi(QMainWindow):
 
         widget.saveObject(get_path = True)
 
+    def spriteUndo(self):
+        widget = self.sprite_tabs.currentWidget()
 
+        widget.undo()
+
+    def spriteRedo(self):
+        widget = self.sprite_tabs.currentWidget()
+
+        widget.redo()
 
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
@@ -354,6 +362,14 @@ class MainWindowUi(QMainWindow):
             widget = self.sprite_tabs.currentWidget()
 
             widget.colorRemove(selected_colors)
+
+    def keyPressEvent(self, e):
+        if e.key() == QtCore.Qt.Key_Control:
+            self.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
+
+    def keyReleaseEvent(self, e):
+        if e.key() == QtCore.Qt.Key_Control:
+            self.toolbox.restoreTool()
 
 
 
