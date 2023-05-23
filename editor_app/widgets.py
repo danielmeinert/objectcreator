@@ -702,6 +702,8 @@ class SpriteTab(QWidget):
             self.object_tab = None
             self.sprite = spr.Sprite()
 
+        self.protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
+
         self.history = []
         self.history_redo = []
 
@@ -733,6 +735,7 @@ class SpriteTab(QWidget):
             self.view.setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
+        self.addSpriteToHistory()
         sprite = self.giveSprite()
 
         for color in selected_colors:
@@ -741,6 +744,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def colorChangeBrightness(self, step, selected_colors):
+        self.addSpriteToHistory()
         sprite = self.giveSprite()
 
         sprite.changeBrightnessColor(step, selected_colors)
@@ -748,6 +752,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def colorRemove(self, selected_colors):
+        self.addSpriteToHistory()
         sprite = self.giveSprite()
 
         sprite.removeColor(selected_colors)
@@ -764,12 +769,6 @@ class SpriteTab(QWidget):
         canvas.paste(sprite.image, coords, mask = sprite.image)
         canvas_protect.paste(sprite.image, coords, mask = sprite.image)
 
-        protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
-        protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
-
-        if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
-            noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[.9, .1]).T)
-            protected_pixels.paste(noise_mask, mask = noise_mask)
 
         brushsize = self.main_window.giveBrushsize()
 
@@ -793,7 +792,7 @@ class SpriteTab(QWidget):
             self.lastpos = (x,y)
 
 
-        canvas.paste(canvas_protect, mask=protected_pixels)
+        canvas.paste(canvas_protect, mask=self.protected_pixels)
 
         bbox = canvas.getbbox()
 
@@ -828,28 +827,24 @@ class SpriteTab(QWidget):
         self.main_window.color_select_panel.setColor(indices[0], indices[1])
 
     def overdraw(self, x, y):
-        sprite = self.working_sprite
+        working_sprite = self.working_sprite
+        sprite = self.giveSprite()
         canvas_mask = Image.new('1', (self.canvas_size,self.canvas_size), color=1)
+        canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
         canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
 
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
 
+        canvas.paste(working_sprite.image, coords, mask = working_sprite.image)
         canvas_protect.paste(sprite.image, coords, mask = sprite.image)
-
-        protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
-        protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
-
-        if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
-            noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[.9, .1]).T)
-            protected_pixels.paste(noise_mask, mask = noise_mask)
 
         brushsize = self.main_window.giveBrushsize()
 
-        draw = ImageDraw.Draw(canvas)
+        draw = ImageDraw.Draw(canvas_mask)
         if brushsize != 1:
-            draw.rectangle([(x,y),(x+brushsize-1,y+brushsize-1)],  fill=shade)
+            draw.rectangle([(x,y),(x+brushsize-1,y+brushsize-1)],  fill=0)
         else:
-            draw.point((x,y), shade)
+            draw.point((x,y), 0)
 
         if self.lastpos != (x,y):
             x0, y0 = self.lastpos
@@ -860,12 +855,14 @@ class SpriteTab(QWidget):
                 x_mod = 0
                 y_mod = 0
 
-            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(x+brushsize/2)+x_mod,int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
+            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(x+brushsize/2)+x_mod,int(y+brushsize/2)+y_mod)], fill=0, width=brushsize)
 
             self.lastpos = (x,y)
 
+        canvas_mask.paste(self.protected_pixels, mask = self.protected_pixels)
 
-        canvas.paste(canvas_protect, mask=protected_pixels)
+
+        canvas.paste(canvas_protect, mask=canvas_mask)
 
         bbox = canvas.getbbox()
 
@@ -882,6 +879,50 @@ class SpriteTab(QWidget):
         sprite.y = y_offset
 
         self.updateView()
+
+    def fill(self, x, y, shade):
+        sprite = self.giveSprite()
+        canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
+        canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
+
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+
+        canvas.paste(sprite.image, coords, mask = sprite.image)
+        canvas_protect.paste(sprite.image, coords, mask = sprite.image)
+
+
+        ImageDraw.floodfill(canvas, (x,y), (shade[0],shade[1],shade[2],255))
+
+        canvas.paste(canvas_protect, mask=self.protected_pixels)
+
+        bbox = canvas.getbbox()
+
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -int(self.canvas_size/2) + bbox[0]
+            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+        else:
+            x_offset = 0
+            y_offset = 0
+
+        sprite.image = canvas
+        sprite.x = x_offset
+        sprite.y = y_offset
+
+        self.updateView()
+
+    def generateProtectionMask(self):
+        sprite = self.giveSprite()
+
+        coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
+
+        self.protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
+        self.protected_pixels.paste(sprite.giveProtectedPixelMask(self.main_window.color_select_panel.notSelectedColors()), coords)
+
+        if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
+            strength = self.main_window.giveAirbrushStrength()
+            noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[1-strength, strength]).T)
+            self.protected_pixels.paste(noise_mask, mask = noise_mask)
 
 
 
@@ -909,27 +950,30 @@ class SpriteTab(QWidget):
                     return
 
                 self.addSpriteToHistory()
-                self.draw(x,y,shade)
+                self.generateProtectionMask()
+                self.draw(x, y, shade)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.ERASER:
 
                 self.addSpriteToHistory()
-                self.erase(x,y)
+                self.generateProtectionMask()
+                self.erase(x, y)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
 
-                #since the hotspot of the is in the middle we have to round differently
+                #since the hotspot of the cross cursor is in the middle we have to round differently
                 x = int(screen_pos.x()/self.zoom_factor)
                 y = int(screen_pos.y()/self.zoom_factor)
 
-                self.eyedrop(x,y)
+                self.eyedrop(x, y)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.REMAP:
 
                 self.addSpriteToHistory()
+                self.generateProtectionMask()
                 self.working_sprite = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
@@ -937,11 +981,13 @@ class SpriteTab(QWidget):
                 for color in self.main_window.color_select_panel.selectedColors():
                     self.working_sprite.remapColor(color, color_remap)
 
-                self.overdraw(x,y)
+                self.overdraw(x, y)
+                return
 
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
 
                 self.addSpriteToHistory()
+                self.generateProtectionMask()
                 self.working_sprite = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
@@ -949,7 +995,25 @@ class SpriteTab(QWidget):
                 for color in self.main_window.color_select_panel.selectedColors():
                     self.working_sprite.changeBrightnessColor(1,color)
 
-                self.overdraw(x,y)
+                self.overdraw(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.FILL:
+
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
+
+                #since the hotspot of the cross cursor is in the middle we have to round differently
+                x = int(screen_pos.x()/self.zoom_factor)
+                y = int(screen_pos.y()/self.zoom_factor)
+
+
+                self.addSpriteToHistory()
+                self.generateProtectionMask()
+
+                self.fill(x, y, shade)
+                return
 
 
         if event.button() == QtCore.Qt.RightButton:
@@ -957,6 +1021,7 @@ class SpriteTab(QWidget):
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
 
                 self.addSpriteToHistory()
+                self.generateProtectionMask()
                 self.working_sprite = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
@@ -965,6 +1030,7 @@ class SpriteTab(QWidget):
                     self.working_sprite.changeBrightnessColor(-1,color)
 
                 self.overdraw(x,y)
+                return
 
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -974,10 +1040,11 @@ class SpriteTab(QWidget):
             event.ignore()
             return
 
+        screen_pos = event.localPos()
+        x = round(screen_pos.x()/self.zoom_factor)
+        y = round(screen_pos.y()/self.zoom_factor)
+
         if event.buttons() == QtCore.Qt.LeftButton:
-            screen_pos = event.localPos()
-            x = round(screen_pos.x()/self.zoom_factor)
-            y = round(screen_pos.y()/self.zoom_factor)
 
             if self.main_window.giveTool() == cwdg.Tools.PEN:
                 shade = self.main_window.giveActiveShade()
@@ -987,8 +1054,33 @@ class SpriteTab(QWidget):
                 self.draw(x,y,shade)
                 return
 
-            elif self.main_window.giveTool() == cwdg.Tools.ERASER:
+            if self.main_window.giveTool() == cwdg.Tools.ERASER:
                 self.erase(x,y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
+
+                #since the hotspot of the cross cursor is in the middle we have to round differently
+                x = int(screen_pos.x()/self.zoom_factor)
+                y = int(screen_pos.y()/self.zoom_factor)
+
+                self.eyedrop(x,y)
+                return
+
+
+            if self.main_window.giveTool() == cwdg.Tools.REMAP:
+                self.overdraw(x,y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+                self.overdraw(x,y)
+                return
+
+
+        if event.buttons() == QtCore.Qt.RightButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+                self.overdraw(x,y)
                 return
 
     def viewWheelEvent(self, event):
@@ -1138,7 +1230,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         # Skip scrolling when Ctrl is pressed (Colorselect)
-        if modifiers == QtCore.ControlModifier:
+        if modifiers == QtCore.Qt.ControlModifier:
             event.ignore()
             return
 

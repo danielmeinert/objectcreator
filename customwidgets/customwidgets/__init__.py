@@ -4,7 +4,7 @@ Created on Thu Mar 31 17:00:22 2022
 
 @author: puvlh
 """
-from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
+from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
@@ -109,6 +109,15 @@ class ToolBoxWidget(QWidget):
             self.brush_buttons[brush] = btn
             container_btn.addWidget(btn)
 
+        self.slider_airbrush_strength = QSlider(QtCore.Qt.Horizontal)
+        self.slider_airbrush_strength.setMaximum(6)
+        self.slider_airbrush_strength.setMinimum(1)
+        self.slider_airbrush_strength.setSingleStep(1)
+        self.slider_airbrush_strength.setPageStep(1)
+        self.slider_airbrush_strength.setValue(2)
+
+        container_btn.addWidget(self.slider_airbrush_strength)
+
         brush_buttons.setLayout(container_btn)
         self.brush = Brushes.SOLID
         self.brush_buttons[Brushes.SOLID].setChecked(True)
@@ -153,6 +162,9 @@ class ToolBoxWidget(QWidget):
 
     def giveBrushsize(self):
         return self.brushsize
+
+    def giveAirbrushStrength(self):
+        return self.slider_airbrush_strength.value()**1.5*0.01
 
 
 class Tools(Enum):

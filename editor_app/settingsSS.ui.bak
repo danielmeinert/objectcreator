@@ -233,9 +233,6 @@ QTabBar::tab:selected {
            </property>
           </widget>
           <widget class="QCheckBox" name="checkBox_keepOrginalId">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
            <property name="geometry">
             <rect>
              <x>110</x>
@@ -245,7 +242,7 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tick if you like to keep the original ID of the loaded object. If you do so, this object will be loaded ingame instead of the orginal. Feature disabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Tick if you like to keep the original ID of the loaded object. If you do so, this object will be loaded ingame instead of the orginal. Not recommended&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Keep</string>

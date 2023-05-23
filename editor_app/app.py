@@ -66,6 +66,7 @@ class MainWindowUi(QMainWindow):
         self.giveTool = self.toolbox.giveTool
         self.giveBrush = self.toolbox.giveBrush
         self.giveBrushsize = self.toolbox.giveBrushsize
+        self.giveAirbrushStrength = self.toolbox.giveAirbrushStrength
 
         widget_tool_box.layout().addWidget(self.toolbox)
 
