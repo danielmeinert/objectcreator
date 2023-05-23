@@ -164,7 +164,7 @@ class ToolBoxWidget(QWidget):
         return self.brushsize
 
     def giveAirbrushStrength(self):
-        return self.slider_airbrush_strength.value()**1.5*0.01
+        return self.slider_airbrush_strength.value()**2*0.01
 
 
 class Tools(Enum):
