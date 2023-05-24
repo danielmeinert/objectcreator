@@ -1102,12 +1102,18 @@ class SpriteTab(QWidget):
 
         if modifiers == QtCore.Qt.ControlModifier:
             color, shade = self.main_window.color_select_panel.getColorIndices()
-
+            print(event.angleDelta().y())
             if color:
                 if event.angleDelta().y() > 0 and shade != 11:
                     self.main_window.color_select_panel.setColor(color, shade+1)
                 elif  event.angleDelta().y() < 0 and shade != 0:
                     self.main_window.color_select_panel.setColor(color, shade-1)
+        elif modifiers == QtCore.Qt.AltModifier:
+            toolbox = self.main_window.toolbox
+            if event.angleDelta().x() > 0:
+                toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()+1)
+            elif  event.angleDelta().x() < 0:
+                toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()-1)
 
 
     def updateView(self, skip_locked = False):
@@ -1156,7 +1162,6 @@ class SpriteTab(QWidget):
         
         if len(self.history[index]) == 0:
             return
-
 
         sprite_new = self.history[index].pop(-1)
 
@@ -1225,7 +1230,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         #we ignore the event when Control is pressed as it is the color change movement
-        if modifiers == QtCore.Qt.ControlModifier:
+        if modifiers == QtCore.Qt.ControlModifier or modifiers == QtCore.Qt.AltModifier:
             return
 
         if not self.slider_zoom:
