@@ -334,7 +334,7 @@ class SmallScenery(RCTObject):
      #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
        # return canvas
-    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0):
+    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0, return_index = False):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -347,7 +347,10 @@ class SmallScenery(RCTObject):
         else:
             sprite_index = rotation
 
-        return self.sprites[self.data['images'][sprite_index]['path']]
+        if return_index:
+            return self.sprites[self.data['images'][sprite_index]['path']], sprite_index
+        else:
+            return self.sprites[self.data['images'][sprite_index]['path']]
 
     def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
