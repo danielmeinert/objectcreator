@@ -116,6 +116,8 @@ class MainWindowUi(QMainWindow):
 
         self.actionUndo.triggered.connect(self.spriteUndo)
         self.actionRedo.triggered.connect(self.spriteRedo)
+        self.actionPasteSprite.triggered.connect(self.spritePaste)
+        self.actionCopySprite.triggered.connect(self.spriteCopy)
 
         self.actionSettings.triggered.connect(self.changeSettings)
         self.actionBlack.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
@@ -322,6 +324,16 @@ class MainWindowUi(QMainWindow):
         widget = self.sprite_tabs.currentWidget()
 
         widget.redo()
+
+    def spritePaste(self):
+        widget = self.sprite_tabs.currentWidget()
+
+        widget.paste()
+
+    def spriteCopy(self):
+        widget = self.sprite_tabs.currentWidget()
+
+        widget.copy()
 
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()

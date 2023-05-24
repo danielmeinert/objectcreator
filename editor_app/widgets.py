@@ -510,6 +510,7 @@ class SpritesTabSS(QWidget):
     def showSpriteMenu(self, pos):
         menu = QMenu()
         menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
+        menu.addAction("Copy Sprite", self.copySpriteToClipboard)
 
         submenu_copy = QMenu("Copy Sprite to")
         rot = self.o.rotation
@@ -534,6 +535,14 @@ class SpritesTabSS(QWidget):
             self.o.setSprite(sprite)
 
         self.updateMainView()
+
+    def copySpriteToClipboard(self):
+        sprite = self.o.giveSprite()
+
+        image = ImageQt(sprite.image)
+        pixmap = QtGui.QPixmap.fromImage(image)
+
+        QApplication.clipboard().setPixmap(pixmap)
 
     def copySpriteToView(self, view):
         self.o.setSprite(self.o.giveSprite(), rotation = view)
@@ -1172,6 +1181,20 @@ class SpriteTab(QWidget):
         sprite_old.y = sprite_new.y
 
         self.updateView()
+
+    def paste(self):
+        if self.locked:
+            self.object_tab.spritesTab.pasteSpriteFromClipboard()
+        else:
+            pass
+
+    def copy(self):
+        if self.locked:
+            self.object_tab.spritesTab.copySpriteToClipboard()
+        else:
+            pass
+
+
 
 
 
