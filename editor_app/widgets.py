@@ -987,7 +987,7 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
+                self.working_sprite, _ = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
@@ -1001,7 +1001,7 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
+                self.working_sprite, _ = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
@@ -1035,7 +1035,7 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
+                self.working_sprite, _ = copy(self.giveSprite())
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
