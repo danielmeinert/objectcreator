@@ -19,9 +19,8 @@ class ToolCursors(QtGui.QCursor):
     def __init__(self, toolbox, zoom_factor):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
-        brush = toolbox.giveBrush()
 
-        if tool == Tools.EYEDROPPER:
+        if tool == Tools.EYEDROPPER or tool == Tools.FILL:
             super().__init__(QtCore.Qt.CrossCursor)
         else:
             size = int(brushsize*zoom_factor)+2
@@ -47,15 +46,15 @@ class ToolBoxWidget(QWidget):
         outer_container.setContentsMargins(0,0,0,0)
 
         tool_button_widget = QWidget()
-        seperator = QFrame()
-        seperator.setFrameShape(QFrame.VLine)
-        seperator.setFrameShadow(QFrame.Shadow.Sunken)
+        separator = QFrame()
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
         brush_widget = QGroupBox(title='Brush Options')
         brush_widget.setFlat(True)
 
 
         outer_container.addWidget(tool_button_widget)
-        outer_container.addWidget(seperator)
+        outer_container.addWidget(separator)
         outer_container.addWidget(brush_widget)
 
         self.setLayout(outer_container)

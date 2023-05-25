@@ -93,7 +93,7 @@ class ObjectTabSS(QWidget):
         self.locked_sprite_tab = None
 
     def giveCurrentMainViewSprite(self):
-        return self.o.giveSprite()
+        return self.o.giveSprite(return_index = True)
 
     def giveCurrentMainView(self, canvas_size = 200, add_auxilaries = False):
         return self.spritesTab.giveMainView(canvas_size, add_auxilaries)
@@ -510,6 +510,7 @@ class SpritesTabSS(QWidget):
     def showSpriteMenu(self, pos):
         menu = QMenu()
         menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
+        menu.addAction("Copy Sprite", self.copySpriteToClipboard)
 
         submenu_copy = QMenu("Copy Sprite to")
         rot = self.o.rotation
@@ -534,6 +535,14 @@ class SpritesTabSS(QWidget):
             self.o.setSprite(sprite)
 
         self.updateMainView()
+
+    def copySpriteToClipboard(self):
+        sprite = self.o.giveSprite()
+
+        image = ImageQt(sprite.image)
+        pixmap = QtGui.QPixmap.fromImage(image)
+
+        QApplication.clipboard().setPixmap(pixmap)
 
     def copySpriteToView(self, view):
         self.o.setSprite(self.o.giveSprite(), rotation = view)
@@ -696,16 +705,24 @@ class SpriteTab(QWidget):
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
 
-            self.sprite = object_tab.giveCurrentMainViewSprite()
+            self.sprite, _ = object_tab.giveCurrentMainViewSprite()
+            o = object_tab.o
+            self.history = []
+            self.history_redo = []
+            for sprite in o.sprites:
+                self.history.append([])
+                self.history_redo.append([])
+            
         else:
             self.locked = False
             self.object_tab = None
             self.sprite = spr.Sprite()
+            self.history = [[]]
+            self.history_redo = [[]]
 
         self.protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
 
-        self.history = []
-        self.history_redo = []
+        
 
         self.lastpath = filepath
         self.saved = False
@@ -726,17 +743,13 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def toolChanged(self, toolbox):
-        tool = toolbox.giveTool()
 
-        if tool == cwdg.Tools.EYEDROPPER or tool == cwdg.Tools.FILL:
-            self.view.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
-        else:
-            cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
-            self.view.setCursor(cursor)
+        cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
+        self.view.setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
         self.addSpriteToHistory()
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
 
         for color in selected_colors:
             sprite.remapColor(color, color_remap)
@@ -745,7 +758,7 @@ class SpriteTab(QWidget):
 
     def colorChangeBrightness(self, step, selected_colors):
         self.addSpriteToHistory()
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
 
         sprite.changeBrightnessColor(step, selected_colors)
 
@@ -753,14 +766,14 @@ class SpriteTab(QWidget):
 
     def colorRemove(self, selected_colors):
         self.addSpriteToHistory()
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
 
         sprite.removeColor(selected_colors)
 
         self.updateView()
 
     def draw(self, x, y, shade):
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
         canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
         canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
 
@@ -814,7 +827,7 @@ class SpriteTab(QWidget):
         self.draw(x,y,(0,0,0,0))
 
     def eyedrop(self, x,y):
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
 
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
 
@@ -828,7 +841,7 @@ class SpriteTab(QWidget):
 
     def overdraw(self, x, y):
         working_sprite = self.working_sprite
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
         canvas_mask = Image.new('1', (self.canvas_size,self.canvas_size), color=1)
         canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
         canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
@@ -881,7 +894,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def fill(self, x, y, shade):
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
         canvas = Image.new('RGBA', (self.canvas_size,self.canvas_size))
         canvas_protect = Image.new('RGBA', (self.canvas_size,self.canvas_size))
 
@@ -912,7 +925,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def generateProtectionMask(self):
-        sprite = self.giveSprite()
+        sprite, _ = self.giveSprite()
 
         coords = (int(self.canvas_size/2)+sprite.x, int(self.canvas_size*2/3)+sprite.y)
 
@@ -974,7 +987,7 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
+                self.working_sprite = copy(self.giveSprite()[0])
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
@@ -988,7 +1001,7 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
+                self.working_sprite = copy(self.giveSprite()[0])
 
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
@@ -1022,8 +1035,8 @@ class SpriteTab(QWidget):
 
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite())
-
+                self.working_sprite = copy(self.giveSprite()[0])
+                
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
                 for color in self.main_window.color_select_panel.selectedColors():
@@ -1089,12 +1102,18 @@ class SpriteTab(QWidget):
 
         if modifiers == QtCore.Qt.ControlModifier:
             color, shade = self.main_window.color_select_panel.getColorIndices()
-
+            print(event.angleDelta().y())
             if color:
                 if event.angleDelta().y() > 0 and shade != 11:
                     self.main_window.color_select_panel.setColor(color, shade+1)
                 elif  event.angleDelta().y() < 0 and shade != 0:
                     self.main_window.color_select_panel.setColor(color, shade-1)
+        elif modifiers == QtCore.Qt.AltModifier:
+            toolbox = self.main_window.toolbox
+            if event.angleDelta().x() > 0:
+                toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()+1)
+            elif  event.angleDelta().x() < 0:
+                toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()-1)
 
 
     def updateView(self, skip_locked = False):
@@ -1125,31 +1144,28 @@ class SpriteTab(QWidget):
         if self.locked:
             return self.object_tab.giveCurrentMainViewSprite()
         else:
-            return self.sprite
+            return self.sprite, 0
 
     def addSpriteToHistory(self):
-        sprite = copy(self.giveSprite())
+        sprite_import, index = self.giveSprite()
+        sprite = copy(sprite_import)
+
+        if len(self.history[index]) == self.main_window.settings['history_maximum']:
+            self.history[index].pop(0)
 
 
-        if len(self.history) == self.main_window.settings['history_maximum']:
-            self.history.pop(0)
-
-
-        self.history.append(sprite)
-        self.history_redo = []
-
-        return sprite
-
+        self.history[index].append(sprite)
+        self.history_redo[index] = []
 
     def undo(self):
-        if len(self.history) == 0:
+        sprite_old, index = self.giveSprite()
+        
+        if len(self.history[index]) == 0:
             return
 
+        sprite_new = self.history[index].pop(-1)
 
-        sprite_new = self.history.pop(-1)
-        sprite_old = self.giveSprite()
-
-        self.history_redo.append(copy(sprite_old))
+        self.history_redo[index].append(copy(sprite_old))
 
         sprite_old.image = sprite_new.image
         sprite_old.x = sprite_new.x
@@ -1158,13 +1174,14 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def redo(self):
-        if len(self.history_redo) == 0:
+        sprite_old, index = self.giveSprite()
+
+        if len(self.history_redo[index]) == 0:
             return
 
-        sprite_new = self.history_redo.pop(-1)
-        sprite_old = self.giveSprite()
+        sprite_new = self.history_redo[index].pop(-1)
 
-        self.history.append(copy(sprite_old))
+        self.history[index].append(copy(sprite_old))
 
 
         sprite_old.image = sprite_new.image
@@ -1172,6 +1189,20 @@ class SpriteTab(QWidget):
         sprite_old.y = sprite_new.y
 
         self.updateView()
+
+    def paste(self):
+        if self.locked:
+            self.object_tab.spritesTab.pasteSpriteFromClipboard()
+        else:
+            pass
+
+    def copy(self):
+        if self.locked:
+            self.object_tab.spritesTab.copySpriteToClipboard()
+        else:
+            pass
+
+
 
 
 
@@ -1199,7 +1230,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         #we ignore the event when Control is pressed as it is the color change movement
-        if modifiers == QtCore.Qt.ControlModifier:
+        if modifiers == QtCore.Qt.ControlModifier or modifiers == QtCore.Qt.AltModifier:
             return
 
         if not self.slider_zoom:

@@ -452,6 +452,8 @@ border: 1px solid darkgrey;}
     <addaction name="actionLoadImage"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
+    <addaction name="actionPasteSprite"/>
+    <addaction name="actionCopySprite"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -614,6 +616,22 @@ border: 1px solid darkgrey;}
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
+  <action name="actionPasteSprite">
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionCopySprite">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
  </widget>
