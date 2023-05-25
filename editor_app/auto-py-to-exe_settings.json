@@ -1,0 +1,101 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/editor_app/app.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "name",
+   "value": "Object Creator"
+  },
+  {
+   "optionDest": "ascii",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": true
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "embed_manifest",
+   "value": true
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "win_private_assemblies",
+   "value": false
+  },
+  {
+   "optionDest": "win_no_prefer_redirects",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "rctobject"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "customwidgets"
+  },
+  {
+   "optionDest": "collect_data",
+   "value": "rctobject"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/editor_app/gui;."
+  },
+  {
+   "optionDest": "pathex",
+   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/customwidgets"
+  },
+  {
+   "optionDest": "pathex",
+   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/rctobject"
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}

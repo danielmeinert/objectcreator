@@ -38,7 +38,7 @@ from rctobject import palette as pal
 class MainWindowUi(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('main_window.ui', self)
+        uic.loadUi('gui/main_window.ui', self)
 
         self.new_object_count = 1
 
@@ -153,11 +153,11 @@ class MainWindowUi(QMainWindow):
                 self.settings['palette'] = 0
                 self.settings['history_maximum'] = 5
 
+                self.settings['small_scenery_defaults'] = {}
+
         self.openpath = self.settings['openpath']
         self.setCurrentImportColor(self.settings['transparency_color'])
         self.setCurrentPalette(self.settings['palette'], update_widgets = False)
-
-
 
     def saveSettings(self):
         path = getcwd()
