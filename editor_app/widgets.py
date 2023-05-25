@@ -1102,7 +1102,6 @@ class SpriteTab(QWidget):
 
         if modifiers == QtCore.Qt.ControlModifier:
             color, shade = self.main_window.color_select_panel.getColorIndices()
-            print(event.angleDelta().y())
             if color:
                 if event.angleDelta().y() > 0 and shade != 11:
                     self.main_window.color_select_panel.setColor(color, shade+1)
