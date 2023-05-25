@@ -299,7 +299,7 @@
         <x>170</x>
         <y>160</y>
         <width>101</width>
-        <height>111</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="title">
@@ -325,6 +325,9 @@
        </property>
       </widget>
       <widget class="QToolButton" name="toolButton_symmAxes">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -335,22 +338,6 @@
        </property>
        <property name="text">
         <string>Symm. Axes</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QToolButton" name="toolButton_rotationHelp">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>81</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Rotation Help</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -795,7 +782,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../resources.qrc"/>
  </resources>
  <connections/>
 </ui>

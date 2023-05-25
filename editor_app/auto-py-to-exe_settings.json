@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/editor_app/app.py"
+   "value": "app.py"
   },
   {
    "optionDest": "onefile",
@@ -16,6 +16,10 @@
   {
    "optionDest": "console",
    "value": false
+  },
+  {
+   "optionDest": "icon_file",
+   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui/icon.ico"
   },
   {
    "optionDest": "name",
@@ -82,16 +86,16 @@
    "value": "rctobject"
   },
   {
+   "optionDest": "pathex",
+   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/customwidgets"
+  },
+  {
+   "optionDest": "pathex",
+   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/rctobject"
+  },
+  {
    "optionDest": "datas",
-   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/editor_app/gui;."
-  },
-  {
-   "optionDest": "pathex",
-   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/customwidgets"
-  },
-  {
-   "optionDest": "pathex",
-   "value": "C:/Users/Meinert/Documents/objectmaker-main/objectmaker/rctobject"
+   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui;gui/"
   }
  ],
  "nonPyinstallerOptions": {

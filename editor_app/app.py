@@ -16,7 +16,7 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
 
 import io
 from os import getcwd
-from os.path import splitext, split
+from os.path import splitext, split, abspath,join 
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
@@ -30,15 +30,19 @@ from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
 
+import ctypes
 
+myappid = 'tols.objectcreator.0.1' # arbitrary string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-
-
+VERSION = 0.1
 
 class MainWindowUi(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('gui/main_window.ui', self)
+        uic.loadUi(aux.resource_path('gui/main_window.ui'), self)
+        self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
+        self.setWindowTitle(f'Object Creator - {VERSION}')
 
         self.new_object_count = 1
 

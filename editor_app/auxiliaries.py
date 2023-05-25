@@ -7,13 +7,24 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 import sys
 import io
-
+from os.path import abspath,join 
 
 from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
 
 import resources_rc
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = abspath(".")
+
+    return join(base_path, relative_path)
+
 
 
 class BoundingBoxes():

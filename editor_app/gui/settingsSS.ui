@@ -50,6 +50,9 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
         <property name="styleSheet">
          <string notr="true">QTabWidget::pane {
   border: 1px solid lightgray;
@@ -129,7 +132,7 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unique object identifier - a prefix will be added of with your author ID and object type. Consider the naming guide.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unique object identifier - a prefix will be added with your author ID and object type. Consider the naming guide.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_objectID">
@@ -171,7 +174,7 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string notr="true">Your identity/name for the object ID</string>
+            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your identity/name for the object ID. Lowercase recommended.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_originalID">
@@ -1110,9 +1113,6 @@ QTabBar::tab:selected {
          <attribute name="title">
           <string>Names</string>
          </attribute>
-         <attribute name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </attribute>
          <widget class="QLabel" name="label_nameExplanation">
           <property name="geometry">
            <rect>
@@ -1245,6 +1245,51 @@ QTabBar::tab:selected {
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_subtype</tabstop>
+  <tabstop>comboBox_shape</tabstop>
+  <tabstop>spinBox_clearence</tabstop>
+  <tabstop>checkBox_diagonal</tabstop>
+  <tabstop>isRotatable</tabstop>
+  <tabstop>comboBox_cursor</tabstop>
+  <tabstop>checkBox_remapCheck</tabstop>
+  <tabstop>hasPrimaryColour</tabstop>
+  <tabstop>hasSecondaryColour</tabstop>
+  <tabstop>hasTertiaryColour</tabstop>
+  <tabstop>lineEdit_objectType</tabstop>
+  <tabstop>lineEdit_author</tabstop>
+  <tabstop>lineEdit_authorID</tabstop>
+  <tabstop>lineEdit_objectID</tabstop>
+  <tabstop>lineEdit_objectName</tabstop>
+  <tabstop>tabWidget_settingsSS</tabstop>
+  <tabstop>checkBox_keepOrginalId</tabstop>
+  <tabstop>lineEdit_originalID</tabstop>
+  <tabstop>pushButton_clearAllLang</tabstop>
+  <tabstop>pushButton_applyDefaultSettings</tabstop>
+  <tabstop>doubleSpinBox_version</tabstop>
+  <tabstop>doubleSpinBox_price</tabstop>
+  <tabstop>doubleSpinBox_removalPrice</tabstop>
+  <tabstop>requiresFlatSurface</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</tabstop>
+  <tabstop>isStackable</tabstop>
+  <tabstop>prohibitWalls</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG27</tabstop>
+  <tabstop>allowSupportsAbove</tabstop>
+  <tabstop>comboBox_animSubtype</tabstop>
+  <tabstop>pushButton_editAnimSequence</tabstop>
+  <tabstop>doubleSpinBox_frameDelay</tabstop>
+  <tabstop>doubleSpinBox_animDelay</tabstop>
+  <tabstop>doubleSpinBox_numFrames</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</tabstop>
+  <tabstop>hasOverlayImage</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG17</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG_COG</tabstop>
+  <tabstop>isTree</tabstop>
+  <tabstop>hasNoSupports</tabstop>
+  <tabstop>supportsHavePrimaryColour</tabstop>
+  <tabstop>comboBox_languageSelect</tabstop>
+  <tabstop>lineEdit_nameInput</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

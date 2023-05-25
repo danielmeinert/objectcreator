@@ -10,6 +10,8 @@ import os.path
 from os import getcwd
 import numpy as np
 
+import auxiliaries as aux
+
 from customwidgets import RemapColorSelectWidget
 import customwidgets as cwdg
 
@@ -128,7 +130,7 @@ class ObjectTabSS(QWidget):
 class SettingsTabSS(QWidget):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
-        uic.loadUi('gui/settingsSS.ui', self)
+        uic.loadUi(aux.resource_path('gui/settingsSS.ui'), self)
 
         self.o = o
         self.object_tab = object_tab
@@ -390,7 +392,7 @@ class SettingsTabSS(QWidget):
 class SpritesTabSS(QWidget):
     def __init__(self, o, object_tab):
         super().__init__()
-        uic.loadUi('gui/spritesSS.ui', self)
+        uic.loadUi(aux.resource_path('gui/spritesSS.ui'), self)
 
         self.o = o
         self.object_tab = object_tab
@@ -685,7 +687,7 @@ class SpritesTabSS(QWidget):
 class SpriteTab(QWidget):
     def __init__(self, main_window, object_tab = None, filepath = None):
         super().__init__()
-        uic.loadUi('gui/sprite.ui', self)
+        uic.loadUi(aux.resource_path('gui/sprite.ui'), self)
 
         self.main_window = main_window
 
@@ -1312,7 +1314,7 @@ class SpriteViewWidget(QScrollArea):
 class ChangeSettingsUi(QDialog):
     def __init__(self, settings):
         super().__init__()
-        uic.loadUi('gui/settings_window.ui', self)
+        uic.loadUi(aux.resource_path('gui/settings_window.ui'), self)
 
         self.setFixedSize(self.size())
 

@@ -64,6 +64,9 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="toolTip">
+        <string notr="true">Path to your OpenRCT2 folder</string>
+       </property>
       </widget>
       <widget class="QLabel" name="label_openpath_2">
        <property name="geometry">
@@ -99,6 +102,9 @@
          <width>341</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true">Default folder for saving objects</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_author">
@@ -137,7 +143,7 @@
         </rect>
        </property>
        <property name="toolTip">
-        <string notr="true">Your identity/name for the object ID</string>
+        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your identity/name for the object ID. Lowercase recommended.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLineEdit" name="lineEdit_author">
@@ -153,7 +159,7 @@
         </rect>
        </property>
        <property name="toolTip">
-        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your name, seperate multiple names by comma. It is also good practice to add the name of the original creator(s) if you are fixing/remixing an existing object.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your name to appear by default in the author field&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label">
@@ -356,6 +362,9 @@
          <width>341</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="toolTip">
+        <string notr="true">Default folder for opening objects</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_changeOpenDefault">
@@ -669,6 +678,37 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_openpath</tabstop>
+  <tabstop>lineEdit_saveDefault</tabstop>
+  <tabstop>lineEdit_openDefault</tabstop>
+  <tabstop>lineEdit_author</tabstop>
+  <tabstop>lineEdit_authorID</tabstop>
+  <tabstop>checkBox_nozip</tabstop>
+  <tabstop>comboBox_transparencycolor</tabstop>
+  <tabstop>spinBox_R</tabstop>
+  <tabstop>spinBox_G</tabstop>
+  <tabstop>spinBox_B</tabstop>
+  <tabstop>comboBox_palette</tabstop>
+  <tabstop>spinBox_history_maximum</tabstop>
+  <tabstop>doubleSpinBox_version</tabstop>
+  <tabstop>pushButton_changeSaveDefault</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>pushButton_changeOpenDefault</tabstop>
+  <tabstop>pushButton_changeOpenpath</tabstop>
+  <tabstop>comboBox_cursor</tabstop>
+  <tabstop>allowSupportsAbove</tabstop>
+  <tabstop>requiresFlatSurface</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</tabstop>
+  <tabstop>spinBox_price</tabstop>
+  <tabstop>isTree</tabstop>
+  <tabstop>supportsHavePrimaryColour</tabstop>
+  <tabstop>hasNoSupports</tabstop>
+  <tabstop>SMALL_SCENERY_FLAG27</tabstop>
+  <tabstop>spinBox_removalPrice</tabstop>
+  <tabstop>isStackable</tabstop>
+  <tabstop>prohibitWalls</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

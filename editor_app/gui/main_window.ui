@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Object Maker</string>
+   <string>Object Creator</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -288,6 +288,18 @@ border: 1px solid darkgrey;}
        </property>
        <item>
         <widget class="QWidget" name="widget_tool_box" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>280</width>
+           <height>100</height>
+          </size>
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <property name="leftMargin">
            <number>0</number>
@@ -314,7 +326,7 @@ border: 1px solid darkgrey;}
          </property>
          <property name="minimumSize">
           <size>
-           <width>272</width>
+           <width>280</width>
            <height>239</height>
           </size>
          </property>
@@ -345,6 +357,12 @@ border: 1px solid darkgrey;}
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_Colormani">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Color Manipulations (selected colors are affected)</string>
          </property>
@@ -397,9 +415,9 @@ border: 1px solid darkgrey;}
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_Brushes">
+        <widget class="QGroupBox" name="groupBox">
          <property name="title">
-          <string>Brushes</string>
+          <string>Layers</string>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -516,11 +534,17 @@ border: 1px solid darkgrey;}
    </property>
   </action>
   <action name="actionNewSprite">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>New Image</string>
    </property>
   </action>
   <action name="actionLoadImage">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open Image</string>
    </property>
