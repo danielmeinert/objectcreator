@@ -31,7 +31,7 @@ python -m pip install -e .\rctobject\
 To execute the program, go into the program's folder (either editor_app or pathgenerator_app) and run
 
 ```
-python3 app.py
+python app.py
 ```
 
 
