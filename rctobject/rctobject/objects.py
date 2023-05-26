@@ -182,6 +182,10 @@ class RCTObject:
         if self.data.get('sceneryGroup') == '' or  self.data.get('sceneryGroup') == '\x00\x00\x00\x00\x00\x00\x00\x00':
              self.data.pop('sceneryGroup')
 
+        # All objects we save are custom objects
+        self.data['sourceGame'] = "custom"
+
+
         if name:
             filename = f'{path}/{name}'
         else:
@@ -217,7 +221,7 @@ class RCTObject:
         return (width, height)
 
     def switchPalette(self, palette):
-        for i, sprite in self.sprites.items():
+        for _, sprite in self.sprites.items():
             sprite.switchPalette(palette)
 
     def changeRemap(self, color, remap):
