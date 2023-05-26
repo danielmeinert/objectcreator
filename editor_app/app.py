@@ -162,6 +162,7 @@ class MainWindowUi(QMainWindow):
                 self.settings['small_scenery_defaults'] = {}
 
         self.openpath = self.settings['openpath']
+        self.last_open_folder = self.settings.get('opendefault', None)
         self.setCurrentImportColor(self.settings['transparency_color'])
         self.setCurrentPalette(self.settings['palette'], update_widgets = False)
 
@@ -259,7 +260,7 @@ class MainWindowUi(QMainWindow):
         self.object_tabs.removeTab(index)
 
     def openObjectFile(self):
-        folder = self.settings.get('opendefault','')
+        folder = self.last_open_folder
         if not folder:
             folder = getcwd()
         filepaths, _ = QFileDialog.getOpenFileNames(
@@ -308,6 +309,8 @@ class MainWindowUi(QMainWindow):
                 self.object_tabs.setCurrentWidget(object_tab)
                 self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
                 self.sprite_tabs.setCurrentWidget(sprite_tab)
+
+            self.last_open_folder = filepath
 
     def saveObject(self):
         widget = self.object_tabs.currentWidget()

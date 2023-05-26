@@ -343,15 +343,17 @@ class SettingsTabSS(QWidget):
 
         checkbox = self.findChild(QCheckBox, 'isTree')
         checkbox.setChecked(self.o['properties'].get('isTree', False))
+        checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
+        checkbox.setChecked(self.o['properties'].get('hasTertiaryColour', False))
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
-        if author:
-            self.author_field.setText(author)
-        else:
-            authors = ', '.join(self.o.data.get('authors',''))
-            self.author_field.setText(authors)
-
+        if not author:           
+            author = self.o.data.get('authors','')
+            if isinstance(author, list):
+                author = ', '.join(author)
+            
+        self.author_field.setText(author)
         self.author_id_field.setText(author_id)
 
         obj_id = self.o.data.get('id', False)
