@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb  3 23:48:10 2022
-
-@author: Daniel
+*****************************************************************************
+ * Copyright (c) 2023 Tolsimir
+ *
+ * The program "Oject Creator" and all subsequent modules are licensed
+ * under the GNU General Public License version 3.
+ *****************************************************************************
 """
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog

@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jan 30 18:17:37 2022
-
-@author: Daniel
+*****************************************************************************
+ * Copyright (c) 2023 Tolsimir
+ *
+ * The program "Oject Creator" and all subsequent modules are licensed
+ * under the GNU General Public License version 3.
+ *****************************************************************************
 """
 
 from json import load, dump

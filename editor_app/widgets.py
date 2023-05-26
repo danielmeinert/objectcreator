@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-
+"""
+*****************************************************************************
+ * Copyright (c) 2023 Tolsimir
+ *
+ * The program "Oject Creator" and all subsequent modules are licensed
+ * under the GNU General Public License version 3.
+ *****************************************************************************
+"""
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw

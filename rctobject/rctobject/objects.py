@@ -1,4 +1,11 @@
 """
+*****************************************************************************
+ * Copyright (c) 2023 Tolsimir
+ *
+ * The program "Oject Creator" and all subsequent modules are licensed
+ * under the GNU General Public License version 3.
+ *****************************************************************************
+
 Module for handling base classes of RCT objects.
 Includes file handling (save/open) functions.
 
@@ -6,9 +13,8 @@ Objects may be loaded with from_parkobj and from_dat functions.
 
 JSON data may be accessed and edited as dictionary key: obj[key]
 
-
 Created 09/26/2021; 16:58:33
-@author: Tolsimir, Drew
+
 """
 
 from json import dump, loads
