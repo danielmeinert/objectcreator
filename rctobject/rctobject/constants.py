@@ -3,7 +3,7 @@
 *****************************************************************************
  * Copyright (c) 2023 Tolsimir
  *
- * The program "Oject Creator" and all subsequent modules are licensed
+ * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
