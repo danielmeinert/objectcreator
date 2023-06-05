@@ -62,6 +62,9 @@ QTabBar::tab:selected {
       <property name="tabPosition">
        <enum>QTabWidget::North</enum>
       </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -69,7 +72,7 @@ QTabBar::tab:selected {
        <bool>false</bool>
       </property>
       <property name="tabsClosable">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="movable">
        <bool>false</bool>
@@ -467,7 +470,7 @@ border: 1px solid darkgrey;}
      <string>Sprite</string>
     </property>
     <addaction name="actionNewSprite"/>
-    <addaction name="actionLoadImage"/>
+    <addaction name="actionLoadSprite"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionPasteSprite"/>
@@ -535,13 +538,13 @@ border: 1px solid darkgrey;}
   </action>
   <action name="actionNewSprite">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>New Image</string>
    </property>
   </action>
-  <action name="actionLoadImage">
+  <action name="actionLoadSprite">
    <property name="enabled">
     <bool>false</bool>
    </property>

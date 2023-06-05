@@ -263,9 +263,6 @@ def read_dat_info(filename: str):
 
         pos = 0
 
-        if object_type == 'ride':
-            raise NotImplementedError()
-
         if object_type == 'scenery_small':
             tag_small_scenery_header(chunk, tags)
 
@@ -283,7 +280,7 @@ def read_dat_info(filename: str):
             # result["image"] = small_scenery_get_preview(chunk, pos)
             #	if(result["image"] == =FALSE)return FALSE
 
-        if object_type == 'scenery_large':
+        elif object_type == 'scenery_large':
             tag_large_scenery_header(chunk, tags)
 
             pos += 0x1A
@@ -303,6 +300,9 @@ def read_dat_info(filename: str):
             # {
             # result["image"] = large_scenery_get_preview(chunk, pos, tile_info)
         # 		if(result["image"] == =FALSE)return FALSE
+
+        else:
+            raise NotImplementedError(f'dat-Import of {object_type} not supported.')
 
         result['properties'] = tags
 

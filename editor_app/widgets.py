@@ -94,8 +94,9 @@ class ObjectTabSS(QWidget):
             self.saved = True
 
     def lockWithSpriteTab(self, locked_sprite_tab):
-        self.locked = True
-        self.locked_sprite_tab = locked_sprite_tab
+        if locked_sprite_tab:
+            self.locked = True
+            self.locked_sprite_tab = locked_sprite_tab
 
     def unlockSpriteTab(self):
         self.locked = False
@@ -355,11 +356,11 @@ class SettingsTabSS(QWidget):
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(self.o['properties'].get('cursor','CURSOR_BLANK')))
 
-        if not author:           
+        if not author:
             author = self.o.data.get('authors','')
             if isinstance(author, list):
                 author = ', '.join(author)
-            
+
         self.author_field.setText(author)
         self.author_id_field.setText(author_id)
 
@@ -672,7 +673,6 @@ class SpritesTabSS(QWidget):
 
         return canvas
 
-
     def updatePreview(self,rot):
         im, x, y = self.o.show(rotation = rot)
         im = copy(im)
@@ -723,17 +723,17 @@ class SpriteTab(QWidget):
             for sprite in o.sprites:
                 self.history.append([])
                 self.history_redo.append([])
-            
+
         else:
             self.locked = False
             self.object_tab = None
-            self.sprite = spr.Sprite()
+            self.sprite = spr.Sprite(None)
             self.history = [[]]
             self.history_redo = [[]]
 
         self.protected_pixels = Image.new('1', (self.canvas_size,self.canvas_size))
 
-        
+
 
         self.lastpath = filepath
         self.saved = False
@@ -746,6 +746,27 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
+    def lockWithObjectTab(self, object_tab):
+        if object_tab:
+            self.locked = True
+            self.object_tab = object_tab
+            self.sprite, _ = object_tab.giveCurrentMainViewSprite()
+            o = object_tab.o
+            self.history = []
+            self.history_redo = []
+            for sprite in o.sprites:
+                self.history.append([])
+                self.history_redo.append([])
+
+        self.updateView()
+
+    def unlockObjectTab(self):
+        if self.locked:
+            self.sprite, index = self.giveSprite()
+            self.history = [self.history[index]]
+            self.history_redo = [self.history_redo[index]]
+            self.locked = False
+            self.object_tab = None
 
 
     def zoomChanged(self, val):
@@ -754,7 +775,6 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def toolChanged(self, toolbox):
-
         cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
         self.view.setCursor(cursor)
 
@@ -1047,7 +1067,7 @@ class SpriteTab(QWidget):
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
                 self.working_sprite = copy(self.giveSprite()[0])
-                
+
                 color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
                 for color in self.main_window.color_select_panel.selectedColors():
@@ -1136,7 +1156,20 @@ class SpriteTab(QWidget):
             canvas = self.object_tab.giveCurrentMainView(self.canvas_size, add_auxilaries = True)
 
         else:
-            pass
+            canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
+
+            #if add_auxiliaries and self.buttonBoundingBox.isChecked():
+            #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
+            #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
+
+
+            #canvas.paste(self.frame_image, self.frame_image)
+
+            coords = (int(self.canvas_size/2)+self.sprite.x, int(self.canvas_size*2/3)+self.sprite.y)
+
+            canvas.paste(self.sprite.image, coords, self.sprite.image)
+
+
 
         canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
         image = ImageQt(canvas)
@@ -1169,7 +1202,7 @@ class SpriteTab(QWidget):
 
     def undo(self):
         sprite_old, index = self.giveSprite()
-        
+
         if len(self.history[index]) == 0:
             return
 

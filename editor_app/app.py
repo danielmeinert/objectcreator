@@ -25,7 +25,7 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
 
 import io
 from os import getcwd
-from os.path import splitext, split, abspath,join 
+from os.path import splitext, split, abspath,join
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
@@ -41,10 +41,11 @@ from rctobject import palette as pal
 
 import ctypes
 
-myappid = 'tols.objectcreator.0.1' # arbitrary string
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+VERSION = 0.2
 
-VERSION = 0.1
+
+myappid = f'objectcreator.{VERSION}' # arbitrary string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class MainWindowUi(QMainWindow):
     def __init__(self):
@@ -53,12 +54,14 @@ class MainWindowUi(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
-        self.new_object_count = 1
-
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
 
         ##### Tabs
+        self.new_object_count = 1
+        self.new_sprite_count = 1
+
+
         self.object_tabs = self.findChild(
             QTabWidget, "tabWidget_objects")
         self.sprite_tabs = self.findChild(
@@ -69,7 +72,8 @@ class MainWindowUi(QMainWindow):
 
         # Tab actions
         self.object_tabs.tabCloseRequested.connect(self.closeObject)
-        self.object_tabs.currentChanged.connect(self.changeTab)
+        self.object_tabs.currentChanged.connect(self.changeObjectTab)
+        self.sprite_tabs.currentChanged.connect(self.changeSpriteTab)
 
 
         #### Tools
@@ -127,6 +131,7 @@ class MainWindowUi(QMainWindow):
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
 
+        self.actionNewSprite.triggered.connect(self.spriteNew)
         self.actionUndo.triggered.connect(self.spriteUndo)
         self.actionRedo.triggered.connect(self.spriteRedo)
         self.actionPasteSprite.triggered.connect(self.spritePaste)
@@ -235,10 +240,15 @@ class MainWindowUi(QMainWindow):
                 tab.o.switchPalette(self.current_palette)
                 tab.spritesTab.updateAllViews()
 
-    def changeTab(self, index):
+    def changeObjectTab(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab and object_tab.locked:
             self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
+
+    def changeSpriteTab(self, index):
+        sprite_tab = self.sprite_tabs.widget(index)
+        if sprite_tab and sprite_tab.locked:
+            self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
 
     def newObject(self, obj_type = cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
@@ -295,16 +305,15 @@ class MainWindowUi(QMainWindow):
                     msg.show()
                     return
 
+
                 extension = splitext(filepath)[1].lower()
                 author_id = None
+                filepath, filename = split(filepath)
                 if extension == '.parkobj':
-                    filepath, filename = split(filepath)
-
                     # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
                     if len(filename.split('.')) > 2:
                         author_id = filename.split('.')[0]
-                else:
-                    filepath = None
+
 
                 if not self.current_palette == pal.orct:
                     o.switchPalette(self.current_palette)
@@ -319,7 +328,8 @@ class MainWindowUi(QMainWindow):
                 self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
                 self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-            self.last_open_folder = filepath
+            else:
+                self.last_open_folder = filepath
 
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
@@ -330,6 +340,17 @@ class MainWindowUi(QMainWindow):
         widget = self.object_tabs.currentWidget()
 
         widget.saveObject(get_path = True)
+
+    def spriteNew(self):
+        name = f'Sprite {self.new_sprite_count}'
+        self.new_sprite_count += 1
+        sprite_tab = wdg.SpriteTab(self)
+
+        self.sprite_tabs.addTab(sprite_tab, f"{name}")
+        self.sprite_tabs.setCurrentWidget(sprite_tab)
+
+
+
 
     def spriteUndo(self):
         widget = self.sprite_tabs.currentWidget()

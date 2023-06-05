@@ -142,6 +142,7 @@ class RCTObject:
                          'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
             string = result.stdout
             string = string[string.find('{'):].replace(f'{temp}/', '')
+
             i = -1
             while string[i] != ',':
                 i -= 1
@@ -375,7 +376,7 @@ class SmallScenery(RCTObject):
             sprite_index = rotation+4*wither
         else:
             sprite_index = rotation
-        
+
         self.sprites[self.data['images'][sprite_index]['path']] = sprite
 
     def rotateObject(self, rot = None):
