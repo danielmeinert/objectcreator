@@ -7,8 +7,16 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-import rctobject.constants as const
+
 from struct import unpack
+from json import dump, loads
+from os.path import splitext, exists
+from shutil import unpack_archive, make_archive, move, rmtree
+from tempfile import TemporaryDirectory
+from subprocess import run
+
+import rctobject.constants as const
+import rctobject.sprites as spr
 
 
 def rle_decode(string: bytes):
@@ -375,3 +383,31 @@ def read_dat_info(filename: str):
     # 		if(result["name_table"] == =FALSE)return FALSE
     # 	result["image"] = park_entrance_get_preview(chunk, pos)
     # 		if(result["image"] == =FALSE)return FALSE
+
+def import_sprites(dat_id, openpath):
+    if not exists(f'{openpath}/bin/openrct2.exe'):
+        raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+    
+    
+    with TemporaryDirectory() as temp:
+        temp = temp.replace('\\', '/')
+        result = run([f'{openpath}/bin/openrct2', 'sprite',
+                     'exportalldat', dat_id, f'{temp}/images'], stdout=-1, stderr=-1, encoding='utf-8')
+        
+        if result.returncode:
+            raise RuntimeError(f'OpenRCT2 export error: {result.stderr}')
+
+        string = result.stdout
+        string = string[string.find('{'):].replace(f'{temp}/', '')
+               
+
+        i = -1
+        while string[i] != ',':
+            i -= 1
+    
+
+        images = loads(f'[{string[:i]}]')
+        sprites = {im['path']: spr.Sprite.fromFile(
+            f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
+        
+    return images, sprites
