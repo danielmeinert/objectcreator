@@ -291,6 +291,7 @@ class SettingsTabSS(QWidget):
         for lang in self.o['strings']['name'].keys():
             self.o['strings']['name'][lang] = ''
         self.object_name_field.setText('')
+        self.object_name_lang_field.setText('')
 
     def spinBoxChanged(self, value, name):
         if name == 'version':
@@ -1324,7 +1325,6 @@ class SpriteViewWidget(QScrollArea):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-
         QApplication.restoreOverrideCursor()
         self.mousepos = event.localPos()
         super().mouseReleaseEvent(event)

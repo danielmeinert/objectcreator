@@ -394,7 +394,8 @@ def import_sprites(dat_id, openpath):
                      'exportalldat', dat_id, f'{temp}/images'], stdout=-1, stderr=-1, encoding='utf-8')
         
         if result.returncode:
-            raise RuntimeError(f'OpenRCT2 export error: {result.stderr}')
+            raise RuntimeError(f'OpenRCT2 export error: {result.stderr}. \n \
+                               For .DAT-import the object has to lie in the /object folder of your OpenRCT2 directory.')
 
         string = result.stdout
         string = string[string.find('{'):].replace(f'{temp}/', '')

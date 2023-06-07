@@ -56,6 +56,9 @@ class MainWindowUi(QMainWindow):
 
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
+        
+        
+        self.setAcceptDrops(True)
 
         ##### Tabs
         self.new_object_count = 1
@@ -77,7 +80,6 @@ class MainWindowUi(QMainWindow):
 
 
         #### Tools
-
         widget_tool_box = self.findChild(QWidget, "widget_tool_box")
         self.toolbox = ToolBoxWidget()
         self.giveTool = self.toolbox.giveTool
@@ -121,8 +123,6 @@ class MainWindowUi(QMainWindow):
         self.button_incr_brightness.clicked.connect(lambda x, step = 1: self.colorChangeBrightness(step))
         self.button_decr_brightness.clicked.connect(lambda x, step = -1: self.colorChangeBrightness(step))
         self.button_remove_color.clicked.connect(self.colorRemove)
-
-
 
 
         #### Menubar
@@ -349,9 +349,6 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-
-
-
     def spriteUndo(self):
         widget = self.sprite_tabs.currentWidget()
 
@@ -420,7 +417,67 @@ class MainWindowUi(QMainWindow):
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Control:
             self.toolbox.restoreTool()
-
+     
+            
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls:
+            for url in e.mimeData().urls():
+                filepath = url.toLocalFile()
+                extension = splitext(filepath)[1].lower()
+                
+                if extension in ['.parkobj', '.dat', '.json']:
+                    e.accept()
+        else:
+            e.ingore()
+            
+    def dropEvent(self, e):
+        for url in e.mimeData().urls():
+            filepath = url.toLocalFile()
+            extension = splitext(filepath)[1].lower()
+            
+            if extension in ['.parkobj', '.dat', '.json']:
+                try:
+                    o = obj.load(filepath, openpath = self.openpath)
+                    name = o.data.get('id', '').split('.',2)[-1]
+                    if not name:
+                        if o.old_id:
+                            name = o.old_id
+                        else:
+                            name = f'Object {self.new_object_count}'
+                            self.new_object_count += 1
+                except Exception as e:
+                    msg = QMessageBox(self)
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setWindowTitle("Error")
+                    msg.setText("Failed to load object")
+                    msg.setInformativeText(str(e))
+                    msg.show()
+                    return
+    
+                author_id = None
+                filepath, filename = split(filepath)
+                if extension == '.parkobj':
+                    # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
+                    if len(filename.split('.')) > 2:
+                        author_id = filename.split('.')[0]
+    
+    
+                if not self.current_palette == pal.orct:
+                    o.switchPalette(self.current_palette)
+    
+    
+                object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
+    
+                sprite_tab = wdg.SpriteTab(self, object_tab)
+    
+                self.object_tabs.addTab(object_tab, name)
+                self.object_tabs.setCurrentWidget(object_tab)
+                self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
+                self.sprite_tabs.setCurrentWidget(sprite_tab)
+    
+            else:
+                self.last_open_folder = filepath
+            
 
 
 def excepthook(exc_type, exc_value, exc_tb):
