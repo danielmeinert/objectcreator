@@ -20,7 +20,7 @@ Created 09/26/2021; 16:58:33
 from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd
-from os.path import splitext
+from os.path import splitext, exists
 import copy
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
@@ -72,6 +72,9 @@ class RCTObject:
             dat_id = data.get('originalId',None)
             # If an original Id was given and the sprites are supposed to be loaded from the dat file we do so (aka "official" openRCT objects).
             if isinstance(data['images'][0], str) and dat_id:
+                if not exists(f'{openpath}/bin/openrct2.exe'):
+                    raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+                
                 dat_id = dat_id.split('|')[1].replace(' ', '')
                 with TemporaryDirectory() as temp:
                     temp = temp.replace('\\', '/')
@@ -104,6 +107,9 @@ class RCTObject:
         dat_id = data.get('originalId',None)
         # If an original Id was given we load the sprites from original DATs (aka "official" openRCT objects).
         if isinstance(data['images'][0], str) and dat_id:
+            if not exists(f'{openpath}/bin/openrct2.exe'):
+                raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+            
             dat_id = dat_id.split('|')[1].replace(' ', '')
             with TemporaryDirectory() as temp:
                 temp = temp.replace('\\', '/')
@@ -133,6 +139,9 @@ class RCTObject:
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .DAT file. Sprite exporting is done
         by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
+        
+        if not exists(f'{openpath}/bin/openrct2.exe'):
+            raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
 
         data = dat.read_dat_info(filepath)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
