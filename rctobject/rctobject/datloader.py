@@ -388,7 +388,6 @@ def import_sprites(dat_id, openpath):
     if not exists(f'{openpath}/bin/openrct2.exe'):
         raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
     
-    
     with TemporaryDirectory() as temp:
         temp = temp.replace('\\', '/')
         result = run([f'{openpath}/bin/openrct2', 'sprite',
@@ -400,12 +399,11 @@ def import_sprites(dat_id, openpath):
         string = result.stdout
         string = string[string.find('{'):].replace(f'{temp}/', '')
                
-
         i = -1
         while string[i] != ',':
             i -= 1
     
-
+        # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
         images = loads(f'[{string[:i]}]')
         sprites = {im['path']: spr.Sprite.fromFile(
             f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
