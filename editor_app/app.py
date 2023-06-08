@@ -417,8 +417,7 @@ class MainWindowUi(QMainWindow):
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Control:
             self.toolbox.restoreTool()
-     
-            
+        
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls:
             for url in e.mimeData().urls():

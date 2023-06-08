@@ -385,6 +385,9 @@ border: 1px solid darkgrey;}
           </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="pushButton_remapTo">
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
             <property name="text">
              <string>Remap to</string>
             </property>

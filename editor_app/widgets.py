@@ -1017,11 +1017,14 @@ class SpriteTab(QWidget):
 
             if self.main_window.giveTool() == cwdg.Tools.REMAP:
 
+                color_remap = self.main_window.color_select_panel.getColorIndices()[0]
+                if not color_remap:
+                    self.working_sprite = None
+                    return
+
                 self.addSpriteToHistory()
                 self.generateProtectionMask()
                 self.working_sprite = copy(self.giveSprite()[0])
-
-                color_remap = self.main_window.color_select_panel.getColorIndices()[0]
 
                 for color in self.main_window.color_select_panel.selectedColors():
                     self.working_sprite.remapColor(color, color_remap)
@@ -1114,10 +1117,16 @@ class SpriteTab(QWidget):
 
 
             if self.main_window.giveTool() == cwdg.Tools.REMAP:
+                if not self.working_sprite:
+                    return
+                
                 self.overdraw(x,y)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+                if not self.working_sprite:
+                    return
+                
                 self.overdraw(x,y)
                 return
 
