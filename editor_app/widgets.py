@@ -16,6 +16,8 @@ import io
 import os.path
 from os import getcwd
 import numpy as np
+from pkgutil import get_data
+
 
 import auxiliaries as aux
 
@@ -455,6 +457,14 @@ class SpritesTabSS(QWidget):
             lambda x: self.clickSpriteControl('leftright'))
         self.buttonSpriteUpDown.clicked.connect(
             lambda x: self.clickSpriteControl('updown'))
+        
+        icon = QtGui.QPixmap()
+        icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionLR.png'), 'png')
+        self.buttonSpriteLeftRight.setIcon(QtGui.QIcon(icon))
+        
+        icon = QtGui.QPixmap()
+        icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionUD.png'), 'png')
+        self.buttonSpriteUpDown.setIcon(QtGui.QIcon(icon))
 
 
         self.buttonCycleRotation = self.findChild(
