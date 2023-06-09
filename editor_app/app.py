@@ -238,7 +238,7 @@ class MainWindowUi(QMainWindow):
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
-                tab.spritesTab.updateAllViews()
+                tab.sprites_tab.updateAllViews()
 
     def changeObjectTab(self, index):
         object_tab = self.object_tabs.widget(index)
@@ -263,7 +263,7 @@ class MainWindowUi(QMainWindow):
 
         object_tab.lockWithSpriteTab(sprite_tab)
 
-        object_tab.settingsTab.setDefaults()
+        object_tab.settings_tab.setDefaults()
 
         self.object_tabs.addTab(object_tab, name)
         self.object_tabs.setCurrentWidget(object_tab)

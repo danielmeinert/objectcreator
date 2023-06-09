@@ -47,11 +47,11 @@ class ObjectTabSS(QWidget):
 
         layout = QHBoxLayout()
 
-        self.spritesTab = SpritesTabSS(o, self)
-        self.settingsTab = SettingsTabSS(o, self, self.spritesTab, author, author_id)
+        self.sprites_tab = SpritesTabSS(o, self)
+        self.settings_tab = SettingsTabSS(o, self, self.sprites_tab, author, author_id)
 
-        layout.addWidget(self.spritesTab)
-        layout.addWidget(self.settingsTab)
+        layout.addWidget(self.sprites_tab)
+        layout.addWidget(self.settings_tab)
 
         self.setLayout(layout)
 
@@ -76,7 +76,7 @@ class ObjectTabSS(QWidget):
         else:
             filepath = self.lastpath
 
-        if self.settingsTab.checkBox_remapCheck.isChecked():
+        if self.settings_tab.checkBox_remapCheck.isChecked():
             for path, sprite in self.o.sprites.items():
                 if sprite.checkPrimaryColor():
                     self.o['properties']['hasPrimaryColour'] = True
@@ -92,7 +92,7 @@ class ObjectTabSS(QWidget):
 
         if filepath:
             self.lastpath = filepath
-            self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settingsTab.checkbox_keepOriginalId.isChecked())
+            self.o.save(filepath, name = name, no_zip = self.main_window.settings['no_zip'], include_originalId = self.settings_tab.checkbox_keep_dat_id.isChecked())
             self.saved = True
 
     def lockWithSpriteTab(self, locked_sprite_tab):
@@ -108,17 +108,17 @@ class ObjectTabSS(QWidget):
         return self.o.giveSprite(return_index = True)
 
     def giveCurrentMainView(self, canvas_size = 200, add_auxilaries = False):
-        return self.spritesTab.giveMainView(canvas_size, add_auxilaries)
+        return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
 
     def updateCurrentMainView(self):
-        self.spritesTab.updateMainView()
+        self.sprites_tab.updateMainView()
 
     def colorRemapToAll(self, color_remap, selected_colors):
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.remapColor(color, color_remap)
 
-        self.spritesTab.updateAllViews()
+        self.sprites_tab.updateAllViews()
 
 
     def colorChangeBrightnessAll(self, step, selected_colors):
@@ -126,14 +126,14 @@ class ObjectTabSS(QWidget):
             for color in selected_colors:
                 sprite.changeBrightnessColor(step, color)
 
-        self.spritesTab.updateAllViews()
+        self.sprites_tab.updateAllViews()
 
     def colorRemoveAll(self, selected_colors):
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.removeColor(color)
 
-        self.spritesTab.updateAllViews()
+        self.sprites_tab.updateAllViews()
 
 
 
@@ -213,15 +213,18 @@ class SettingsTabSS(QWidget):
         checkbox.stateChanged.connect(lambda x, flag=checkbox.objectName(): self.flagChanged(x,flag))
 
         ### Spinboxes
+        self.spinbox_price = self.findChild(QDoubleSpinBox, "doubleSpinBox_price")
+        self.spinbox_removal_price = self.findChild(QDoubleSpinBox, "doubleSpinBox_removalPrice")
+        self.spinbox_version = self.findChild(QDoubleSpinBox, "doubleSpinBox_version")
 
-        self.doubleSpinBox_price.valueChanged.connect(lambda value, name = 'price': self.spinBoxChanged(value, name))
-        self.doubleSpinBox_removalPrice.valueChanged.connect(lambda value, name = 'removalPrice': self.spinBoxChanged(value, name))
-        self.doubleSpinBox_version.valueChanged.connect(lambda value, name = 'version': self.spinBoxChanged(value, name))
+        self.spinbox_price.valueChanged.connect(lambda value, name = 'price': self.spinBoxChanged(value, name))
+        self.spinbox_removal_price.valueChanged.connect(lambda value, name = 'removalPrice': self.spinBoxChanged(value, name))
+        self.spinbox_version.valueChanged.connect(lambda value, name = 'version': self.spinBoxChanged(value, name))
 
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
 
-        self.checkbox_keepOriginalId = self.findChild(QCheckBox, "checkBox_keepOrginalId")
+        self.checkbox_keep_dat_id = self.findChild(QCheckBox, "checkBox_keepOrginalId")
 
         self.loadObjectSettings(author = author, author_id = author_id)
 
@@ -382,24 +385,24 @@ class SettingsTabSS(QWidget):
         self.object_name_field.setText(self.o['strings']['name'].get('en-GB',''))
         self.object_name_lang_field.setText(self.o['strings']['name'].get('en-GB',''))
 
-        self.doubleSpinBox_price.setValue(self.o['properties'].get('price', 1))
-        self.doubleSpinBox_removalPrice.setValue(self.o['properties'].get('removalPrice', 1))
-        self.doubleSpinBox_version.setValue(float(self.o.data.get('version',1.0)))
+        self.spinbox_price.setValue(self.o['properties'].get('price', 1))
+        self.spinbox_removal_price.setValue(self.o['properties'].get('removalPrice', 1))
+        self.spinbox_version.setValue(float(self.o.data.get('version',1.0)))
 
     def setDefaults(self):
 
-        settingsSS = self.main_window.settings['small_scenery_defaults']
+        settings_SS = self.main_window.settings['small_scenery_defaults']
 
-        for flag in settingsSS:
+        for flag in settings_SS:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
-                checkbox.setChecked(settingsSS.get(flag, False))
+                checkbox.setChecked(settings_SS.get(flag, False))
 
-        self.doubleSpinBox_price.setValue(settingsSS.get('price', 1))
-        self.doubleSpinBox_removalPrice.setValue(settingsSS.get('removalPrice', 1))
-        self.doubleSpinBox_version.setValue(settingsSS.get('version',1.0))
+        self.spinbox_price.setValue(settings_SS.get('price', 1))
+        self.spinbox_removal_price.setValue(settings_SS.get('removalPrice', 1))
+        self.spinbox_version.setValue(settings_SS.get('version',1.0))
 
-        self.cursor_box.setCurrentIndex(cts.cursors.index(settingsSS.get('cursor','CURSOR_BLANK')))
+        self.cursor_box.setCurrentIndex(cts.cursors.index(settings_SS.get('cursor','CURSOR_BLANK')))
 
 
 class SpritesTabSS(QWidget):
@@ -414,63 +417,63 @@ class SpritesTabSS(QWidget):
         main_widget = self.findChild(QGroupBox, "groupBox_spriteSS")
 
         # Buttons load/reset
-        self.buttonLoadImage = self.findChild(
+        self.button_load_image = self.findChild(
             QPushButton, "pushButton_loadImage")
-        self.buttonResetImage = self.findChild(
+        self.button_reset_image = self.findChild(
             QPushButton, "pushButton_resetImage")
-        self.buttonResetOffsets = self.findChild(
+        self.button_reset_offsets = self.findChild(
             QPushButton, "pushButton_resetOffsets")
 
-        self.buttonLoadImage.clicked.connect(self.loadImage)
-        self.buttonResetImage.clicked.connect(self.resetImage)
-        self.buttonResetOffsets.clicked.connect(self.resetOffsets)
+        self.button_load_image.clicked.connect(self.loadImage)
+        self.button_reset_image.clicked.connect(self.resetImage)
+        self.button_reset_offsets.clicked.connect(self.resetOffsets)
 
         # Buttons auxiliary
-        self.buttonBoundingBox =  self.findChild(
+        self.button_bounding_box =  self.findChild(
             QToolButton, "toolButton_boundingBox")
 
-        self.buttonBoundingBox.clicked.connect(self.updateMainView)
+        self.button_bounding_box.clicked.connect(self.updateMainView)
 
         # Sprite control buttons
-        self.buttonSpriteLeft = self.findChild(
+        self.button_sprite_left = self.findChild(
             QToolButton, "toolButton_left")
-        self.buttonSpriteDown = self.findChild(
+        self.button_sprite_down = self.findChild(
             QToolButton, "toolButton_down")
-        self.buttonSpriteRight = self.findChild(
+        self.button_sprite_right = self.findChild(
             QToolButton, "toolButton_right")
-        self.buttonSpriteUp = self.findChild(
+        self.button_sprite_up = self.findChild(
             QToolButton, "toolButton_up")
-        self.buttonSpriteLeftRight = self.findChild(
+        self.button_sprite_left_right = self.findChild(
             QToolButton, "toolButton_leftright")
-        self.buttonSpriteUpDown = self.findChild(
+        self.button_sprite_up_down = self.findChild(
             QToolButton, "toolButton_updown")
 
-        self.buttonSpriteLeft.clicked.connect(
+        self.button_sprite_left.clicked.connect(
             lambda x: self.clickSpriteControl('left'))
-        self.buttonSpriteDown.clicked.connect(
+        self.button_sprite_down.clicked.connect(
             lambda x: self.clickSpriteControl('down'))
-        self.buttonSpriteRight.clicked.connect(
+        self.button_sprite_right.clicked.connect(
             lambda x: self.clickSpriteControl('right'))
-        self.buttonSpriteUp.clicked.connect(
+        self.button_sprite_up.clicked.connect(
             lambda x: self.clickSpriteControl('up'))
-        self.buttonSpriteLeftRight.clicked.connect(
+        self.button_sprite_left_right.clicked.connect(
             lambda x: self.clickSpriteControl('leftright'))
-        self.buttonSpriteUpDown.clicked.connect(
+        self.button_sprite_up_down.clicked.connect(
             lambda x: self.clickSpriteControl('updown'))
         
         icon = QtGui.QPixmap()
         icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionLR.png'), 'png')
-        self.buttonSpriteLeftRight.setIcon(QtGui.QIcon(icon))
+        self.button_sprite_left_right.setIcon(QtGui.QIcon(icon))
         
         icon = QtGui.QPixmap()
         icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionUD.png'), 'png')
-        self.buttonSpriteUpDown.setIcon(QtGui.QIcon(icon))
+        self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
 
 
-        self.buttonCycleRotation = self.findChild(
+        self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
 
-        self.buttonCycleRotation.clicked.connect(self.cycleRotation)
+        self.button_cycle_rotation.clicked.connect(self.cycleRotation)
 
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(self.showSpriteMenu)
@@ -484,26 +487,26 @@ class SpritesTabSS(QWidget):
 
 
         # Remap Color Panel
-        groupRemap = self.findChild(QGroupBox, 'groupBox_remap')
-        coords_group = (groupRemap.x(),groupRemap.y())
+        group_remap = self.findChild(QGroupBox, 'groupBox_remap')
+        coords_group = (group_remap.x(),group_remap.y())
 
-        self.buttonFirstRemap = self.findChild(QPushButton, 'pushButton_firstRemap')
-        self.firstRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.buttonFirstRemap)
-        self.firstRemapSelectPanel.setGeometry(coords_group[0] + self.buttonFirstRemap.x(), coords_group[1] +  self.buttonFirstRemap.y()-50, 104, 52)
-        self.firstRemapSelectPanel.hide()
-        self.buttonFirstRemap.clicked.connect(lambda x, panel = self.firstRemapSelectPanel: self.clickRemapButton(panel = panel))
+        self.button_first_remap = self.findChild(QPushButton, 'pushButton_firstRemap')
+        self.select_panel_first_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.button_first_remap)
+        self.select_panel_first_remap.setGeometry(coords_group[0] + self.button_first_remap.x(), coords_group[1] +  self.button_first_remap.y()-50, 104, 52)
+        self.select_panel_first_remap.hide()
+        self.button_first_remap.clicked.connect(lambda x, panel = self.select_panel_first_remap: self.clickRemapButton(panel = panel))
 
-        self.buttonSecondRemap = self.findChild(QPushButton, 'pushButton_secondRemap')
-        self.secondRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.buttonSecondRemap)
-        self.secondRemapSelectPanel.setGeometry(coords_group[0] + self.buttonSecondRemap.x(), coords_group[1] +  self.buttonSecondRemap.y()-50, 104, 52)
-        self.secondRemapSelectPanel.hide()
-        self.buttonSecondRemap.clicked.connect(lambda x, panel = self.secondRemapSelectPanel: self.clickRemapButton(panel = panel))
+        self.button_second_remap = self.findChild(QPushButton, 'pushButton_secondRemap')
+        self.select_panel_second_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.button_second_remap)
+        self.select_panel_second_remap.setGeometry(coords_group[0] + self.button_second_remap.x(), coords_group[1] +  self.button_second_remap.y()-50, 104, 52)
+        self.select_panel_second_remap.hide()
+        self.button_second_remap.clicked.connect(lambda x, panel = self.select_panel_second_remap: self.clickRemapButton(panel = panel))
 
-        self.buttonThirdRemap = self.findChild(QPushButton, 'pushButton_thirdRemap')
-        self.thirdRemapSelectPanel = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.buttonThirdRemap)
-        self.thirdRemapSelectPanel.setGeometry(coords_group[0] + self.buttonThirdRemap.x(), coords_group[1] +  self.buttonThirdRemap.y()-50, 104, 52)
-        self.thirdRemapSelectPanel.hide()
-        self.buttonThirdRemap.clicked.connect(lambda x, panel = self.thirdRemapSelectPanel: self.clickRemapButton(panel = panel))
+        self.button_third_remap = self.findChild(QPushButton, 'pushButton_thirdRemap')
+        self.select_panel_third_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.button_third_remap)
+        self.select_panel_third_remap.setGeometry(coords_group[0] + self.button_third_remap.x(), coords_group[1] +  self.button_third_remap.y()-50, 104, 52)
+        self.select_panel_third_remap.hide()
+        self.button_third_remap.clicked.connect(lambda x, panel = self.select_panel_third_remap: self.clickRemapButton(panel = panel))
 
         self.previewClicked(0)
 
@@ -650,7 +653,7 @@ class SpritesTabSS(QWidget):
 
         canvas = Image.new('RGBA', (152, 271))
 
-        if self.buttonBoundingBox.isChecked():
+        if self.button_bounding_box.isChecked():
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             canvas.paste(backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
 
@@ -673,7 +676,7 @@ class SpritesTabSS(QWidget):
 
         canvas = Image.new('RGBA', (canvas_size, canvas_size))
 
-        if add_auxiliaries and self.buttonBoundingBox.isChecked():
+        if add_auxiliaries and self.button_bounding_box.isChecked():
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
@@ -1178,7 +1181,7 @@ class SpriteTab(QWidget):
         else:
             canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
 
-            #if add_auxiliaries and self.buttonBoundingBox.isChecked():
+            #if add_auxiliaries and self.button_bounding_box.isChecked():
             #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
@@ -1255,13 +1258,13 @@ class SpriteTab(QWidget):
 
     def paste(self):
         if self.locked:
-            self.object_tab.spritesTab.pasteSpriteFromClipboard()
+            self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
             pass
 
     def copy(self):
         if self.locked:
-            self.object_tab.spritesTab.copySpriteToClipboard()
+            self.object_tab.sprites_tab.copySpriteToClipboard()
         else:
             pass
 
