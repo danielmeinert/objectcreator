@@ -57,8 +57,8 @@ class MainWindowUi(QMainWindow):
 
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
-        
-        
+
+
         self.setAcceptDrops(True)
 
         ##### Tabs
@@ -150,11 +150,11 @@ class MainWindowUi(QMainWindow):
 
         #Load empty object
 
-        if opening_objects is None:
+        if not opening_objects:
             self.newObject(cts.Type.SMALL)
         else:
-            pass
-
+            for filepath in opening_objects:
+                self.loadObjectFromPath(filepath)
 
         self.show()
         self.checkForUpdates()
@@ -178,7 +178,7 @@ class MainWindowUi(QMainWindow):
         msg.show()
         return
 
-
+    ### Internal methods
 
     def loadSettings(self):
         try:
@@ -278,6 +278,52 @@ class MainWindowUi(QMainWindow):
         if sprite_tab and sprite_tab.locked:
             self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
 
+    def loadObjectFromPath(self, filepath):
+        try:
+            o = obj.load(filepath, openpath = self.openpath)
+            name = o.data.get('id', '').split('.',2)[-1]
+            if not name:
+                if o.old_id:
+                    name = o.old_id
+                else:
+                    name = f'Object {self.new_object_count}'
+                    self.new_object_count += 1
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error")
+            msg.setText("Failed to load object")
+            msg.setInformativeText(str(e))
+            msg.show()
+            return
+
+
+        extension = splitext(filepath)[1].lower()
+        author_id = None
+        filepath, filename = split(filepath)
+        if extension == '.parkobj':
+            # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
+            if len(filename.split('.')) > 2:
+                author_id = filename.split('.')[0]
+
+
+        if not self.current_palette == pal.orct:
+            o.switchPalette(self.current_palette)
+
+
+        object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
+
+        sprite_tab = wdg.SpriteTab(self, object_tab)
+
+        self.object_tabs.addTab(object_tab, name)
+        self.object_tabs.setCurrentWidget(object_tab)
+        self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
+        self.sprite_tabs.setCurrentWidget(sprite_tab)
+
+        self.last_open_folder = filepath
+
+    ### Menubar actions
+
     def newObject(self, obj_type = cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
@@ -315,49 +361,8 @@ class MainWindowUi(QMainWindow):
 
         if filepaths:
             for filepath in filepaths:
-                try:
-                    o = obj.load(filepath, openpath = self.openpath)
-                    name = o.data.get('id', '').split('.',2)[-1]
-                    if not name:
-                        if o.old_id:
-                            name = o.old_id
-                        else:
-                            name = f'Object {self.new_object_count}'
-                            self.new_object_count += 1
-                except Exception as e:
-                    msg = QMessageBox(self)
-                    msg.setIcon(QMessageBox.Critical)
-                    msg.setWindowTitle("Error")
-                    msg.setText("Failed to load object")
-                    msg.setInformativeText(str(e))
-                    msg.show()
-                    return
+                self.loadObjectFromPath(filepath)
 
-
-                extension = splitext(filepath)[1].lower()
-                author_id = None
-                filepath, filename = split(filepath)
-                if extension == '.parkobj':
-                    # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
-                    if len(filename.split('.')) > 2:
-                        author_id = filename.split('.')[0]
-
-
-                if not self.current_palette == pal.orct:
-                    o.switchPalette(self.current_palette)
-
-
-                object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
-
-                sprite_tab = wdg.SpriteTab(self, object_tab)
-
-                self.object_tabs.addTab(object_tab, name)
-                self.object_tabs.setCurrentWidget(object_tab)
-                self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
-                self.sprite_tabs.setCurrentWidget(sprite_tab)
-
-            else:
-                self.last_open_folder = filepath
 
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
@@ -396,6 +401,9 @@ class MainWindowUi(QMainWindow):
         widget = self.sprite_tabs.currentWidget()
 
         widget.copy()
+
+
+    #### Color manipulations
 
     def colorRemapTo(self):
         color_remap = self.combobox_remap_to_color.currentText()
@@ -445,66 +453,27 @@ class MainWindowUi(QMainWindow):
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Control:
             self.toolbox.restoreTool()
-        
+
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls:
             for url in e.mimeData().urls():
                 filepath = url.toLocalFile()
                 extension = splitext(filepath)[1].lower()
-                
+
                 if extension in ['.parkobj', '.dat', '.json']:
                     e.accept()
         else:
             e.ingore()
-            
+
     def dropEvent(self, e):
         for url in e.mimeData().urls():
             filepath = url.toLocalFile()
             extension = splitext(filepath)[1].lower()
-            
+
             if extension in ['.parkobj', '.dat', '.json']:
-                try:
-                    o = obj.load(filepath, openpath = self.openpath)
-                    name = o.data.get('id', '').split('.',2)[-1]
-                    if not name:
-                        if o.old_id:
-                            name = o.old_id
-                        else:
-                            name = f'Object {self.new_object_count}'
-                            self.new_object_count += 1
-                except Exception as e:
-                    msg = QMessageBox(self)
-                    msg.setIcon(QMessageBox.Critical)
-                    msg.setWindowTitle("Error")
-                    msg.setText("Failed to load object")
-                    msg.setInformativeText(str(e))
-                    msg.show()
-                    return
-    
-                author_id = None
-                filepath, filename = split(filepath)
-                if extension == '.parkobj':
-                    # We assume that when the filename has more than 2 dots that the first part corresponds to the author id
-                    if len(filename.split('.')) > 2:
-                        author_id = filename.split('.')[0]
-    
-    
-                if not self.current_palette == pal.orct:
-                    o.switchPalette(self.current_palette)
-    
-    
-                object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
-    
-                sprite_tab = wdg.SpriteTab(self, object_tab)
-    
-                self.object_tabs.addTab(object_tab, name)
-                self.object_tabs.setCurrentWidget(object_tab)
-                self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
-                self.sprite_tabs.setCurrentWidget(sprite_tab)
-    
-            else:
-                self.last_open_folder = filepath
-            
+                self.loadObjectFromPath(filepath)
+
+
 
 
 def excepthook(exc_type, exc_value, exc_tb):
@@ -535,9 +504,7 @@ def main():
 
     app = QApplication(sys.argv)
 
-
-
-    main = MainWindowUi()
+    main = MainWindowUi(sys.argv[1:])
     main.show()
     app.exec_()
 
