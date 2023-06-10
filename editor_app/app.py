@@ -42,7 +42,7 @@ from rctobject import palette as pal
 
 import ctypes
 
-VERSION = 'v0.1'
+VERSION = 'v0.1.1'
 
 
 myappid = f'objectcreator.{VERSION}' # arbitrary string
@@ -174,9 +174,13 @@ class MainWindowUi(QMainWindow):
         msg.setTextFormat(QtCore.Qt.RichText)
         msg.setText(f"Object Creator {git_version} is now available! <br> \
                     Your version: {VERSION} <br> \
-                    <a href='{url}'>Click here to go to download page. </a>"  )
-        msg.show()
-        return
+                    <a href='{url}'>Click here to go to download page. </a> <br> <br> \
+                    Alternatively, would you like to update automatically (Windows only)?")
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        reply = msg.exec_()
+        if reply == QMessageBox.Yes:
+            print(__file__, __name__)
+
 
     ### Internal methods
 
