@@ -481,7 +481,7 @@ QTabBar::tab:selected {
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>When set, this object will rotate automatically.</string>
+           <string>When set, this affects mirroring properties and shape, if fulltile.</string>
           </property>
           <property name="text">
            <string>Diagonal</string>
@@ -523,6 +523,9 @@ QTabBar::tab:selected {
            </property>
            <item>
             <widget class="QCheckBox" name="checkBox_remapCheck">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set this check if you want the programm to automatically detect if any of the remaps are used and set the flags accordingly. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Check on Save</string>
              </property>
@@ -536,6 +539,9 @@ QTabBar::tab:selected {
              <property name="enabled">
               <bool>false</bool>
              </property>
+             <property name="toolTip">
+              <string>Check this if your sprites use the primary remap.</string>
+             </property>
              <property name="text">
               <string>Primary Remap</string>
              </property>
@@ -546,6 +552,9 @@ QTabBar::tab:selected {
              <property name="enabled">
               <bool>false</bool>
              </property>
+             <property name="toolTip">
+              <string>Check this if you want to use the secondary remap as a remap. If not checked, the secondary remap will appear as pink ingame.</string>
+             </property>
              <property name="text">
               <string>Secondary Remap</string>
              </property>
@@ -555,6 +564,9 @@ QTabBar::tab:selected {
             <widget class="QCheckBox" name="hasTertiaryColour">
              <property name="enabled">
               <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>Check this if you want to use the tertiary remap as a remap. If not checked, the tertiary remap will appear as yellow ingame.</string>
              </property>
              <property name="text">
               <string>Tertiary Remap</string>

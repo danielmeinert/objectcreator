@@ -14,6 +14,8 @@ from PIL import Image, ImageDraw
 from PIL.ImageQt import ImageQt
 
 from enum import Enum
+from pkgutil import get_data
+
 
 from rctobject import palette as pal
 
@@ -62,30 +64,58 @@ class ToolBoxWidget(QWidget):
 
         self.setLayout(outer_container)
 
-        container = QGridLayout()
+        container_tool_buttons = QGridLayout()
+        container_tool_buttons.setContentsMargins(6,10,6,10)
 
         self.tool_buttons = {}
 
         for tool in Tools:
             btn = QToolButton()
             btn.setCheckable(True)
-            btn.setText(tool.fullname)
+            btn.setToolTip(tool.fullname)
+            icon = QtGui.QPixmap()
+            icon.loadFromData(get_data("customwidgets", f'res/icon_{tool.fullname}.png'), 'png')
+            btn.setIcon(QtGui.QIcon(icon))
+            btn.setFixedSize(32, 32)
             btn.clicked.connect(lambda x, tool = tool: self.selectTool(tool))
-            container.addWidget(btn, tool.value % 3, int(tool.value/3))
+            container_tool_buttons.addWidget(btn, int(tool.value/3), tool.value % 3)
             self.tool_buttons[tool] = btn
 
 
-        tool_button_widget.setLayout(container)
+        tool_button_widget.setLayout(container_tool_buttons)
         self.tool = Tools.PEN
         self.last_tool = Tools.PEN
         self.tool_buttons[Tools.PEN].setChecked(True)
 
         container_lr = QHBoxLayout()
         container_lr.setContentsMargins(0,0,0,0)
+        brush_widget.setLayout(container_lr)
+        
         container_btn = QVBoxLayout()
+        container_dial_brushsize  = QVBoxLayout()
+        container_dial_airbrush_strength  = QVBoxLayout()
+        
+        container_btn.setContentsMargins(0,3,0,3)
+        container_dial_brushsize.setContentsMargins(0,3,0,3)
+        container_dial_brushsize.setSpacing(2)
+        container_dial_airbrush_strength.setContentsMargins(0,3,0,3)
+        container_dial_airbrush_strength.setSpacing(2)
+
+        
         brush_buttons = QWidget()
+        dial_brushsize_widget = QWidget()
+        dial_airbrush_strength_widget = QWidget()
+        
+        brush_buttons.setLayout(container_btn)
+        dial_brushsize_widget.setLayout(container_dial_brushsize)
+        dial_airbrush_strength_widget.setLayout(container_dial_airbrush_strength)
+        
+        container_lr.addWidget(dial_brushsize_widget)
+        container_lr.addWidget(brush_buttons)
+        container_lr.addWidget(dial_airbrush_strength_widget)
 
         self.dial_brushsize = QDial()
+        self.dial_brushsize.setFixedSize(55, 55)
         self.dial_brushsize.setMaximum(10)
         self.dial_brushsize.setMinimum(1)
         self.dial_brushsize.setSingleStep(1)
@@ -94,33 +124,42 @@ class ToolBoxWidget(QWidget):
         self.dial_brushsize.setNotchesVisible(True)
 
         self.dial_brushsize.valueChanged.connect(self.setBrushsize)
-
-        container_lr.addWidget(self.dial_brushsize)
-        container_lr.addWidget(brush_buttons)
-
-        brush_widget.setLayout(container_lr)
+        
+        label = QLabel('Size')
+        container_dial_brushsize.addWidget(label)
+        container_dial_brushsize.addWidget(self.dial_brushsize)
+        container_dial_brushsize.addStretch()
 
         self.brush_buttons = {}
 
         for brush in Brushes:
             btn = QToolButton()
             btn.setCheckable(True)
-            btn.setText(brush.fullname)
-
+            btn.setToolTip(brush.fullname)
+            icon = QtGui.QPixmap()
+            icon.loadFromData(get_data("customwidgets", f'res/icon_{brush.fullname}.png'), 'png')
+            btn.setIcon(QtGui.QIcon(icon))
+            btn.setFixedSize(32, 32)
             btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
             self.brush_buttons[brush] = btn
             container_btn.addWidget(btn)
+            
+            
 
-        self.slider_airbrush_strength = QSlider(QtCore.Qt.Horizontal)
-        self.slider_airbrush_strength.setMaximum(6)
-        self.slider_airbrush_strength.setMinimum(1)
-        self.slider_airbrush_strength.setSingleStep(1)
-        self.slider_airbrush_strength.setPageStep(1)
-        self.slider_airbrush_strength.setValue(2)
+        self.dial_airbrush_strength = QDial()
+        self.dial_airbrush_strength.setFixedSize(55, 55)
+        self.dial_airbrush_strength.setMaximum(6)
+        self.dial_airbrush_strength.setMinimum(1)
+        self.dial_airbrush_strength.setSingleStep(1)
+        self.dial_airbrush_strength.setPageStep(1)
+        self.dial_airbrush_strength.setTracking(False)
+        self.dial_airbrush_strength.setNotchesVisible(True)
+        
+        label = QLabel('Strength')
+        container_dial_airbrush_strength.addWidget(label)
+        container_dial_airbrush_strength.addWidget(self.dial_airbrush_strength)
+        container_dial_airbrush_strength.addStretch()
 
-        container_btn.addWidget(self.slider_airbrush_strength)
-
-        brush_buttons.setLayout(container_btn)
         self.brush = Brushes.SOLID
         self.brush_buttons[Brushes.SOLID].setChecked(True)
 
@@ -166,14 +205,14 @@ class ToolBoxWidget(QWidget):
         return self.brushsize
 
     def giveAirbrushStrength(self):
-        return self.slider_airbrush_strength.value()**2*0.01
+        return self.dial_airbrush_strength.value()**2*0.01
 
 
 class Tools(Enum):
         PEN = 0, 'Draw'
         ERASER = 1, 'Erase'
         EYEDROPPER = 2, 'Eyedrop'
-        BRIGHTNESS = 3, 'Brightn.'
+        BRIGHTNESS = 3, 'Brightness'
         REMAP = 4, 'Remap',
         FILL = 5, 'Fill'
 

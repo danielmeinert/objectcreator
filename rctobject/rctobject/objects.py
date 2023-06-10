@@ -20,7 +20,7 @@ Created 09/26/2021; 16:58:33
 from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd
-from os.path import splitext
+from os.path import splitext, exists
 import copy
 from PIL import Image
 from shutil import unpack_archive, make_archive, move, rmtree
@@ -73,19 +73,8 @@ class RCTObject:
             # If an original Id was given and the sprites are supposed to be loaded from the dat file we do so (aka "official" openRCT objects).
             if isinstance(data['images'][0], str) and dat_id:
                 dat_id = dat_id.split('|')[1].replace(' ', '')
-                with TemporaryDirectory() as temp:
-                    temp = temp.replace('\\', '/')
-                    result = run([f'{openpath}/bin/openrct2', 'sprite',
-                                 'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
-                    string = result.stdout
-                    string = string[string.find('{'):].replace(f'{temp}/', '')
-                    i = -1
-                    while string[i] != ',':
-                        i -= 1
-
-                    data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
-                    sprites = {im['path']: spr.Sprite.fromFile(
-                        f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+                data['images'], sprites = dat.import_sprites(dat_id, openpath)
+                
             # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
             # The file is assumed to be called "object.json" in this case.
             elif isinstance(data['images'][0], dict):
@@ -101,23 +90,12 @@ class RCTObject:
         """Instantiates a new object from a .json file. Sprite exporting is done
         by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
         data = jload(fp=open(filepath, encoding='utf8'))
-        dat_id = data.get('originalId',None)
+        dat_id = data.get('originalId', None)
         # If an original Id was given we load the sprites from original DATs (aka "official" openRCT objects).
         if isinstance(data['images'][0], str) and dat_id:
             dat_id = dat_id.split('|')[1].replace(' ', '')
-            with TemporaryDirectory() as temp:
-                temp = temp.replace('\\', '/')
-                result = run([f'{openpath}/bin/openrct2', 'sprite',
-                             'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
-                string = result.stdout
-                string = string[string.find('{'):].replace(f'{temp}/', '')
-                i = -1
-                while string[i] != ',':
-                    i -= 1
-
-                data['images'] = loads(f'[{string[:i]}]', encoding='utf-8')
-                sprites = {im['path']: spr.Sprite.fromFile(
-                    f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+            data['images'], sprites = dat.import_sprites(dat_id, openpath)
+            
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
         elif isinstance(data['images'][0], dict):
@@ -133,23 +111,13 @@ class RCTObject:
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .DAT file. Sprite exporting is done
         by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
+        
+        if not exists(f'{openpath}/bin/openrct2.exe'):
+            raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
 
         data = dat.read_dat_info(filepath)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
-        with TemporaryDirectory() as temp:
-            temp = temp.replace('\\', '/')
-            result = run([f'{openpath}/bin/openrct2', 'sprite',
-                         'exportalldat', dat_id, f'{temp}/images'], stdout=-1, encoding='utf-8')
-            string = result.stdout
-            string = string[string.find('{'):].replace(f'{temp}/', '')
-
-            i = -1
-            while string[i] != ',':
-                i -= 1
-
-            data['images'] = loads(f'[{string[:i]}]')
-            sprites = {im['path']: spr.Sprite.fromFile(
-                f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+        data['images'], sprites = dat.import_sprites(dat_id, openpath)
 
         return cls(data=data, sprites=sprites, old_id = dat_id)
 
