@@ -29,6 +29,7 @@ from os.path import splitext, split, abspath,join
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
+import requests
 
 from customwidgets import ColorSelectWidget, ToolBoxWidget
 import customwidgets as cwdg
@@ -41,14 +42,14 @@ from rctobject import palette as pal
 
 import ctypes
 
-VERSION = 0.2
+VERSION = 'v0.1'
 
 
 myappid = f'objectcreator.{VERSION}' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class MainWindowUi(QMainWindow):
-    def __init__(self):
+    def __init__(self, opening_objects = None):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/main_window.ui'), self)
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
@@ -148,9 +149,36 @@ class MainWindowUi(QMainWindow):
 
 
         #Load empty object
-        self.newObject(cts.Type.SMALL)
+
+        if opening_objects is None:
+            self.newObject(cts.Type.SMALL)
+        else:
+            pass
+
 
         self.show()
+        self.checkForUpdates()
+
+    def checkForUpdates(self):
+        response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
+
+        git_version = response.json()['tag_name']
+
+        if git_version == VERSION:
+            return
+
+        url = response.json()['html_url']
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle("New version available!")
+        msg.setTextFormat(QtCore.Qt.RichText)
+        msg.setText(f"Object Creator {git_version} is now available! <br> \
+                    Your version: {VERSION} <br> \
+                    <a href='{url}'>Click here to go to download page. </a>"  )
+        msg.show()
+        return
+
+
 
     def loadSettings(self):
         try:
@@ -440,6 +468,7 @@ def excepthook(exc_type, exc_value, exc_tb):
 
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
+
 
 
 def main():
