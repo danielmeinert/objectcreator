@@ -23,9 +23,9 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
-import io
+import io, os
 from os import getcwd
-from os.path import splitext, split, abspath,join
+from os.path import splitext, split, abspath,join, exists
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
@@ -41,6 +41,11 @@ from rctobject import objects as obj
 from rctobject import palette as pal
 
 import ctypes
+#import pyi_splash
+
+# Update the text on the splash screen
+#pyi_splash.update_text("Loading Object Creator")
+
 
 VERSION = 'v0.1.1'
 
@@ -49,12 +54,13 @@ myappid = f'objectcreator.{VERSION}' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class MainWindowUi(QMainWindow):
-    def __init__(self, opening_objects = None):
+    def __init__(self, app_data_path, opening_objects = None):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/main_window.ui'), self)
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
+        self.app_data_path = app_data_path
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
 
@@ -94,7 +100,7 @@ class MainWindowUi(QMainWindow):
         # Color Panel
         self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
 
-        self.color_select_panel = ColorSelectWidget(pal.orct, True, True, True)
+        self.color_select_panel = ColorSelectWidget(self.current_palette, True, True, True)
         self.giveActiveShade = self.color_select_panel.giveActiveShade #this is a function wrapper to get the current active shade
 
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
@@ -160,8 +166,11 @@ class MainWindowUi(QMainWindow):
         self.checkForUpdates()
 
     def checkForUpdates(self):
-        response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
-
+        try:
+            response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
+        except requests.exceptions.ConnectionError:
+            return
+            
         git_version = response.json()['tag_name']
 
         if git_version == VERSION:
@@ -172,21 +181,30 @@ class MainWindowUi(QMainWindow):
         msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle("New version available!")
         msg.setTextFormat(QtCore.Qt.RichText)
+        
+        extension = split(__file__)[1]
         msg.setText(f"Object Creator {git_version} is now available! <br> \
-                    Your version: {VERSION} <br> \
-                    <a href='{url}'>Click here to go to download page. </a> <br> <br> \
-                    Alternatively, would you like to update automatically (Windows only)?")
+                Your version: {VERSION} <br> \
+                <a href='{url}'>Click here to go to download page. </a> <br> <br> \
+                Alternatively, would you like to update automatically? <br> \
+                This only works if the program has been installed via the installer.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+            
         reply = msg.exec_()
+        
+        # Only in the .exe program the updater can be used
         if reply == QMessageBox.Yes:
-            print(__file__, __name__)
+            #quit and run updater
+            os.execl('updater.exe', 'updater.exe')
 
 
     ### Internal methods
 
     def loadSettings(self):
         try:
-            self.settings = jload(fp=open('config.json'))
+            path = self.app_data_path
+            self.settings = jload(fp=open(f'{path}/config.json'))
         except FileNotFoundError:
             self.settings = {}
             self.changeSettings(update_widgets = False)
@@ -213,7 +231,7 @@ class MainWindowUi(QMainWindow):
         self.setCurrentPalette(self.settings['palette'], update_widgets = False)
 
     def saveSettings(self):
-        path = getcwd()
+        path = self.app_data_path
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
 
@@ -371,12 +389,14 @@ class MainWindowUi(QMainWindow):
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
 
-        widget.saveObject(get_path = False)
+        if widget is not None:
+            widget.saveObject(get_path = False)
 
     def saveObjectAt(self):
         widget = self.object_tabs.currentWidget()
-
-        widget.saveObject(get_path = True)
+        
+        if widget is not None:
+            widget.saveObject(get_path = True)
 
     def spriteNew(self):
         name = f'Sprite {self.new_sprite_count}'
@@ -506,10 +526,17 @@ def main():
     # else:
     #     app = QApplication.instance()
 
+    #pyi_splash.close()
     app = QApplication(sys.argv)
+    
+    app_data_path = join(os.environ['APPDATA'],'Object Creator') 
+    if not exists(app_data_path):
+        os.makedirs(app_data_path)
 
-    main = MainWindowUi(sys.argv[1:])
+    main = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
     main.show()
+    main.activateWindow()
+    
     app.exec_()
 
 

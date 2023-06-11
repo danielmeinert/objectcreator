@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "app.py"
+   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/updater.py"
   },
   {
    "optionDest": "onefile",
@@ -18,20 +18,12 @@
    "value": false
   },
   {
-   "optionDest": "icon_file",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui/icon.ico"
-  },
-  {
-   "optionDest": "name",
-   "value": "Object Creator"
-  },
-  {
    "optionDest": "ascii",
    "value": false
   },
   {
    "optionDest": "clean_build",
-   "value": true
+   "value": false
   },
   {
    "optionDest": "strip",
@@ -72,30 +64,6 @@
   {
    "optionDest": "argv_emulation",
    "value": false
-  },
-  {
-   "optionDest": "hiddenimports",
-   "value": "rctobject"
-  },
-  {
-   "optionDest": "hiddenimports",
-   "value": "customwidgets"
-  },
-  {
-   "optionDest": "collect_data",
-   "value": "rctobject"
-  },
-  {
-   "optionDest": "pathex",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/customwidgets"
-  },
-  {
-   "optionDest": "pathex",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/rctobject"
-  },
-  {
-   "optionDest": "datas",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui;gui/"
   }
  ],
  "nonPyinstallerOptions": {
