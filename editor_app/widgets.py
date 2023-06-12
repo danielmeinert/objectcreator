@@ -987,8 +987,8 @@ class SpriteTab(QWidget):
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        # Shift modifier = sprite control, dealt with by parent
-        if modifiers == QtCore.Qt.ShiftModifier:
+        # Control modifier = sprite control, dealt with by parent
+        if modifiers == QtCore.Qt.ControlModifier:
             event.ignore()
             return
 
@@ -1103,8 +1103,8 @@ class SpriteTab(QWidget):
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        # Shift modifier = sprite control, dealt with by parent
-        if modifiers == QtCore.Qt.ShiftModifier:
+        # Control modifier = sprite control, dealt with by parent
+        if modifiers == QtCore.Qt.ControlModifier:
             event.ignore()
             return
 
@@ -1164,19 +1164,18 @@ class SpriteTab(QWidget):
     def viewWheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-
         if modifiers == QtCore.Qt.AltModifier:
             color, shade = self.main_window.color_select_panel.getColorIndices()
             if color:
-                if event.angleDelta().y() > 0 and shade != 11:
+                if event.angleDelta().x() > 0 and shade != 11:
                     self.main_window.color_select_panel.setColor(color, shade+1)
-                elif  event.angleDelta().y() < 0 and shade != 0:
+                elif  event.angleDelta().x() < 0 and shade != 0:
                     self.main_window.color_select_panel.setColor(color, shade-1)
-        elif modifiers == QtCore.Qt.AltModifier:
+        elif modifiers == QtCore.Qt.ShiftModifier:
             toolbox = self.main_window.toolbox
-            if event.angleDelta().x() > 0:
+            if event.angleDelta().y() > 0:
                 toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()+1)
-            elif  event.angleDelta().x() < 0:
+            elif  event.angleDelta().y() < 0:
                 toolbox.dial_brushsize.setValue(toolbox.dial_brushsize.value()-1)
 
 
