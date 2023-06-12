@@ -170,10 +170,11 @@ class MainWindowUi(QMainWindow):
             response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
         except requests.exceptions.ConnectionError:
             return
-            
+
+        # check if there is a higher version on git
         git_version = response.json()['tag_name']
 
-        if git_version == VERSION:
+        if not versionCheck(git_version):
             return
 
         url = response.json()['html_url']
@@ -181,8 +182,7 @@ class MainWindowUi(QMainWindow):
         msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle("New version available!")
         msg.setTextFormat(QtCore.Qt.RichText)
-        
-        extension = split(__file__)[1]
+
         msg.setText(f"Object Creator {git_version} is now available! <br> \
                 Your version: {VERSION} <br> \
                 <a href='{url}'>Click here to go to download page. </a> <br> <br> \
@@ -190,13 +190,16 @@ class MainWindowUi(QMainWindow):
                 This only works if the program has been installed via the installer.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
-            
+
         reply = msg.exec_()
-        
+
         # Only in the .exe program the updater can be used
         if reply == QMessageBox.Yes:
             #quit and run updater
-            os.execl('updater.exe', 'updater.exe')
+            try:
+                os.execl('updater.exe', 'updater.exe')
+            except FileNotFoundError:
+                return
 
 
     ### Internal methods
@@ -394,7 +397,7 @@ class MainWindowUi(QMainWindow):
 
     def saveObjectAt(self):
         widget = self.object_tabs.currentWidget()
-        
+
         if widget is not None:
             widget.saveObject(get_path = True)
 
@@ -471,11 +474,11 @@ class MainWindowUi(QMainWindow):
             widget.colorRemove(selected_colors)
 
     def keyPressEvent(self, e):
-        if e.key() == QtCore.Qt.Key_Control:
+        if e.key() == QtCore.Qt.Key_Alt:
             self.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
 
     def keyReleaseEvent(self, e):
-        if e.key() == QtCore.Qt.Key_Control:
+        if e.key() == QtCore.Qt.Key_Alt:
             self.toolbox.restoreTool()
 
     def dragEnterEvent(self, e):
@@ -518,6 +521,20 @@ def excepthook(exc_type, exc_value, exc_tb):
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
 
+def versionCheck(version):
+
+    version = version[1:].split('.')
+    version_this = VERSION[1:].split('.')
+
+    for i in range(len(version_this),len(version)):
+        version_this.append(0)
+
+    for i, val in enumerate(version):
+
+        if int(val) > int(version_this[i]):
+            return True
+
+    return False
 
 
 def main():
@@ -528,15 +545,15 @@ def main():
 
     #pyi_splash.close()
     app = QApplication(sys.argv)
-    
-    app_data_path = join(os.environ['APPDATA'],'Object Creator') 
+
+    app_data_path = join(os.environ['APPDATA'],'Object Creator')
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
     main = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
     main.show()
     main.activateWindow()
-    
+
     app.exec_()
 
 

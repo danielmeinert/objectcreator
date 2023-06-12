@@ -460,11 +460,11 @@ class SpritesTabSS(QWidget):
             lambda x: self.clickSpriteControl('leftright'))
         self.button_sprite_up_down.clicked.connect(
             lambda x: self.clickSpriteControl('updown'))
-        
+
         icon = QtGui.QPixmap()
         icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionLR.png'), 'png')
         self.button_sprite_left_right.setIcon(QtGui.QIcon(icon))
-        
+
         icon = QtGui.QPixmap()
         icon.loadFromData(get_data("customwidgets", f'res/icon_reflectionUD.png'), 'png')
         self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
@@ -1079,6 +1079,13 @@ class SpriteTab(QWidget):
 
         if event.button() == QtCore.Qt.RightButton:
 
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+
+                self.addSpriteToHistory()
+                self.generateProtectionMask()
+                self.erase(x, y)
+                return
+
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
 
                 self.addSpriteToHistory()
@@ -1132,29 +1139,33 @@ class SpriteTab(QWidget):
             if self.main_window.giveTool() == cwdg.Tools.REMAP:
                 if not self.working_sprite:
                     return
-                
+
                 self.overdraw(x,y)
                 return
 
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
                 if not self.working_sprite:
                     return
-                
+
                 self.overdraw(x,y)
                 return
 
-
         if event.buttons() == QtCore.Qt.RightButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+                self.erase(x,y)
+                return
 
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
                 self.overdraw(x,y)
                 return
 
+
     def viewWheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
 
-        if modifiers == QtCore.Qt.ControlModifier:
+        if modifiers == QtCore.Qt.AltModifier:
             color, shade = self.main_window.color_select_panel.getColorIndices()
             if color:
                 if event.angleDelta().y() > 0 and shade != 11:
@@ -1295,15 +1306,15 @@ class SpriteViewWidget(QScrollArea):
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        #we ignore the event when Control is pressed as it is the color change movement
-        if modifiers == QtCore.Qt.ControlModifier or modifiers == QtCore.Qt.AltModifier:
+        #we ignore the event when Alt is pressed as it is the color change movement
+        if modifiers == QtCore.Qt.ShiftModifier or modifiers == QtCore.Qt.AltModifier:
             return
 
         if not self.slider_zoom:
             super().wheelEvent()
             return
 
-        if modifiers == QtCore.Qt.ShiftModifier:
+        if modifiers == QtCore.Qt.ControlModifier:
             zoom_factor = self.slider_zoom.value()
             if event.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
                 self.slider_zoom.setValue(int(zoom_factor+1))
@@ -1316,7 +1327,7 @@ class SpriteViewWidget(QScrollArea):
     def mousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
+        if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
             QApplication.setOverrideCursor(QtCore.Qt.ClosedHandCursor)
             self.mousepos = event.localPos()
             return
@@ -1327,7 +1338,7 @@ class SpriteViewWidget(QScrollArea):
         modifiers = QApplication.keyboardModifiers()
 
         # Skip scrolling when Ctrl is pressed (Colorselect)
-        if modifiers == QtCore.Qt.ControlModifier:
+        if modifiers == QtCore.Qt.AltModifier:
             event.ignore()
             return
 
@@ -1335,7 +1346,7 @@ class SpriteViewWidget(QScrollArea):
         delta = event.localPos() - self.mousepos
 
         # panning area
-        if event.buttons() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier:
+        if event.buttons() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
             h = self.horizontalScrollBar().value()
             v = self.verticalScrollBar().value()
 
