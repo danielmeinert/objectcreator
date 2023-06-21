@@ -259,10 +259,10 @@ def read_dat_info(filename: str):
         name = header[4:12].decode('utf-8')
         checksum = hex(unpack('<L',header[12:16])[0])[2:].upper().zfill(8)
         result['id'] = ''
-        result['authors'] = ''
         result['version'] = '1.0'
         result['SourceGame'] = get_source(object_flag)
         result['originalId'] = f'{flag_string}|{name}|{checksum}'
+        result['authors'] = findKnowAuthor(name)
 
         object_type = get_object_type(object_flag)
         result['objectType'] = object_type
@@ -387,26 +387,67 @@ def read_dat_info(filename: str):
 def import_sprites(dat_id, openpath):
     if not exists(f'{openpath}/bin/openrct2.exe'):
         raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
-    
+
     with TemporaryDirectory() as temp:
         temp = temp.replace('\\', '/')
         result = run([f'{openpath}/bin/openrct2', 'sprite',
                      'exportalldat', dat_id, f'{temp}/images'], stdout=-1, stderr=-1, encoding='utf-8')
-        
+
         if result.returncode:
             raise RuntimeError(f'OpenRCT2 export error: {result.stderr}. \n \
                                For .DAT-import the object has to lie in the /object folder of your OpenRCT2 directory.')
 
         string = result.stdout
         string = string[string.find('{'):].replace(f'{temp}/', '')
-               
+
         i = -1
         while string[i] != ',':
             i -= 1
-    
+
         # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
         images = loads(f'[{string[:i]}]')
         sprites = {im['path']: spr.Sprite.fromFile(
             f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
-        
+
     return images, sprites
+
+def findKnowAuthor(dat_id):
+    for author_id, author in known_author_ids.items():
+        if dat_id.startswith(author_id):
+            return author
+    else:
+        return ''
+
+
+known_author_ids = {
+    '1K': 'Kumba',
+    '1J': 'In:Cities',
+    'TOLS': 'Tolsimir',
+    'LMP': 'Liampie',
+    'X97': 'Xtreme97',
+    'FSC': 'Fisch',
+    'FSH': 'Fisch',
+    'AVL': 'Arjan v l',
+    'BSG': 'bigshootergill',
+    'CHE': 'CHE',
+    'CJK': 'Jo and Charlene',
+    'MG-': 'Mama Bear',
+    'MG': 'Magnus',
+    'DD': 'dr dirt',
+    'ETH': 'Ethan',
+    'FM': 'Fisherman',
+    'GW': 'geewhzz',
+    'ITM': 'inthemanual',
+    'KNG': 'K0NG',
+    'LOU': 'Louis',
+    'MK-': 'MK98',
+    'MK': 'mkx',
+    'MULD': 'Mulder',
+    'RFAN': 'RCTFan',
+    'SF': 'Six Frags',
+    'SUL': 'Sulakke',
+    'SV': 'Splitvision',
+    'TT': 'ToonTowner',
+    'XX': 'ToonTowner'}
+
+

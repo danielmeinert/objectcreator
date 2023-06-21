@@ -14,13 +14,14 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 import sys
 import io
-from os.path import abspath,join 
+from os.path import abspath,join
+
+from pkgutil import get_data
+
 
 from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
-
-import resources_rc
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -39,102 +40,45 @@ class BoundingBoxes():
         self.loadBackboxes()
 
     def loadBackboxes(self):
-        img = QtGui.QImage(":/images/res/backbox_quarter.png")
-        buffer = QtCore.QBuffer()
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image = Image.open(io.BytesIO(buffer.data()))
+
+        image = Image.open(resource_path("res/backbox_quarter.png"))
         self.backbox_quarter = [image, (-16,-7)]
 
-        img = QtGui.QImage(":/images/res/backbox_full.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image = Image.open(io.BytesIO(buffer.data()))
+        image = Image.open(resource_path("res/backbox_full.png"))
         self.backbox_full = [image, (-32,-15)]
 
-        img = QtGui.QImage(":/images/res/backbox_half_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/backbox_half_1.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
+        image_0 = Image.open(resource_path("res/backbox_half_0.png"))
+        image_1 = Image.open(resource_path("res/backbox_half_1.png"))
         self.backbox_half = [[image_0, (-16,-15)],[image_1, (-16,-7)],[image_0, (-32,-7)],[image_1, (-32,-15)]]
 
-        img = QtGui.QImage(":/images/res/backbox_diagonal_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/backbox_diagonal_1.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
+        image_1 = Image.open(resource_path("res/backbox_diagonal_1.png"))
         self.backbox_diagonal = [[image_1, (-32,-15)],[self.backbox_quarter[0],(-16,-15)]]
 
-        img = QtGui.QImage(":/images/res/backbox_three_quarter_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/backbox_three_quarter_2.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
+        image_0 = Image.open(resource_path("res/backbox_three_quarter_0.png"))
+        image_1 = Image.open(resource_path("res/backbox_three_quarter_2.png"))
         self.backbox_three_quarter = [[image_0, (-32,-15)],[self.backbox_half[0][0],(-16,-15)],[image_1, (-32,-15)],[self.backbox_half[1][0],(-32,-15)]]
 
-        img = QtGui.QImage(":/images/res/base_quarter.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image = Image.open(io.BytesIO(buffer.data()))
+        image = Image.open(resource_path("res/base_quarter.png"))
         self.base_quarter = [image, (-16,-7)]
 
-        img = QtGui.QImage(":/images/res/base_full.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image = Image.open(io.BytesIO(buffer.data()))
+        image = Image.open(resource_path("res/base_full.png"))
         self.base_full = [image, (-32,-15)]
 
-        img = QtGui.QImage(":/images/res/base_half_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/base_half_1.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
+        image_0 = Image.open(resource_path("res/base_half_0.png"))
+        image_1 = Image.open(resource_path("res/base_half_1.png"))
         self.base_half = [[image_0, (-16,-15)],[image_1, (-16,-7)],[image_0, (-32,-7)],[image_1, (-32,-15)]]
 
-        img = QtGui.QImage(":/images/res/base_diagonal_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/base_diagonal_1.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
+
+        image_0 = Image.open(resource_path("res/base_diagonal_0.png"))
+        image_1 = Image.open(resource_path("res/base_diagonal_1.png"))
         self.base_diagonal = [[image_1, (0,8)],[image_0, (16,0)]]
 
-        img = QtGui.QImage(":/images/res/base_three_quarter_0.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_0 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/base_three_quarter_1.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_1 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/base_three_quarter_2.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_2 = Image.open(io.BytesIO(buffer.data()))
-        img = QtGui.QImage(":/images/res/base_three_quarter_3.png")
-        buffer.open(QtCore.QBuffer.ReadWrite)
-        img.save(buffer, "PNG")
-        image_3 = Image.open(io.BytesIO(buffer.data()))
+        image_0 = Image.open(resource_path("res/base_three_quarter_0.png"))
+        image_1 = Image.open(resource_path("res/base_three_quarter_1.png"))
+        image_2 = Image.open(resource_path("res/base_three_quarter_2.png"))
+        image_3 = Image.open(resource_path("res/base_three_quarter_3.png"))
         self.base_three_quarter = [[image_0, (-32,0)],[image_1, (-32,0)],[image_2, (-32,8)],[image_3, (-32,0)]]
 
-
-
-        buffer.close()
 
     def giveBackbox(self, o):
         object_type = o.object_type
@@ -202,6 +146,56 @@ class BoundingBoxes():
                         canvas.paste(self.backbox_three_quarter[rot][0], (0,i*8), self.backbox_three_quarter[rot][0])
 
                 return [canvas, (self.backbox_three_quarter[rot][1][0], self.backbox_three_quarter[rot][1][1]- 8*h)]
+
+
+class SymmetryAxes():
+    def __init__(self):
+        self.loadSymmAxes()
+
+    def loadSymmAxes(self):
+        image_0 = Image.open(resource_path("res/symm_quarter_0.png"))
+        image_1 = Image.open(resource_path("res/symm_quarter_1.png"))
+        self.symm_quarter = [[image_0, (-16,-7)],[image_1, (-16,-7)]]
+
+        image_0 = Image.open(resource_path("res/symm_diag_quarter_0.png"))
+        image_1 = Image.open(resource_path("res/symm_diag_quarter_1.png"))
+        self.symm_quarter_diagonal = [[image_0, (-16,-7)],[image_1, (-16,-7)]]
+
+        image_0 = Image.open(resource_path("res/symm_full_0.png"))
+        image_1 = Image.open(resource_path("res/symm_full_1.png"))
+        self.symm_full = [[image_0, (-32,-15)],[image_0, (-32,-15)]]
+
+        image_0 = Image.open(resource_path("res/symm_half_0.png"))
+        image_1 = Image.open(resource_path("res/symm_half_1.png"))
+        self.symm_half = [[image_0, (-16,-15)],[image_1, (-16,-7)],[image_0, (-32,-7)],[image_1, (-32,-15)]]
+
+        image_0 = Image.open(resource_path("res/symm_diagonal_0.png"))
+        image_1 = Image.open(resource_path("res/symm_diagonal_1.png"))
+        self.symm_diagonal = [[image_0, (-32,-15)],[image_1, (-32,-15)]]
+
+
+
+    def giveSymmAxes(self, o):
+        object_type = o.object_type
+        if object_type == cts.Type.SMALL:
+            shape = o.shape
+            rot = o.rotation
+
+            if shape == obj.SmallScenery.Shape.QUARTER:
+                return self.symm_quarter[rot % 2]
+
+            elif shape == obj.SmallScenery.Shape.QUARTERD:
+                return self.symm_quarter_diagonal[rot % 2]
+
+            elif shape == obj.SmallScenery.Shape.FULL:
+                return self.symm_full[rot % 2]
+
+            elif shape == obj.SmallScenery.Shape.HALF:
+                return self.symm_half[rot]
+
+            elif shape == obj.SmallScenery.Shape.THREEQ or shape == obj.SmallScenery.Shape.FULLD :
+                return self.symm_diagonal[rot % 2]
+
 
 
 

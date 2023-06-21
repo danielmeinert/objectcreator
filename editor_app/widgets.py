@@ -431,8 +431,12 @@ class SpritesTabSS(QWidget):
         # Buttons auxiliary
         self.button_bounding_box =  self.findChild(
             QToolButton, "toolButton_boundingBox")
+        self.button_symm_axes =  self.findChild(
+            QToolButton, "toolButton_symmAxes")
 
         self.button_bounding_box.clicked.connect(self.updateMainView)
+        self.button_symm_axes.clicked.connect(self.updateMainView)
+
 
         # Sprite control buttons
         self.button_sprite_left = self.findChild(
@@ -657,9 +661,11 @@ class SpritesTabSS(QWidget):
             backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             canvas.paste(backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
 
-
-        #canvas.paste(self.frame_image, self.frame_image)
         canvas.paste(im, coords, im)
+
+        if self.button_symm_axes.isChecked():
+            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(self.o)
+            canvas.paste(symm_axis, (76+coords_symm_axis[0], 200+coords_symm_axis[1]), symm_axis)
 
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -682,8 +688,12 @@ class SpritesTabSS(QWidget):
 
         coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
 
-        #canvas.paste(self.frame_image, self.frame_image)
         canvas.paste(im, coords, im)
+
+        if add_auxiliaries and self.button_symm_axes.isChecked():
+            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(self.o)
+            canvas.paste(symm_axis, (int(canvas_size/2)+coords_symm_axis[0], int(canvas_size*2/3)+coords_symm_axis[1]), symm_axis)
+
 
         return canvas
 

@@ -63,6 +63,7 @@ class MainWindowUi(QMainWindow):
         self.app_data_path = app_data_path
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
+        self.symm_axes = aux.SymmetryAxes()
 
 
         self.setAcceptDrops(True)

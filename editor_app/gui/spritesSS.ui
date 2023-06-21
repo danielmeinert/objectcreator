@@ -314,6 +314,9 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="toolTip">
+        <string>Activate a bounding box in the sprite view. The sprite should not go out of the box to avoid glitching/clipping.</string>
+       </property>
        <property name="text">
         <string> Bounding Box</string>
        </property>
@@ -326,7 +329,7 @@
       </widget>
       <widget class="QToolButton" name="toolButton_symmAxes">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -335,6 +338,9 @@
          <width>81</width>
          <height>21</height>
         </rect>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Activate symmetry axes in the sprite view. Optimally, the object should have a mirror symmetry along the shown axis to accomodate for proper mirroring features in the game.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Symm. Axes</string>
