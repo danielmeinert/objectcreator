@@ -498,20 +498,21 @@ class SpritesTabSS(QWidget):
         self.select_panel_first_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "1st Remap", self.button_first_remap)
         self.select_panel_first_remap.setGeometry(coords_group[0] + self.button_first_remap.x(), coords_group[1] +  self.button_first_remap.y()-50, 104, 52)
         self.select_panel_first_remap.hide()
-        self.button_first_remap.clicked.connect(lambda x, panel = self.select_panel_first_remap: self.clickRemapButton(panel = panel))
+        self.button_first_remap.clicked.connect(lambda x, panel_index = 0: self.clickRemapButton(panel_index = panel_index))
 
         self.button_second_remap = self.findChild(QPushButton, 'pushButton_secondRemap')
         self.select_panel_second_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "2nd Remap", self.button_second_remap)
         self.select_panel_second_remap.setGeometry(coords_group[0] + self.button_second_remap.x(), coords_group[1] +  self.button_second_remap.y()-50, 104, 52)
         self.select_panel_second_remap.hide()
-        self.button_second_remap.clicked.connect(lambda x, panel = self.select_panel_second_remap: self.clickRemapButton(panel = panel))
+        self.button_second_remap.clicked.connect(lambda x, panel_index = 1: self.clickRemapButton(panel_index = panel_index))
 
         self.button_third_remap = self.findChild(QPushButton, 'pushButton_thirdRemap')
         self.select_panel_third_remap = RemapColorSelectWidget(pal.orct, main_widget, self.clickChangeRemap, "3rd Remap", self.button_third_remap)
         self.select_panel_third_remap.setGeometry(coords_group[0] + self.button_third_remap.x(), coords_group[1] +  self.button_third_remap.y()-50, 104, 52)
         self.select_panel_third_remap.hide()
-        self.button_third_remap.clicked.connect(lambda x, panel = self.select_panel_third_remap: self.clickRemapButton(panel = panel))
+        self.button_third_remap.clicked.connect(lambda x, panel_index = 2: self.clickRemapButton(panel_index = panel_index))
 
+        self.select_panels_remap = [self.select_panel_first_remap, self.select_panel_second_remap, self.select_panel_third_remap]
         self.previewClicked(0)
 
 
@@ -630,11 +631,17 @@ class SpritesTabSS(QWidget):
 
         self.updateMainView()
 
-    def clickRemapButton(self, panel):
-        if panel.isVisible():
-            panel.hide()
-        else:
-            panel.show()
+    def clickRemapButton(self, panel_index):
+        for i, panel in enumerate(self.select_panels_remap):
+            if i == panel_index:
+                if panel.isVisible():
+                    panel.hide()
+                else:
+                    panel.show()
+            else:
+                panel.hide()
+
+
 
     def clickChangeRemap(self, color, remap, button, shade):
         self.o.changeRemap(color, remap)
