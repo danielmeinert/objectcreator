@@ -129,7 +129,7 @@ QTabBar::tab:selected {
         </spacer>
        </item>
        <item alignment="Qt::AlignHCenter">
-        <widget class="QToolButton" name="toolButton_toSprites">
+        <widget class="QToolButton" name="toolButton_pullSprite">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -156,7 +156,7 @@ QTabBar::tab:selected {
        <item alignment="Qt::AlignHCenter">
         <widget class="QToolButton" name="toolButton_lock">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="minimumSize">
           <size>
@@ -176,7 +176,7 @@ QTabBar::tab:selected {
         </widget>
        </item>
        <item alignment="Qt::AlignHCenter|Qt::AlignTop">
-        <widget class="QToolButton" name="toolButton_fromSprites">
+        <widget class="QToolButton" name="toolButton_pushSprite">
          <property name="enabled">
           <bool>false</bool>
          </property>

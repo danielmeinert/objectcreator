@@ -86,6 +86,13 @@ class MainWindowUi(QMainWindow):
         self.object_tabs.currentChanged.connect(self.changeObjectTab)
         self.sprite_tabs.currentChanged.connect(self.changeSpriteTab)
 
+        self.button_lock = self.findChild(QToolButton, "toolButton_lock")
+        self.button_lock.clicked.connect(self.lockClicked)
+        self.button_push_sprite = self.findChild(QToolButton, "toolButton_pushSprite")
+        self.button_push_sprite.clicked.connect(self.pushSprite)
+        self.button_pull_sprite = self.findChild(QToolButton, "toolButton_pullSprite")
+        self.button_pull_sprite.clicked.connect(self.pullSprite)
+
 
         #### Tools
         widget_tool_box = self.findChild(QWidget, "widget_tool_box")
@@ -155,7 +162,7 @@ class MainWindowUi(QMainWindow):
         self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
 
 
-        #Load empty object
+        #Load empty object if not started with objects
 
         if not opening_objects:
             self.newObject(cts.Type.SMALL)
@@ -294,16 +301,6 @@ class MainWindowUi(QMainWindow):
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
 
-    def changeObjectTab(self, index):
-        object_tab = self.object_tabs.widget(index)
-        if object_tab and object_tab.locked:
-            self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
-
-    def changeSpriteTab(self, index):
-        sprite_tab = self.sprite_tabs.widget(index)
-        if sprite_tab and sprite_tab.locked:
-            self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
-
     def loadObjectFromPath(self, filepath):
         try:
             o = obj.load(filepath, openpath = self.openpath)
@@ -347,6 +344,73 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.setCurrentWidget(sprite_tab)
 
         self.last_open_folder = filepath
+
+    ### Tab actions
+    def changeObjectTab(self, index):
+        object_tab = self.object_tabs.widget(index)
+        if object_tab:
+            if object_tab.locked:
+                self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
+                self.button_lock.setChecked(True)
+            else:
+                self.button_lock.setChecked(False)
+
+    def changeSpriteTab(self, index):
+        sprite_tab = self.sprite_tabs.widget(index)
+        sprite_tab.updateView()
+        if sprite_tab:
+            if sprite_tab.locked:
+                self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
+                self.button_lock.setChecked(True)
+            else:
+                self.button_lock.setChecked(False)
+
+    def lockClicked(self):
+        current_object_tab = self.object_tabs.currentWidget()
+        current_sprite_tab = self.sprite_tabs.currentWidget()
+
+        if self.button_lock.isChecked():
+            name = self.object_tabs.tabText(self.object_tabs.currentIndex())
+
+            if current_object_tab.locked:
+                old_sprite_Tab = current_object_tab.locked_sprite_tab
+                old_sprite_Tab.unlockObjectTab()
+                self.sprite_tabs.setTabText(self.sprite_tabs.indexOf(old_sprite_Tab), f"Sprite {self.new_sprite_count}")
+                self.new_sprite_count += 1
+
+            self.pushSprite()
+
+            current_object_tab.lockWithSpriteTab(current_sprite_tab)
+            current_sprite_tab.lockWithObjectTab(current_object_tab)
+
+            self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name} (locked)")
+
+            self.button_pull_sprite.setEnabled(False)
+            self.button_push_sprite.setEnabled(False)
+        else:
+
+            name = f'Sprite {self.new_sprite_count}'
+            self.new_sprite_count += 1
+
+            current_object_tab.unlockSpriteTab()
+            current_sprite_tab.unlockObjectTab()
+
+            self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name}")
+
+            self.button_pull_sprite.setEnabled(True)
+            self.button_push_sprite.setEnabled(True)
+
+    def pushSprite(self):
+        object_tab = self.object_tabs.currentWidget()
+        sprite_tab = self.sprite_tabs.currentWidget()
+
+        object_tab.setCurrentSprite(sprite_tab.sprite)
+
+    def pullSprite(self):
+        object_tab = self.object_tabs.currentWidget()
+        sprite_tab = self.sprite_tabs.currentWidget()
+
+        sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
 
     ### Menubar actions
 

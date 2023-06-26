@@ -96,9 +96,11 @@ class ObjectTabSS(QWidget):
             self.saved = True
 
     def lockWithSpriteTab(self, locked_sprite_tab):
-        if locked_sprite_tab:
-            self.locked = True
-            self.locked_sprite_tab = locked_sprite_tab
+        if self.locked:
+            self.unlockSpriteTab()
+
+        self.locked = True
+        self.locked_sprite_tab = locked_sprite_tab
 
     def unlockSpriteTab(self):
         self.locked = False
@@ -113,13 +115,16 @@ class ObjectTabSS(QWidget):
     def updateCurrentMainView(self):
         self.sprites_tab.updateMainView()
 
+    def setCurrentSprite(self, sprite):
+        self.o.setSprite(sprite)
+        self.updateCurrentMainView()
+
     def colorRemapToAll(self, color_remap, selected_colors):
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.remapColor(color, color_remap)
 
         self.sprites_tab.updateAllViews()
-
 
     def colorChangeBrightnessAll(self, step, selected_colors):
         for _, sprite in self.o.sprites.items():
@@ -793,12 +798,17 @@ class SpriteTab(QWidget):
 
     def unlockObjectTab(self):
         if self.locked:
-            self.sprite, index = self.giveSprite()
-            self.history = [self.history[index]]
-            self.history_redo = [self.history_redo[index]]
+            self.sprite = copy(self.giveSprite()[0])
+            index = self.giveSprite()[1]
+            self.history = copy([self.history[index]])
+            self.history_redo = copy([self.history_redo[index]])
             self.locked = False
             self.object_tab = None
 
+    def setSprite(self, sprite):
+        self.sprite = copy(sprite)
+
+        self.updateView()
 
     def zoomChanged(self, val):
         self.zoom_factor = val
