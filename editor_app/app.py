@@ -352,8 +352,12 @@ class MainWindowUi(QMainWindow):
             if object_tab.locked:
                 self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
                 self.button_lock.setChecked(True)
+                self.button_pull_sprite.setEnabled(False)
+                self.button_push_sprite.setEnabled(False)
             else:
                 self.button_lock.setChecked(False)
+                self.button_pull_sprite.setEnabled(True)
+                self.button_push_sprite.setEnabled(True)
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
@@ -362,8 +366,12 @@ class MainWindowUi(QMainWindow):
             if sprite_tab.locked:
                 self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
                 self.button_lock.setChecked(True)
+                self.button_pull_sprite.setEnabled(False)
+                self.button_push_sprite.setEnabled(False)
             else:
                 self.button_lock.setChecked(False)
+                self.button_pull_sprite.setEnabled(True)
+                self.button_push_sprite.setEnabled(True)
 
     def lockClicked(self):
         current_object_tab = self.object_tabs.currentWidget()
