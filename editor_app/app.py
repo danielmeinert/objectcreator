@@ -314,9 +314,9 @@ class MainWindowUi(QMainWindow):
         except Exception as e:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Critical)
-            msg.setWindowTitle("Error")
+            msg.setWindowTitle("Error Trapper")
             msg.setText("Failed to load object")
-            msg.setInformativeText(str(e))
+            msg.setInformativeText(str(traceback.format_exc()))
             msg.show()
             return
 
@@ -361,21 +361,29 @@ class MainWindowUi(QMainWindow):
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
-        sprite_tab.updateView()
+        
         if sprite_tab:
+            sprite_tab.updateView()
             if sprite_tab.locked:
                 self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
                 self.button_lock.setChecked(True)
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
+                self.checkbox_all_views.setEnabled(True)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
+                self.checkbox_all_views.setEnabled(False)
+                self.checkbox_all_views.setChecked(False)
+
 
     def lockClicked(self):
         current_object_tab = self.object_tabs.currentWidget()
         current_sprite_tab = self.sprite_tabs.currentWidget()
+
+        if current_object_tab is None or current_sprite_tab is None:
+            return
 
         if self.button_lock.isChecked():
             name = self.object_tabs.tabText(self.object_tabs.currentIndex())
@@ -395,6 +403,8 @@ class MainWindowUi(QMainWindow):
 
             self.button_pull_sprite.setEnabled(False)
             self.button_push_sprite.setEnabled(False)
+            self.checkbox_all_views.setEnabled(True)
+            
         else:
 
             name = f'Sprite {self.new_sprite_count}'
@@ -406,7 +416,10 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name}")
 
             self.button_pull_sprite.setEnabled(True)
-            self.button_push_sprite.setEnabled(True)
+            self.button_push_sprite.setEnabled(True)            
+            self.checkbox_all_views.setEnabled(False)
+            self.checkbox_all_views.setChecked(False)
+       
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
@@ -578,7 +591,6 @@ class MainWindowUi(QMainWindow):
 
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    print("error catched!:")
     print("error message:\n", tb)
 
 
