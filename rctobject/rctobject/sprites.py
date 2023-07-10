@@ -21,6 +21,9 @@ class Sprite:
 
             image = pal.addPalette(image, palette, dither)
 
+            bbox = image.getbbox()
+            image = image.crop(bbox)
+
         else:
             image = Image.new('RGBA', (1, 1))
 
