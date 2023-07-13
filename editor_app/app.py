@@ -161,6 +161,9 @@ class MainWindowUi(QMainWindow):
         self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
         self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
 
+        self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
+        self.actionAbout.triggered.connect(self.aboutPage)
+
 
         #Load empty object if not started with objects
 
@@ -171,9 +174,9 @@ class MainWindowUi(QMainWindow):
                 self.loadObjectFromPath(filepath)
 
         self.show()
-        self.checkForUpdates()
+        self.checkForUpdates(silent = True)
 
-    def checkForUpdates(self):
+    def checkForUpdates(self, silent = False):
         try:
             response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
         except requests.exceptions.ConnectionError:
@@ -183,6 +186,15 @@ class MainWindowUi(QMainWindow):
         git_version = response.json()['tag_name']
 
         if not versionCheck(git_version):
+            if not silent:
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("No update available")
+                msg.setText(f"Object Creator {VERSION} is up to date!")
+                msg.setStandardButtons(QMessageBox.Ok)
+
+                msg.exec_()
+
             return
 
         url = response.json()['html_url']
@@ -361,7 +373,7 @@ class MainWindowUi(QMainWindow):
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
-        
+
         if sprite_tab:
             sprite_tab.updateView()
             if sprite_tab.locked:
@@ -404,7 +416,7 @@ class MainWindowUi(QMainWindow):
             self.button_pull_sprite.setEnabled(False)
             self.button_push_sprite.setEnabled(False)
             self.checkbox_all_views.setEnabled(True)
-            
+
         else:
 
             name = f'Sprite {self.new_sprite_count}'
@@ -416,10 +428,10 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name}")
 
             self.button_pull_sprite.setEnabled(True)
-            self.button_push_sprite.setEnabled(True)            
+            self.button_push_sprite.setEnabled(True)
             self.checkbox_all_views.setEnabled(False)
             self.checkbox_all_views.setChecked(False)
-       
+
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
@@ -516,6 +528,27 @@ class MainWindowUi(QMainWindow):
         widget.copy()
 
 
+    def aboutPage(self):
+        url = "https://github.com/danielmeinert/objectcreator"
+
+        icon = QtGui.QPixmap(aux.resource_path("gui/icon.png"))
+
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle("About Object Creator")
+        msg.setTextFormat(QtCore.Qt.RichText)
+        msg.setIconPixmap(icon)
+
+        msg.setText(f"Object Creator version {VERSION} <br> \
+                If you want to give feedback or issue bugs, \
+                visit the <a href='{url}'>github page. </a> <br> <br> \
+                Copyright (c) 2023 Tolsimir <br> \
+                The program 'Object Creator' is licensed under the GNU General Public License version 3.")
+        msg.setStandardButtons(QMessageBox.Close)
+
+        msg.exec_()
+
+
     #### Color manipulations
 
     def colorRemapTo(self):
@@ -559,9 +592,16 @@ class MainWindowUi(QMainWindow):
 
             widget.colorRemove(selected_colors)
 
+    ### Sprite Actions
+
+
+    ### Keys & Events
+
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
             self.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
+
+
 
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:

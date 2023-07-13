@@ -779,6 +779,7 @@ class SpriteTab(QWidget):
         self.view.mousePressEvent = self.viewMousePressEvent
         self.view.mouseMoveEvent = self.viewMouseMoveEvent
         self.view.wheelEvent = self.viewWheelEvent
+        self.view.keyPressEvent = self.viewKeyPressEvent
 
         self.updateView()
 
@@ -843,6 +844,27 @@ class SpriteTab(QWidget):
         sprite.removeColor(selected_colors)
 
         self.updateView()
+
+    def clickSpriteControl(self, direction: str):
+        sprite, _ = self.giveSprite()
+
+        if direction == 'left':
+            sprite.x -= 1
+        elif direction == 'right':
+            sprite.x += 1
+        elif direction == 'up':
+            sprite.y -= 1
+        elif direction == 'down':
+            sprite.y += 1
+        elif direction == 'leftright':
+            sprite.image = sprite.image.transpose(
+                Image.FLIP_LEFT_RIGHT)
+        elif direction == 'updown':
+            sprite.image = sprite.image.transpose(
+                Image.FLIP_TOP_BOTTOM)
+
+        self.updateView()
+
 
     def draw(self, x, y, shade):
         sprite, _ = self.giveSprite()
@@ -1009,6 +1031,10 @@ class SpriteTab(QWidget):
             noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(self.canvas_size,self.canvas_size), p=[1-strength, strength]).T)
             self.protected_pixels.paste(noise_mask, mask = noise_mask)
 
+
+    def viewKeyPressEvent(self, e):
+        if e.key() == QtCore.Qt.Key_Up:
+            self.clickSpriteControl('up')
 
 
     def viewMousePressEvent(self, event):
@@ -1304,8 +1330,6 @@ class SpriteTab(QWidget):
             self.object_tab.sprites_tab.copySpriteToClipboard()
         else:
             pass
-
-
 
 
 

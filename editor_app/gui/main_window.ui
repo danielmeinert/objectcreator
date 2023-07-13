@@ -503,9 +503,17 @@ border: 1px solid darkgrey;}
     <addaction name="menuImport_Color"/>
     <addaction name="menuPalette"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionCheckForUpdates"/>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionSaveObjectAt">
    <property name="text">
@@ -662,6 +670,16 @@ border: 1px solid darkgrey;}
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About...</string>
+   </property>
+  </action>
+  <action name="actionCheckForUpdates">
+   <property name="text">
+    <string>Check for Updates...</string>
    </property>
   </action>
  </widget>
