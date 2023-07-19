@@ -145,6 +145,9 @@ QTabBar::tab:selected {
            <height>16</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Pull sprite from object's current view to this sprite.</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -164,6 +167,9 @@ QTabBar::tab:selected {
            <height>19</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lock/unlock current sprite to/from object. When locking, the sprite will be pushed to object's current view. If there is another sprite locked with the object, it will be unlocked first.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Lck</string>
          </property>
@@ -179,6 +185,9 @@ QTabBar::tab:selected {
         <widget class="QToolButton" name="toolButton_pushSprite">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Push sprite from this sprite to object's current view.</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -378,8 +387,11 @@ border: 1px solid darkgrey;}
             <property name="enabled">
              <bool>true</bool>
             </property>
+            <property name="toolTip">
+             <string>Actions are applied to all views of the object that is currently locked with the sprite.</string>
+            </property>
             <property name="text">
-             <string>Apply to all views</string>
+             <string>Apply to all views of locked object</string>
             </property>
            </widget>
           </item>
@@ -487,10 +499,10 @@ border: 1px solid darkgrey;}
      <property name="title">
       <string>Transparency Color</string>
      </property>
-     <addaction name="actionBlack"/>
-     <addaction name="actionWhite"/>
-     <addaction name="actionUpper_Left_Pixel"/>
-     <addaction name="actionCustom_Color"/>
+     <addaction name="actionBlackImport"/>
+     <addaction name="actionWhiteImport"/>
+     <addaction name="actionUpperLeftPixelImport"/>
+     <addaction name="actionCustomColorImport"/>
     </widget>
     <widget class="QMenu" name="menuPalette">
      <property name="title">
@@ -499,9 +511,18 @@ border: 1px solid darkgrey;}
      <addaction name="actionPaletteOpenRCT"/>
      <addaction name="actionPaletteOld"/>
     </widget>
+    <widget class="QMenu" name="menuBackground">
+     <property name="title">
+      <string>Background</string>
+     </property>
+     <addaction name="actionBlackBackground"/>
+     <addaction name="actionWhiteBackground"/>
+     <addaction name="actionCustomColorBackground"/>
+    </widget>
     <addaction name="actionSettings"/>
     <addaction name="menuImport_Color"/>
     <addaction name="menuPalette"/>
+    <addaction name="menuBackground"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -581,7 +602,7 @@ border: 1px solid darkgrey;}
     <string>Settings...</string>
    </property>
   </action>
-  <action name="actionBlack">
+  <action name="actionBlackImport">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -592,7 +613,7 @@ border: 1px solid darkgrey;}
     <string>Black (0,0,0)</string>
    </property>
   </action>
-  <action name="actionWhite">
+  <action name="actionWhiteImport">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -600,7 +621,7 @@ border: 1px solid darkgrey;}
     <string>White (255,255,255)</string>
    </property>
   </action>
-  <action name="actionUpper_Left_Pixel">
+  <action name="actionUpperLeftPixelImport">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -608,7 +629,7 @@ border: 1px solid darkgrey;}
     <string>Upper Left Pixel</string>
    </property>
   </action>
-  <action name="actionCustom_Color">
+  <action name="actionCustomColorImport">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -662,6 +683,21 @@ border: 1px solid darkgrey;}
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionBlackBackground">
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="actionWhiteBackground">
+   <property name="text">
+    <string>White</string>
+   </property>
+  </action>
+  <action name="actionCustomColorBackground">
+   <property name="text">
+    <string>Custom Color</string>
    </property>
   </action>
  </widget>

@@ -486,6 +486,7 @@ class SpritesTabSS(QWidget):
 
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(self.showSpriteMenu)
+        self.sprite_view_main.setStyleSheet(f"background-color :  rgb{self.main_window.current_background_color};")
 
 
         self.offset = 16 if (self.o.shape == obj.SmallScenery.Shape.QUARTER or self.o.shape == obj.SmallScenery.Shape.QUARTERD) else 32
@@ -1434,14 +1435,19 @@ class ChangeSettingsUi(QDialog):
             self.clickChangeFolder(sender))
 
         self.checkBox_nozip.setChecked(settings.get('no_zip', False))
-        self.comboBox_transparencycolor.setCurrentIndex(settings.get('transparency_color', 0))
-        self.spinBox_R.setValue(settings.get('import_color', (0,0,0))[0])
-        self.spinBox_G.setValue(settings.get('import_color', (0,0,0))[1])
-        self.spinBox_B.setValue(settings.get('import_color', (0,0,0))[2])
+        self.comboBox_transparency_color.setCurrentIndex(settings.get('transparency_color', 0))
+        self.spinBox_R_transparancy.setValue(settings.get('import_color', (0,0,0))[0])
+        self.spinBox_G_transparancy.setValue(settings.get('import_color', (0,0,0))[1])
+        self.spinBox_B_transparancy.setValue(settings.get('import_color', (0,0,0))[2])
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
 
         self.comboBox_palette.setCurrentIndex(settings.get('palette', 0))
         self.spinBox_history_maximum.setValue(settings.get('history_maximum', 5))
+
+        self.comboBox_background_color.setCurrentIndex(settings.get('background_color', 0))
+        self.spinBox_R_background.setValue(settings.get('background_color_custom', (0,0,0))[0])
+        self.spinBox_G_background.setValue(settings.get('background_color_custom', (0,0,0))[1])
+        self.spinBox_B_background.setValue(settings.get('background_color_custom', (0,0,0))[2])
 
 
         self.loadSSSettings(settings)
@@ -1490,8 +1496,10 @@ class ChangeSettingsUi(QDialog):
         settings['author_id'] = self.lineEdit_authorID.text()
         settings['no_zip'] = self.checkBox_nozip.isChecked()
         settings['version'] = self.doubleSpinBox_version.value()
-        settings['transparency_color'] = self.comboBox_transparencycolor.currentIndex()
-        settings['import_color'] = [self.spinBox_R.value(),self.spinBox_G.value(),self.spinBox_B.value()]
+        settings['transparency_color'] = self.comboBox_transparency_color.currentIndex()
+        settings['import_color'] = [self.spinBox_R_transparency.value(),self.spinBox_G_transparency.value(),self.spinBox_B_transparency.value()]
+        settings['background_color'] = self.comboBox_background_color.currentIndex()
+        settings['background_color_custom'] = [self.spinBox_R_background.value(),self.spinBox_G_background.value(),self.spinBox_B_background.value()]
         settings['palette'] = self.comboBox_palette.currentIndex()
         settings['history_maximum'] = self.spinBox_history_maximum.value()
 

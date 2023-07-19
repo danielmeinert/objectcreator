@@ -153,13 +153,17 @@ class MainWindowUi(QMainWindow):
         self.actionCopySprite.triggered.connect(self.spriteCopy)
 
         self.actionSettings.triggered.connect(self.changeSettings)
-        self.actionBlack.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
-        self.actionWhite.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
-        self.actionUpper_Left_Pixel.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
-        self.actionCustom_Color.triggered.connect(lambda x, mode=3: self.setCurrentImportColor(mode))
+        self.actionBlackImport.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
+        self.actionWhiteImport.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
+        self.actionUpperLeftPixelImport.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
+        self.actionCustomColorImport.triggered.connect(lambda x, mode=3: self.setCurrentImportColor(mode))
 
         self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
         self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
+        
+        self.actionBlackBackground.triggered.connect(lambda x, mode=0: self.setCurrentBackgroundColor(mode))
+        self.actionWhiteBackground.triggered.connect(lambda x, mode=1: self.setCurrentBackgroundColor(mode))
+        self.actionCustomColorBackground.triggered.connect(lambda x, mode=2: self.setCurrentBackgroundColor(mode))
 
 
         #Load empty object if not started with objects
@@ -231,6 +235,8 @@ class MainWindowUi(QMainWindow):
                 self.settings['version'] = '1.0'
                 self.settings['transparency_color'] = 0
                 self.settings['import_color'] = [0,0,0]
+                self.settings['background_color'] = 0
+                self.settings['background_color_custom'] = [0,0,0]
                 self.settings['palette'] = 0
                 self.settings['history_maximum'] = 5
 
@@ -240,6 +246,8 @@ class MainWindowUi(QMainWindow):
         self.last_open_folder = self.settings.get('opendefault', None)
         self.setCurrentImportColor(self.settings['transparency_color'])
         self.setCurrentPalette(self.settings['palette'], update_widgets = False)
+        self.setCurrentBackgroundColor(self.settings.get('background_color', 0))
+
 
     def saveSettings(self):
         path = self.app_data_path
@@ -261,28 +269,28 @@ class MainWindowUi(QMainWindow):
     def setCurrentImportColor(self, mode):
         if mode == 0:
             self.current_import_color = (0,0,0)
-            self.actionBlack.setChecked(True)
-            self.actionWhite.setChecked(False)
-            self.actionUpper_Left_Pixel.setChecked(False)
-            self.actionCustom_Color.setChecked(False)
+            self.actionBlackImport.setChecked(True)
+            self.actionWhiteImport.setChecked(False)
+            self.actionUpperLeftPixelImport.setChecked(False)
+            self.actionCustomColorImport.setChecked(False)
         elif mode == 1:
             self.current_import_color = (255,255,255)
-            self.actionBlack.setChecked(False)
-            self.actionWhite.setChecked(True)
-            self.actionUpper_Left_Pixel.setChecked(False)
-            self.actionCustom_Color.setChecked(False)
+            self.actionBlackImport.setChecked(False)
+            self.actionWhiteImport.setChecked(True)
+            self.actionUpperLeftPixelImport.setChecked(False)
+            self.actionCustomColorImport.setChecked(False)
         elif mode == 2:
             self.current_import_color = None
-            self.actionBlack.setChecked(False)
-            self.actionWhite.setChecked(False)
-            self.actionUpper_Left_Pixel.setChecked(True)
-            self.actionCustom_Color.setChecked(False)
+            self.actionBlackImport.setChecked(False)
+            self.actionWhiteImport.setChecked(False)
+            self.actionUpperLeftPixelImport.setChecked(True)
+            self.actionCustomColor.setChecked(False)
         elif mode == 3:
             self.current_import_color = self.settings.get('import_color', (0,0,0))
-            self.actionBlack.setChecked(False)
-            self.actionWhite.setChecked(False)
-            self.actionUpper_Left_Pixel.setChecked(False)
-            self.actionCustom_Color.setChecked(True)
+            self.actionBlackImport.setChecked(False)
+            self.actionWhiteImport.setChecked(False)
+            self.actionUpperLeftPixelImport.setChecked(False)
+            self.actionCustomColorImport.setChecked(True)
 
     def setCurrentPalette(self, palette, update_widgets = True):
         if palette == 0:
@@ -300,6 +308,23 @@ class MainWindowUi(QMainWindow):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
+                
+    def setCurrentBackgroundColor(self, mode):
+        if mode == 0:
+            self.current_background_color = (0,0,0)
+            self.actionBlackBackground.setChecked(True)
+            self.actionWhiteBackground.setChecked(False)
+            self.actionCustomColorBackground.setChecked(False)
+        elif mode == 1:
+            self.current_background_color = (255,255,255)
+            self.actionBlackBackground.setChecked(False)
+            self.actionWhiteBackground.setChecked(True)
+            self.actionCustomColorBackground.setChecked(False)
+        elif mode == 2:
+            self.current_background_color = self.settings.get('background_color_custom', (0,0,0))
+            self.actionBlackBackground.setChecked(False)
+            self.actionWhiteBackground.setChecked(False)
+            self.actionCustomColorBackground.setChecked(True)
 
     def loadObjectFromPath(self, filepath):
         try:

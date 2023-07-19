@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>448</height>
+    <height>320</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -162,19 +162,6 @@
         <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your name to appear by default in the author field&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>270</y>
-         <width>201</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Custom color for imports (R,G,B)</string>
-       </property>
-      </widget>
       <widget class="QCheckBox" name="checkBox_nozip">
        <property name="geometry">
         <rect>
@@ -186,88 +173,6 @@
        </property>
        <property name="text">
         <string>When saving also create unzipped folder of parkobj</string>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="comboBox_transparencycolor">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>240</y>
-         <width>141</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <item>
-        <property name="text">
-         <string>Black (0,0,0)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>White (255,255,255)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Upper Left Pixel</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Custom Color</string>
-        </property>
-       </item>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>240</y>
-         <width>231</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Default transparency setting for imports</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_R">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>270</y>
-         <width>42</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>255</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_G">
-       <property name="geometry">
-        <rect>
-         <x>70</x>
-         <y>270</y>
-         <width>42</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>255</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_B">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>270</y>
-         <width>42</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>255</number>
        </property>
       </widget>
       <widget class="QLabel" name="label_version_2">
@@ -306,39 +211,6 @@
        </property>
        <property name="value">
         <double>1.000000000000000</double>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="comboBox_palette">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>310</y>
-         <width>141</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <item>
-        <property name="text">
-         <string>Open RCT</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Old Object Maker</string>
-        </property>
-       </item>
-      </widget>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>310</y>
-         <width>231</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Default viewing palette</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_openpath_3">
@@ -380,27 +252,250 @@
         <string>...</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="spinBox_history_maximum">
+     </widget>
+     <widget class="QWidget" name="tab_sprite">
+      <attribute name="title">
+       <string>Sprite</string>
+      </attribute>
+      <widget class="QLabel" name="label_3">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>340</y>
+         <x>160</x>
+         <y>80</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default viewing palette</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>20</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default transparency setting for imports</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_transparency_color">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Black (0,0,0)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>White (255,255,255)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Upper Left Pixel</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Custom Color</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_B_transparancy">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>50</y>
          <width>42</width>
          <height>22</height>
         </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_R_transparancy">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
        </property>
       </widget>
       <widget class="QLabel" name="label_4">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>340</y>
+         <x>70</x>
+         <y>110</y>
          <width>241</width>
          <height>16</height>
         </rect>
        </property>
        <property name="text">
         <string>Maximum number of sprites stored in history</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_G_transparancy">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>50</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_history_maximum">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>110</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_palette">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Open RCT</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Old Object Maker</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>50</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Custom color for imports (R,G,B)</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>140</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default background</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_background_color">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>140</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Black (0,0,0)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>White (255,255,255)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Custom Color</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_B_background">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>170</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_R_background">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>170</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_G_background">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>170</y>
+         <width>42</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_6">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>170</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Custom color for background (R,G,B)</string>
        </property>
       </widget>
      </widget>
@@ -685,12 +780,6 @@
   <tabstop>lineEdit_author</tabstop>
   <tabstop>lineEdit_authorID</tabstop>
   <tabstop>checkBox_nozip</tabstop>
-  <tabstop>comboBox_transparencycolor</tabstop>
-  <tabstop>spinBox_R</tabstop>
-  <tabstop>spinBox_G</tabstop>
-  <tabstop>spinBox_B</tabstop>
-  <tabstop>comboBox_palette</tabstop>
-  <tabstop>spinBox_history_maximum</tabstop>
   <tabstop>doubleSpinBox_version</tabstop>
   <tabstop>pushButton_changeSaveDefault</tabstop>
   <tabstop>tabWidget</tabstop>
