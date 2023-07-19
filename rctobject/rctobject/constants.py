@@ -180,7 +180,7 @@ data_template_large =    {
   "id": "",
   "authors": "",
   "sourceGame": "custom",
-  "objectType": "scenery_small",
+  "objectType": "scenery_large",
   "properties": { "tiles": [
         {
           "x": 0,
