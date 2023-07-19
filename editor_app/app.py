@@ -152,7 +152,8 @@ class MainWindowUi(QMainWindow):
         self.actionPasteSprite.triggered.connect(self.spritePaste)
         self.actionCopySprite.triggered.connect(self.spriteCopy)
 
-        self.actionSettings.triggered.connect(self.changeSettings)
+        self.actionSettings.triggered.connect(lambda x: self.changeSettings(update_widgets = True))
+        
         self.actionBlackImport.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
         self.actionWhiteImport.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
         self.actionUpperLeftPixelImport.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
@@ -334,11 +335,11 @@ class MainWindowUi(QMainWindow):
             self.actionWhiteBackground.setChecked(True)
             self.actionCustomColorBackground.setChecked(False)
         elif mode == 2:
-            self.current_background_color = self.settings.get('background_color_custom', (0,0,0))
+            self.current_background_color = tuple(self.settings.get('background_color_custom', (0,0,0)))
             self.actionBlackBackground.setChecked(False)
             self.actionWhiteBackground.setChecked(False)
             self.actionCustomColorBackground.setChecked(True)
-            
+           
         if update_widgets:
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
