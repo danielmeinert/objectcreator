@@ -248,7 +248,7 @@ class MainWindowUi(QMainWindow):
                 self.settings['transparency_color'] = 0
                 self.settings['import_color'] = [0,0,0]
                 self.settings['background_color'] = 0
-                self.settings['background_color_custom'] = [0,0,0]
+                self.settings['background_color_custom'] = (0,0,0)
                 self.settings['palette'] = 0
                 self.settings['history_maximum'] = 5
 
@@ -258,7 +258,7 @@ class MainWindowUi(QMainWindow):
         self.last_open_folder = self.settings.get('opendefault', None)
         self.setCurrentImportColor(self.settings['transparency_color'])
         self.setCurrentPalette(self.settings['palette'], update_widgets = False)
-        self.setCurrentBackgroundColor(self.settings.get('background_color', 0))
+        self.setCurrentBackgroundColor(self.settings.get('background_color', 0), update_widgets = False)
 
 
     def saveSettings(self):
@@ -275,6 +275,7 @@ class MainWindowUi(QMainWindow):
             self.openpath = self.settings['openpath']
             self.setCurrentImportColor(self.settings['transparency_color'])
             self.setCurrentPalette(self.settings['palette'], update_widgets = update_widgets)
+            self.setCurrentBackgroundColor(self.settings['background_color'], update_widgets = update_widgets)
 
             self.saveSettings()
 
@@ -321,7 +322,7 @@ class MainWindowUi(QMainWindow):
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
                 
-    def setCurrentBackgroundColor(self, mode):
+    def setCurrentBackgroundColor(self, mode, update_widgets = True):
         if mode == 0:
             self.current_background_color = (0,0,0)
             self.actionBlackBackground.setChecked(True)
@@ -337,6 +338,24 @@ class MainWindowUi(QMainWindow):
             self.actionBlackBackground.setChecked(False)
             self.actionWhiteBackground.setChecked(False)
             self.actionCustomColorBackground.setChecked(True)
+            
+        if update_widgets:
+            for index in range(self.sprite_tabs.count()):
+                tab = self.sprite_tabs.widget(index)
+                tab.view.setStyleSheet("QLabel{"
+                                      f"background-color :  rgb{self.current_background_color};"
+                                      "}")
+                
+            for index in range(self.object_tabs.count()):
+                tab = self.object_tabs.widget(index)
+                tab.sprites_tab.sprite_view_main.setStyleSheet("QLabel{"
+                                                               f"background-color :  rgb{self.current_background_color};"
+                                                               "}")
+                for _, preview in enumerate(tab.sprites_tab.sprite_preview):
+                    preview.setStyleSheet("QLabel{"
+                                          f"background-color :  rgb{self.current_background_color};"
+                                          "}")
+
 
     def loadObjectFromPath(self, filepath):
         try:

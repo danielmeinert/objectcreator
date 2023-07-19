@@ -313,7 +313,7 @@
         </property>
        </item>
       </widget>
-      <widget class="QSpinBox" name="spinBox_B_transparancy">
+      <widget class="QSpinBox" name="spinBox_B_transparency">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -326,7 +326,7 @@
         <number>255</number>
        </property>
       </widget>
-      <widget class="QSpinBox" name="spinBox_R_transparancy">
+      <widget class="QSpinBox" name="spinBox_R_transparency">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -352,7 +352,7 @@
         <string>Maximum number of sprites stored in history</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="spinBox_G_transparancy">
+      <widget class="QSpinBox" name="spinBox_G_transparency">
        <property name="geometry">
         <rect>
          <x>60</x>

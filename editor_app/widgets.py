@@ -493,6 +493,8 @@ class SpritesTabSS(QWidget):
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1, self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
             self.sprite_preview[rot].mousePressEvent = (lambda e, rot=rot: self.previewClicked(rot))
+            self.sprite_preview[rot].setStyleSheet(f"background-color :  rgb{self.main_window.current_background_color};")
+
             self.updatePreview(rot)
 
 
@@ -610,8 +612,8 @@ class SpritesTabSS(QWidget):
 
     def previewClicked(self, rot):
         old_rot = self.o.rotation
-        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:2px outset black;")
-        self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
+        self.sprite_preview[old_rot].setStyleSheet(f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset rgb{self.main_window.current_background_color};")
+        self.sprite_preview[rot].setStyleSheet(f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset green;")
 
         self.o.rotateObject(rot)
 
@@ -741,6 +743,10 @@ class SpriteTab(QWidget):
         self.canvas_size = 200
 
         self.lastpos = (0,0)
+        
+        self.view.setStyleSheet("QLabel{"
+                              f"background-color :  rgb{self.main_window.current_background_color};"
+                              "}")
 
         # Sprite zoom
         self.zoom_factor = 1
@@ -1460,9 +1466,9 @@ class ChangeSettingsUi(QDialog):
 
         self.checkBox_nozip.setChecked(settings.get('no_zip', False))
         self.comboBox_transparency_color.setCurrentIndex(settings.get('transparency_color', 0))
-        self.spinBox_R_transparancy.setValue(settings.get('import_color', (0,0,0))[0])
-        self.spinBox_G_transparancy.setValue(settings.get('import_color', (0,0,0))[1])
-        self.spinBox_B_transparancy.setValue(settings.get('import_color', (0,0,0))[2])
+        self.spinBox_R_transparency.setValue(settings.get('import_color', (0,0,0))[0])
+        self.spinBox_G_transparency.setValue(settings.get('import_color', (0,0,0))[1])
+        self.spinBox_B_transparency.setValue(settings.get('import_color', (0,0,0))[2])
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
 
         self.comboBox_palette.setCurrentIndex(settings.get('palette', 0))
@@ -1523,7 +1529,7 @@ class ChangeSettingsUi(QDialog):
         settings['transparency_color'] = self.comboBox_transparency_color.currentIndex()
         settings['import_color'] = [self.spinBox_R_transparency.value(),self.spinBox_G_transparency.value(),self.spinBox_B_transparency.value()]
         settings['background_color'] = self.comboBox_background_color.currentIndex()
-        settings['background_color_custom'] = [self.spinBox_R_background.value(),self.spinBox_G_background.value(),self.spinBox_B_background.value()]
+        settings['background_color_custom'] = (self.spinBox_R_background.value(),self.spinBox_G_background.value(),self.spinBox_B_background.value())
         settings['palette'] = self.comboBox_palette.currentIndex()
         settings['history_maximum'] = self.spinBox_history_maximum.value()
 

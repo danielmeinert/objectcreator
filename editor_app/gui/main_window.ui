@@ -694,21 +694,29 @@ border: 1px solid darkgrey;}
    </property>
   </action>
   <action name="actionBlackBackground">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Black</string>
    </property>
   </action>
   <action name="actionWhiteBackground">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>White</string>
    </property>
   </action>
   <action name="actionCustomColorBackground">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Custom Color</string>
    </property>
   </action>
-
   <action name="actionAbout">
    <property name="text">
     <string>About...</string>
