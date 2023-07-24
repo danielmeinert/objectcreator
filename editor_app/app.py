@@ -153,7 +153,7 @@ class MainWindowUi(QMainWindow):
         self.actionCopySprite.triggered.connect(self.spriteCopy)
 
         self.actionSettings.triggered.connect(lambda x: self.changeSettings(update_widgets = True))
-        
+
         self.actionBlackImport.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
         self.actionWhiteImport.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
         self.actionUpperLeftPixelImport.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
@@ -161,7 +161,7 @@ class MainWindowUi(QMainWindow):
 
         self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
         self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
-        
+
         self.actionBlackBackground.triggered.connect(lambda x, mode=0: self.setCurrentBackgroundColor(mode))
         self.actionWhiteBackground.triggered.connect(lambda x, mode=1: self.setCurrentBackgroundColor(mode))
         self.actionCustomColorBackground.triggered.connect(lambda x, mode=2: self.setCurrentBackgroundColor(mode))
@@ -322,7 +322,7 @@ class MainWindowUi(QMainWindow):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
-                
+
     def setCurrentBackgroundColor(self, mode, update_widgets = True):
         if mode == 0:
             self.current_background_color = (0,0,0)
@@ -339,14 +339,14 @@ class MainWindowUi(QMainWindow):
             self.actionBlackBackground.setChecked(False)
             self.actionWhiteBackground.setChecked(False)
             self.actionCustomColorBackground.setChecked(True)
-           
+
         if update_widgets:
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.setStyleSheet("QLabel{"
                                       f"background-color :  rgb{self.current_background_color};"
                                       "}")
-                
+
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.sprites_tab.sprite_view_main.setStyleSheet("QLabel{"

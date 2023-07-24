@@ -120,6 +120,9 @@ class ObjectTabSS(QWidget):
         self.updateCurrentMainView()
 
     def colorRemapToAll(self, color_remap, selected_colors):
+        if self.locked:
+            self.locked_sprite_tab.addSpriteToHistoryAllViews()
+
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.remapColor(color, color_remap)
@@ -127,6 +130,10 @@ class ObjectTabSS(QWidget):
         self.sprites_tab.updateAllViews()
 
     def colorChangeBrightnessAll(self, step, selected_colors):
+        if self.locked:
+            self.locked_sprite_tab.addSpriteToHistoryAllViews()
+
+
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.changeBrightnessColor(step, color)
@@ -134,6 +141,10 @@ class ObjectTabSS(QWidget):
         self.sprites_tab.updateAllViews()
 
     def colorRemoveAll(self, selected_colors):
+        if self.locked:
+            self.locked_sprite_tab.addSpriteToHistoryAllViews()
+
+
         for _, sprite in self.o.sprites.items():
             for color in selected_colors:
                 sprite.removeColor(color)
@@ -743,7 +754,7 @@ class SpriteTab(QWidget):
         self.canvas_size = 200
 
         self.lastpos = (0,0)
-        
+
         self.view.setStyleSheet("QLabel{"
                               f"background-color :  rgb{self.main_window.current_background_color};"
                               "}")
@@ -1293,6 +1304,21 @@ class SpriteTab(QWidget):
         self.history[index].append(sprite)
         self.history_redo[index] = []
 
+    def addSpriteToHistoryAllViews(self):
+        if not self.locked:
+            return
+
+        for index, sprite_import in enumerate(self.object_tab.o.sprites.items()):
+            sprite = copy(sprite_import[1])
+
+            if len(self.history[index]) == self.main_window.settings['history_maximum']:
+                self.history[index].pop(0)
+
+
+            self.history[index].append(sprite)
+            self.history_redo[index] = []
+
+
     def undo(self):
         sprite_old, index = self.giveSprite()
 
@@ -1327,6 +1353,7 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def paste(self):
+        self.addSpriteToHistory()
         if self.locked:
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
