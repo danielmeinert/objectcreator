@@ -77,7 +77,10 @@ class Updater(QtCore.QThread):
             self.labelChanged.emit('No internet connection. Aborting update.')
             return 
 
-        url = response.json()['assets'][0]['browser_download_url']
+        for asset in response.json()['assets']:
+            if asset['name'].startswith('ObjectCreatorInstaller-windows'):
+                url = asset['browser_download_url']
+                break
         
         self.labelChanged.emit('Downloading update installer...')        
         filename = self.download_file(url, self.cache)
