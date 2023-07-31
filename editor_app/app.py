@@ -341,6 +341,7 @@ class MainWindowUi(QMainWindow):
             self.actionCustomColorBackground.setChecked(True)
 
         if update_widgets:
+            self.toolbox.toolChanged.emit(self.toolbox)
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.setStyleSheet("QLabel{"

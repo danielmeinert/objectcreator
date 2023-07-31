@@ -21,7 +21,7 @@ from rctobject import palette as pal
 
 
 class ToolCursors(QtGui.QCursor):
-    def __init__(self, toolbox, zoom_factor):
+    def __init__(self, toolbox, zoom_factor, color = [0,0,0]):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
 
@@ -31,7 +31,7 @@ class ToolCursors(QtGui.QCursor):
             size = int(brushsize*zoom_factor)+2
             im = Image.new('RGBA', (size, size))
             draw = ImageDraw.Draw(im)
-            draw.line([(0,0), (size-1,0), (size-1,size-1), (0,size-1), (0,0)], fill = (255,255,255,255), width =1)
+            draw.line([(0,0), (size-1,0), (size-1,size-1), (0,size-1), (0,0)], fill = (color[0],color[1],color[2],255), width =1)
 
             im_qt = ImageQt(im)
 
@@ -90,26 +90,26 @@ class ToolBoxWidget(QWidget):
         container_lr = QHBoxLayout()
         container_lr.setContentsMargins(0,0,0,0)
         brush_widget.setLayout(container_lr)
-        
+
         container_btn = QVBoxLayout()
         container_dial_brushsize  = QVBoxLayout()
         container_dial_airbrush_strength  = QVBoxLayout()
-        
+
         container_btn.setContentsMargins(0,3,0,3)
         container_dial_brushsize.setContentsMargins(0,3,0,3)
         container_dial_brushsize.setSpacing(2)
         container_dial_airbrush_strength.setContentsMargins(0,3,0,3)
         container_dial_airbrush_strength.setSpacing(2)
 
-        
+
         brush_buttons = QWidget()
         dial_brushsize_widget = QWidget()
         dial_airbrush_strength_widget = QWidget()
-        
+
         brush_buttons.setLayout(container_btn)
         dial_brushsize_widget.setLayout(container_dial_brushsize)
         dial_airbrush_strength_widget.setLayout(container_dial_airbrush_strength)
-        
+
         container_lr.addWidget(dial_brushsize_widget)
         container_lr.addWidget(brush_buttons)
         container_lr.addWidget(dial_airbrush_strength_widget)
@@ -124,7 +124,7 @@ class ToolBoxWidget(QWidget):
         self.dial_brushsize.setNotchesVisible(True)
 
         self.dial_brushsize.valueChanged.connect(self.setBrushsize)
-        
+
         label = QLabel('Size')
         container_dial_brushsize.addWidget(label)
         container_dial_brushsize.addWidget(self.dial_brushsize)
@@ -143,8 +143,8 @@ class ToolBoxWidget(QWidget):
             btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
             self.brush_buttons[brush] = btn
             container_btn.addWidget(btn)
-            
-            
+
+
 
         self.dial_airbrush_strength = QDial()
         self.dial_airbrush_strength.setFixedSize(55, 55)
@@ -154,7 +154,7 @@ class ToolBoxWidget(QWidget):
         self.dial_airbrush_strength.setPageStep(1)
         self.dial_airbrush_strength.setTracking(False)
         self.dial_airbrush_strength.setNotchesVisible(True)
-        
+
         label = QLabel('Strength')
         container_dial_airbrush_strength.addWidget(label)
         container_dial_airbrush_strength.addWidget(self.dial_airbrush_strength)

@@ -835,7 +835,8 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def toolChanged(self, toolbox):
-        cursor = cwdg.ToolCursors(toolbox, self.zoom_factor)
+        color = [255-c for c in self.main_window.current_background_color]
+        cursor = cwdg.ToolCursors(toolbox, self.zoom_factor, color)
         self.view.setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
