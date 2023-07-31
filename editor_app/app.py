@@ -10,7 +10,7 @@
 
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
-from PyQt5 import uic, QtGui, QtCore
+from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
 import traceback
@@ -40,18 +40,24 @@ from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
 
-import ctypes
 #import pyi_splash
 
 # Update the text on the splash screen
 #pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.1'
+VERSION = 'v0.1.2'
 
 
 myappid = f'objectcreator.{VERSION}' # arbitrary string
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+try:
+    # Include in try/except block if you're also targeting Mac/Linux
+    from ctypes import windll  # Only exists on Windows.
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
+
 
 class MainWindowUi(QMainWindow):
     def __init__(self, app_data_path, opening_objects = None):
@@ -483,13 +489,15 @@ class MainWindowUi(QMainWindow):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        object_tab.setCurrentSprite(sprite_tab.sprite)
+        if object_tab:
+            object_tab.setCurrentSprite(sprite_tab.sprite)
 
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
+        if sprite_tab:
+            sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
 
     ### Menubar actions
 
@@ -672,6 +680,13 @@ class MainWindowUi(QMainWindow):
             if extension in ['.parkobj', '.dat', '.json']:
                 self.loadObjectFromPath(filepath)
 
+    def handleMessage(self, message):
+        for filepath in message.split(' '):
+            extension = splitext(filepath)[1].lower()
+
+            if extension in ['.parkobj', '.dat', '.json']:
+                self.loadObjectFromPath(filepath)
+
 
 
 
@@ -708,6 +723,66 @@ def versionCheck(version):
     return False
 
 
+
+### from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
+
+class SingleApplication(QApplication):
+    messageAvailable = QtCore.pyqtSignal(object)
+
+    def __init__(self, argv, key):
+        super().__init__(argv)
+        # cleanup (only needed for unix)
+        QtCore.QSharedMemory(key).attach()
+        self._memory = QtCore.QSharedMemory(self)
+        self._memory.setKey(key)
+        if self._memory.attach():
+            self._running = True
+        else:
+            self._running = False
+            if not self._memory.create(1):
+                raise RuntimeError(self._memory.errorString())
+
+    def isRunning(self):
+        return self._running
+
+class SingleApplicationWithMessaging(SingleApplication):
+    def __init__(self, argv, key):
+        super().__init__(argv, key)
+        self._key = key
+        self._timeout = 1000
+        self._server = QtNetwork.QLocalServer(self)
+        if not self.isRunning():
+            self._server.newConnection.connect(self.handleMessage)
+            self._server.listen(self._key)
+
+    def handleMessage(self):
+        socket = self._server.nextPendingConnection()
+        if socket.waitForReadyRead(self._timeout):
+            self.messageAvailable.emit(
+                socket.readAll().data().decode('utf-8'))
+            socket.disconnectFromServer()
+        else:
+            QtCore.qDebug(socket.errorString())
+
+    def sendMessage(self, message):
+        if self.isRunning():
+            socket = QtNetwork.QLocalSocket(self)
+            socket.connectToServer(self._key, QtCore.QIODevice.WriteOnly)
+            if not socket.waitForConnected(self._timeout):
+                print(socket.errorString())
+                return False
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
+            socket.write(message)
+            if not socket.waitForBytesWritten(self._timeout):
+                print(socket.errorString())
+                return False
+            socket.disconnectFromServer()
+            return True
+        return False
+
+
+
 def main():
     # if not QApplication.instance():
     #     app = QApplication(sys.argv)
@@ -715,13 +790,18 @@ def main():
     #     app = QApplication.instance()
 
     #pyi_splash.close()
-    app = QApplication(sys.argv)
+
+    app = SingleApplicationWithMessaging(sys.argv, myappid)
+    if app.isRunning():
+        app.sendMessage(' '.join(sys.argv[1:]))
+        sys.exit(1)
 
     app_data_path = join(os.environ['APPDATA'],'Object Creator')
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
     main = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
+    app.messageAvailable.connect(main.handleMessage)
     main.show()
     main.activateWindow()
 

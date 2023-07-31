@@ -229,7 +229,7 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string notr="true">Original DAT identifyer from the loaded DAT object.</string>
+            <string notr="true">Original DAT identifier from the loaded DAT object.</string>
            </property>
            <property name="text">
             <string/>
