@@ -686,7 +686,8 @@ class MainWindowUi(QMainWindow):
 
             if extension in ['.parkobj', '.dat', '.json']:
                 self.loadObjectFromPath(filepath)
-
+        else:
+            self.activateWindow()
 
 
 
@@ -726,7 +727,7 @@ def versionCheck(version):
 
 ### from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
 
-class SingleApplication(QApplication):
+class SingleApplicationWithMessaging(QApplication):
     messageAvailable = QtCore.pyqtSignal(object)
 
     def __init__(self, argv, key):
@@ -742,18 +743,16 @@ class SingleApplication(QApplication):
             if not self._memory.create(1):
                 raise RuntimeError(self._memory.errorString())
 
-    def isRunning(self):
-        return self._running
 
-class SingleApplicationWithMessaging(SingleApplication):
-    def __init__(self, argv, key):
-        super().__init__(argv, key)
         self._key = key
         self._timeout = 1000
         self._server = QtNetwork.QLocalServer(self)
         if not self.isRunning():
             self._server.newConnection.connect(self.handleMessage)
             self._server.listen(self._key)
+
+    def isRunning(self):
+        return self._running
 
     def handleMessage(self):
         socket = self._server.nextPendingConnection()

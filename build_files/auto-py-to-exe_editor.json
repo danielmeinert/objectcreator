@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "app.py"
+   "value": "editor_app/app.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui/icon.ico"
+   "value": "C:/Users/puvlh/Documents/GitHub/objectcreator/editor_app/gui/icon.ico"
   },
   {
    "optionDest": "name",
@@ -87,15 +87,15 @@
   },
   {
    "optionDest": "pathex",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/customwidgets"
+   "value": "C:/Users/puvlh/Documents/GitHub/objectcreator/customwidgets"
   },
   {
    "optionDest": "pathex",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/rctobject"
+   "value": "C:/Users/puvlh/Documents/GitHub/objectcreator/rctobject"
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/gui;gui/"
+   "value": "C:/Users/puvlh/Documents/GitHub/objectcreator/editor_app/gui;gui/"
   },
   {
    "optionDest": "collect_data",
@@ -103,7 +103,7 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Daniel/Documents/GitHub/objectmaker/editor_app/res;res/"
+   "value": "C:/Users/puvlh/Documents/GitHub/objectcreator/editor_app/res;res/"
   }
  ],
  "nonPyinstallerOptions": {
