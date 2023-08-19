@@ -257,14 +257,14 @@ QTabBar::tab:selected {
           <widget class="QPushButton" name="pushButton_clearAllLang">
            <property name="geometry">
             <rect>
-             <x>150</x>
+             <x>120</x>
              <y>143</y>
-             <width>111</width>
+             <width>141</width>
              <height>23</height>
             </rect>
            </property>
            <property name="text">
-            <string>Clear All Languages</string>
+            <string>Clear All Other Languages</string>
            </property>
           </widget>
          </widget>
@@ -352,7 +352,7 @@ QTabBar::tab:selected {
            </rect>
           </property>
           <property name="text">
-           <string>Clearence</string>
+           <string>Clearance</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_subtype">

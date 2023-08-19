@@ -215,8 +215,12 @@ class MainWindowUi(QMainWindow):
                 self.settings['opendefault'] =  "%USERPROFILE%/Documents/OpenRCT2/object"
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
+
+                self.settings['default_remaps'] = ['NoColor', 'NoColor', 'NoColor']
                 self.settings['no_zip'] = False
+                self.settings['clear_languages'] = False
                 self.settings['version'] = '1.0'
+
                 self.settings['transparency_color'] = 0
                 self.settings['import_color'] = [0,0,0]
                 self.settings['background_color'] = 0
@@ -312,7 +316,7 @@ class MainWindowUi(QMainWindow):
             self.actionCustomColorBackground.setChecked(True)
 
         if update_widgets:
-            self.toolbox.toolChanged.emit(self.toolbox)
+            self.tool_widget.toolbox.toolChanged.emit(self.tool_widget.toolbox)
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.setStyleSheet("QLabel{"
@@ -721,10 +725,10 @@ def main():
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
-    main = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
-    app.messageAvailable.connect(main.handleMessage)
-    main.show()
-    main.activateWindow()
+    window = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
+    app.messageAvailable.connect(window.handleMessage)
+    window.show()
+    window.activateWindow()
 
     app.exec_()
 
