@@ -45,7 +45,7 @@ from rctobject import palette as pal
 #pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.2'
+VERSION = 'v0.1.3'
 
 
 myappid = f'objectcreator.{VERSION}' # arbitrary string
