@@ -7,7 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QListWidget, QListWidgetItem, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -198,7 +198,7 @@ class SpriteTab(QWidget):
         else:
             self.locked = False
             self.object_tab = None
-            self.sprite = spr.Sprite(None)
+            self.layers = [spr.Sprite(None)]
             self.history = [[]]
             self.history_redo = [[]]
 
@@ -242,7 +242,9 @@ class SpriteTab(QWidget):
             self.object_tab = None
 
     def setSprite(self, sprite):
-        self.sprite = copy(sprite)
+        index = self.main_window.getCurrentLayerIndex()
+
+        self.layers[index] = copy(sprite)
 
         self.updateView()
 
@@ -888,7 +890,27 @@ class SpriteViewWidget(QScrollArea):
                 self.ratio = self.defaultRatio
 
 
+<<<<<<< Updated upstream
 # Tools
+=======
+class LayersWidget(QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        uic.loadUi(aux.resource_path('gui/tools_sprites.ui'), self)
+
+
+        self.main_window = main_window
+
+        self.setDragDropMode(self.InternalMove)
+
+    def updateList(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+
+
+#### Tools
+>>>>>>> Stashed changes
 
 class ToolWidgetSprite(QWidget):
     def __init__(self, main_window):

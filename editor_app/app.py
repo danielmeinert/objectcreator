@@ -133,6 +133,9 @@ class MainWindowUi(QMainWindow):
         self.tool_widget = wdg.ToolWidgetSprite(self)
         container.addWidget(self.tool_widget)
 
+        self.layer_widget = wdg.LayersWidget(self)
+        container.addWidget(self.layer_widget)
+
         #function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
         self.giveBrush = self.tool_widget.toolbox.giveBrush
@@ -140,6 +143,8 @@ class MainWindowUi(QMainWindow):
         self.giveAirbrushStrength = self.tool_widget.toolbox.giveAirbrushStrength
 
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
+
+        self.giveCurrentLayerIndex = self.layer_widget.layers_list.currentIndex
 
         #Load empty object if not started with objects
 
