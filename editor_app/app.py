@@ -23,9 +23,10 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
-import io, os
+import io
+import os
 from os import getcwd
-from os.path import splitext, split, abspath,join, exists
+from os.path import splitext, split, abspath, join, exists
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
@@ -39,16 +40,16 @@ from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
 
-#import pyi_splash
+# import pyi_splash
 
 # Update the text on the splash screen
-#pyi_splash.update_text("Loading Object Creator")
+# pyi_splash.update_text("Loading Object Creator")
 
 
 VERSION = 'v0.1.2'
 
 
-myappid = f'objectcreator.{VERSION}' # arbitrary string
+myappid = f'objectcreator.{VERSION}'  # arbitrary string
 
 try:
     # Include in try/except block if you're also targeting Mac/Linux
@@ -59,7 +60,7 @@ except ImportError:
 
 
 class MainWindowUi(QMainWindow):
-    def __init__(self, app_data_path, opening_objects = None):
+    def __init__(self, app_data_path, opening_objects=None):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/main_window.ui'), self)
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
@@ -70,13 +71,11 @@ class MainWindowUi(QMainWindow):
         self.bounding_boxes = aux.BoundingBoxes()
         self.symm_axes = aux.SymmetryAxes()
 
-
         self.setAcceptDrops(True)
 
-        ##### Tabs
+        # Tabs
         self.new_object_count = 1
         self.new_sprite_count = 1
-
 
         self.object_tabs = self.findChild(
             QTabWidget, "tabWidget_objects")
@@ -93,13 +92,16 @@ class MainWindowUi(QMainWindow):
 
         self.button_lock = self.findChild(QToolButton, "toolButton_lock")
         self.button_lock.clicked.connect(self.lockClicked)
-        self.button_push_sprite = self.findChild(QToolButton, "toolButton_pushSprite")
+        self.button_push_sprite = self.findChild(
+            QToolButton, "toolButton_pushSprite")
         self.button_push_sprite.clicked.connect(self.pushSprite)
-        self.button_pull_sprite = self.findChild(QToolButton, "toolButton_pullSprite")
+        self.button_pull_sprite = self.findChild(
+            QToolButton, "toolButton_pullSprite")
         self.button_pull_sprite.clicked.connect(self.pullSprite)
 
-        #### Menubar
-        self.actionSmallScenery.triggered.connect(lambda x: self.newObject(cts.Type.SMALL))
+        # Menubar
+        self.actionSmallScenery.triggered.connect(
+            lambda x: self.newObject(cts.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.openObjectFile)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
@@ -110,30 +112,40 @@ class MainWindowUi(QMainWindow):
         self.actionPasteSprite.triggered.connect(self.spritePaste)
         self.actionCopySprite.triggered.connect(self.spriteCopy)
 
-        self.actionSettings.triggered.connect(lambda x: self.changeSettings(update_widgets = True))
+        self.actionSettings.triggered.connect(
+            lambda x: self.changeSettings(update_widgets=True))
 
-        self.actionBlackImport.triggered.connect(lambda x, mode=0: self.setCurrentImportColor(mode))
-        self.actionWhiteImport.triggered.connect(lambda x, mode=1: self.setCurrentImportColor(mode))
-        self.actionUpperLeftPixelImport.triggered.connect(lambda x, mode=2: self.setCurrentImportColor(mode))
-        self.actionCustomColorImport.triggered.connect(lambda x, mode=3: self.setCurrentImportColor(mode))
+        self.actionBlackImport.triggered.connect(
+            lambda x, mode=0: self.setCurrentImportColor(mode))
+        self.actionWhiteImport.triggered.connect(
+            lambda x, mode=1: self.setCurrentImportColor(mode))
+        self.actionUpperLeftPixelImport.triggered.connect(
+            lambda x, mode=2: self.setCurrentImportColor(mode))
+        self.actionCustomColorImport.triggered.connect(
+            lambda x, mode=3: self.setCurrentImportColor(mode))
 
-        self.actionPaletteOpenRCT.triggered.connect(lambda x, palette=0: self.setCurrentPalette(palette))
-        self.actionPaletteOld.triggered.connect(lambda x, palette=1: self.setCurrentPalette(palette))
+        self.actionPaletteOpenRCT.triggered.connect(
+            lambda x, palette=0: self.setCurrentPalette(palette))
+        self.actionPaletteOld.triggered.connect(
+            lambda x, palette=1: self.setCurrentPalette(palette))
 
-        self.actionBlackBackground.triggered.connect(lambda x, mode=0: self.setCurrentBackgroundColor(mode))
-        self.actionWhiteBackground.triggered.connect(lambda x, mode=1: self.setCurrentBackgroundColor(mode))
-        self.actionCustomColorBackground.triggered.connect(lambda x, mode=2: self.setCurrentBackgroundColor(mode))
+        self.actionBlackBackground.triggered.connect(
+            lambda x, mode=0: self.setCurrentBackgroundColor(mode))
+        self.actionWhiteBackground.triggered.connect(
+            lambda x, mode=1: self.setCurrentBackgroundColor(mode))
+        self.actionCustomColorBackground.triggered.connect(
+            lambda x, mode=2: self.setCurrentBackgroundColor(mode))
 
         self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
         self.actionAbout.triggered.connect(self.aboutPage)
 
-        ### Left bar
+        # Left bar
         container = self.container_left_bar.layout()
 
         self.tool_widget = wdg.ToolWidgetSprite(self)
         container.addWidget(self.tool_widget)
 
-        #function wrappers
+        # function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
         self.giveBrush = self.tool_widget.toolbox.giveBrush
         self.giveBrushsize = self.tool_widget.toolbox.giveBrushsize
@@ -141,20 +153,21 @@ class MainWindowUi(QMainWindow):
 
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 
-        #Load empty object if not started with objects
+        # Load empty object if not started with objects
 
         if not opening_objects:
-            self.newObject(cts.Type.SMALL)
+            self.spriteNew()
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
 
         self.show()
-        self.checkForUpdates(silent = True)
+        self.checkForUpdates(silent=True)
 
-    def checkForUpdates(self, silent = False):
+    def checkForUpdates(self, silent=False):
         try:
-            response = requests.get("https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
+            response = requests.get(
+                "https://api.github.com/repos/danielmeinert/objectcreator/releases/latest")
         except requests.exceptions.ConnectionError:
             return
 
@@ -186,19 +199,17 @@ class MainWindowUi(QMainWindow):
                 This only works if the program has been installed via the installer.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
-
         reply = msg.exec_()
 
         # Only in the .exe program the updater can be used
         if reply == QMessageBox.Yes:
-            #quit and run updater
+            # quit and run updater
             try:
                 os.execl('updater.exe', 'updater.exe')
             except FileNotFoundError:
                 return
 
-
-    ### Internal methods
+    # Internal methods
 
     def loadSettings(self):
         try:
@@ -206,25 +217,26 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open(f'{path}/config.json'))
         except FileNotFoundError:
             self.settings = {}
-            self.changeSettings(update_widgets = False)
+            self.changeSettings(update_widgets=False)
 
-            #If user refused to enter settings, use hard coded settings
+            # If user refused to enter settings, use hard coded settings
             if not self.settings:
                 self.settings['openpath'] = "%USERPROFILE%/Documents/OpenRCT2"
                 self.settings['savedefault'] = ''
-                self.settings['opendefault'] =  "%USERPROFILE%/Documents/OpenRCT2/object"
+                self.settings['opendefault'] = "%USERPROFILE%/Documents/OpenRCT2/object"
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
 
-                self.settings['default_remaps'] = ['NoColor', 'NoColor', 'NoColor']
+                self.settings['default_remaps'] = [
+                    'NoColor', 'NoColor', 'NoColor']
                 self.settings['no_zip'] = False
                 self.settings['clear_languages'] = False
                 self.settings['version'] = '1.0'
 
                 self.settings['transparency_color'] = 0
-                self.settings['import_color'] = [0,0,0]
+                self.settings['import_color'] = [0, 0, 0]
                 self.settings['background_color'] = 0
-                self.settings['background_color_custom'] = (0,0,0)
+                self.settings['background_color_custom'] = (0, 0, 0)
                 self.settings['palette'] = 0
                 self.settings['history_maximum'] = 5
 
@@ -233,16 +245,16 @@ class MainWindowUi(QMainWindow):
         self.openpath = self.settings['openpath']
         self.last_open_folder = self.settings.get('opendefault', None)
         self.setCurrentImportColor(self.settings['transparency_color'])
-        self.setCurrentPalette(self.settings['palette'], update_widgets = False)
-        self.setCurrentBackgroundColor(self.settings.get('background_color', 0), update_widgets = False)
-
+        self.setCurrentPalette(self.settings['palette'], update_widgets=False)
+        self.setCurrentBackgroundColor(self.settings.get(
+            'background_color', 0), update_widgets=False)
 
     def saveSettings(self):
         path = self.app_data_path
         with open(f'{path}/config.json', mode='w') as file:
             jdump(obj=self.settings, fp=file, indent=2)
 
-    def changeSettings(self, update_widgets = True):
+    def changeSettings(self, update_widgets=True):
         dialog = wdg.ChangeSettingsUi(self.settings)
 
         if dialog.exec():
@@ -250,20 +262,22 @@ class MainWindowUi(QMainWindow):
 
             self.openpath = self.settings['openpath']
             self.setCurrentImportColor(self.settings['transparency_color'])
-            self.setCurrentPalette(self.settings['palette'], update_widgets = update_widgets)
-            self.setCurrentBackgroundColor(self.settings['background_color'], update_widgets = update_widgets)
+            self.setCurrentPalette(
+                self.settings['palette'], update_widgets=update_widgets)
+            self.setCurrentBackgroundColor(
+                self.settings['background_color'], update_widgets=update_widgets)
 
             self.saveSettings()
 
     def setCurrentImportColor(self, mode):
         if mode == 0:
-            self.current_import_color = (0,0,0)
+            self.current_import_color = (0, 0, 0)
             self.actionBlackImport.setChecked(True)
             self.actionWhiteImport.setChecked(False)
             self.actionUpperLeftPixelImport.setChecked(False)
             self.actionCustomColorImport.setChecked(False)
         elif mode == 1:
-            self.current_import_color = (255,255,255)
+            self.current_import_color = (255, 255, 255)
             self.actionBlackImport.setChecked(False)
             self.actionWhiteImport.setChecked(True)
             self.actionUpperLeftPixelImport.setChecked(False)
@@ -275,13 +289,14 @@ class MainWindowUi(QMainWindow):
             self.actionUpperLeftPixelImport.setChecked(True)
             self.actionCustomColor.setChecked(False)
         elif mode == 3:
-            self.current_import_color = self.settings.get('import_color', (0,0,0))
+            self.current_import_color = self.settings.get(
+                'import_color', (0, 0, 0))
             self.actionBlackImport.setChecked(False)
             self.actionWhiteImport.setChecked(False)
             self.actionUpperLeftPixelImport.setChecked(False)
             self.actionCustomColorImport.setChecked(True)
 
-    def setCurrentPalette(self, palette, update_widgets = True):
+    def setCurrentPalette(self, palette, update_widgets=True):
         if palette == 0:
             self.current_palette = pal.orct
             self.actionPaletteOpenRCT.setChecked(True)
@@ -292,25 +307,27 @@ class MainWindowUi(QMainWindow):
             self.actionPaletteOld.setChecked(True)
 
         if update_widgets:
-            self.tool_widget.color_select_panel.switchPalette(self.current_palette)
+            self.tool_widget.color_select_panel.switchPalette(
+                self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
 
-    def setCurrentBackgroundColor(self, mode, update_widgets = True):
+    def setCurrentBackgroundColor(self, mode, update_widgets=True):
         if mode == 0:
-            self.current_background_color = (0,0,0)
+            self.current_background_color = (0, 0, 0)
             self.actionBlackBackground.setChecked(True)
             self.actionWhiteBackground.setChecked(False)
             self.actionCustomColorBackground.setChecked(False)
         elif mode == 1:
-            self.current_background_color = (255,255,255)
+            self.current_background_color = (255, 255, 255)
             self.actionBlackBackground.setChecked(False)
             self.actionWhiteBackground.setChecked(True)
             self.actionCustomColorBackground.setChecked(False)
         elif mode == 2:
-            self.current_background_color = tuple(self.settings.get('background_color_custom', (0,0,0)))
+            self.current_background_color = tuple(
+                self.settings.get('background_color_custom', (0, 0, 0)))
             self.actionBlackBackground.setChecked(False)
             self.actionWhiteBackground.setChecked(False)
             self.actionCustomColorBackground.setChecked(True)
@@ -320,8 +337,8 @@ class MainWindowUi(QMainWindow):
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.setStyleSheet("QLabel{"
-                                      f"background-color :  rgb{self.current_background_color};"
-                                      "}")
+                                       f"background-color :  rgb{self.current_background_color};"
+                                       "}")
 
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
@@ -333,11 +350,10 @@ class MainWindowUi(QMainWindow):
                                           f"background-color :  rgb{self.current_background_color};"
                                           "}")
 
-
     def loadObjectFromPath(self, filepath):
         try:
-            o = obj.load(filepath, openpath = self.openpath)
-            name = o.data.get('id', '').split('.',2)[-1]
+            o = obj.load(filepath, openpath=self.openpath)
+            name = o.data.get('id', '').split('.', 2)[-1]
             if not name:
                 if o.old_id:
                     name = o.old_id
@@ -353,7 +369,6 @@ class MainWindowUi(QMainWindow):
             msg.show()
             return
 
-
         extension = splitext(filepath)[1].lower()
         author_id = None
         filepath, filename = split(filepath)
@@ -362,12 +377,10 @@ class MainWindowUi(QMainWindow):
             if len(filename.split('.')) > 2:
                 author_id = filename.split('.')[0]
 
-
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-
-        object_tab = wdg.ObjectTab(o, self, filepath, author_id = author_id)
+        object_tab = wdg.ObjectTab(o, self, filepath, author_id=author_id)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
 
@@ -378,12 +391,13 @@ class MainWindowUi(QMainWindow):
 
         self.last_open_folder = filepath
 
-    ### Tab actions
+    # Tab actions
     def changeObjectTab(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab:
             if object_tab.locked:
-                self.sprite_tabs.setCurrentIndex(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
+                self.sprite_tabs.setCurrentIndex(
+                    self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
                 self.button_lock.setChecked(True)
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
@@ -398,7 +412,8 @@ class MainWindowUi(QMainWindow):
         if sprite_tab:
             sprite_tab.updateView()
             if sprite_tab.locked:
-                self.object_tabs.setCurrentIndex(self.object_tabs.indexOf(sprite_tab.object_tab))
+                self.object_tabs.setCurrentIndex(
+                    self.object_tabs.indexOf(sprite_tab.object_tab))
                 self.button_lock.setChecked(True)
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
@@ -409,7 +424,6 @@ class MainWindowUi(QMainWindow):
                 self.button_push_sprite.setEnabled(True)
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
-
 
     def lockClicked(self):
         current_object_tab = self.object_tabs.currentWidget()
@@ -424,7 +438,8 @@ class MainWindowUi(QMainWindow):
             if current_object_tab.locked:
                 old_sprite_Tab = current_object_tab.locked_sprite_tab
                 old_sprite_Tab.unlockObjectTab()
-                self.sprite_tabs.setTabText(self.sprite_tabs.indexOf(old_sprite_Tab), f"Sprite {self.new_sprite_count}")
+                self.sprite_tabs.setTabText(self.sprite_tabs.indexOf(
+                    old_sprite_Tab), f"Sprite {self.new_sprite_count}")
                 self.new_sprite_count += 1
 
             self.pushSprite()
@@ -432,7 +447,8 @@ class MainWindowUi(QMainWindow):
             current_object_tab.lockWithSpriteTab(current_sprite_tab)
             current_sprite_tab.lockWithObjectTab(current_object_tab)
 
-            self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name} (locked)")
+            self.sprite_tabs.setTabText(
+                self.sprite_tabs.currentIndex(), f"{name} (locked)")
 
             self.button_pull_sprite.setEnabled(False)
             self.button_push_sprite.setEnabled(False)
@@ -446,13 +462,13 @@ class MainWindowUi(QMainWindow):
             current_object_tab.unlockSpriteTab()
             current_sprite_tab.unlockObjectTab()
 
-            self.sprite_tabs.setTabText(self.sprite_tabs.currentIndex(), f"{name}")
+            self.sprite_tabs.setTabText(
+                self.sprite_tabs.currentIndex(), f"{name}")
 
             self.button_pull_sprite.setEnabled(True)
             self.button_push_sprite.setEnabled(True)
             self.tool_widget.checkbox_all_views.setEnabled(False)
             self.tool_widget.checkbox_all_views.setChecked(False)
-
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
@@ -468,9 +484,9 @@ class MainWindowUi(QMainWindow):
         if sprite_tab:
             sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
 
-    ### Menubar actions
+    # Menubar actions
 
-    def newObject(self, obj_type = cts.Type.SMALL):
+    def newObject(self, obj_type=cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
@@ -478,7 +494,8 @@ class MainWindowUi(QMainWindow):
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-        object_tab = wdg.ObjectTab(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
+        object_tab = wdg.ObjectTab(
+            o, self, author=self.settings['author'], author_id=self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
 
         object_tab.lockWithSpriteTab(sprite_tab)
@@ -494,7 +511,8 @@ class MainWindowUi(QMainWindow):
     def closeObject(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab.locked:
-            self.sprite_tabs.removeTab(self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
+            self.sprite_tabs.removeTab(
+                self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
         self.object_tabs.removeTab(index)
 
@@ -509,18 +527,17 @@ class MainWindowUi(QMainWindow):
             for filepath in filepaths:
                 self.loadObjectFromPath(filepath)
 
-
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
 
         if widget is not None:
-            widget.saveObject(get_path = False)
+            widget.saveObject(get_path=False)
 
     def saveObjectAt(self):
         widget = self.object_tabs.currentWidget()
 
         if widget is not None:
-            widget.saveObject(get_path = True)
+            widget.saveObject(get_path=True)
 
     def spriteNew(self):
         name = f'Sprite {self.new_sprite_count}'
@@ -550,7 +567,6 @@ class MainWindowUi(QMainWindow):
 
         widget.copy()
 
-
     def aboutPage(self):
         url = "https://github.com/danielmeinert/objectcreator"
 
@@ -571,17 +587,13 @@ class MainWindowUi(QMainWindow):
 
         msg.exec_()
 
+    # Sprite Actions
 
-    ### Sprite Actions
-
-
-    ### Keys & Events
+    # Keys & Events
 
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
             self.tool_widget.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
-
-
 
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
@@ -616,11 +628,9 @@ class MainWindowUi(QMainWindow):
             self.activateWindow()
 
 
-
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     print("error message:\n", tb)
-
 
     sys._excepthook(exc_type, exc_value, exc_tb)
     msg = QMessageBox()
@@ -629,17 +639,19 @@ def excepthook(exc_type, exc_value, exc_tb):
     msg.setText("Runtime error:")
     msg.setInformativeText(tb)
     msg.exec_()
-    #sys.exit()
+    # sys.exit()
+
 
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
+
 
 def versionCheck(version):
 
     version = version[1:].split('.')
     version_this = VERSION[1:].split('.')
 
-    for i in range(len(version_this),len(version)):
+    for i in range(len(version_this), len(version)):
         version_this.append(0)
 
     for i, val in enumerate(version):
@@ -650,8 +662,7 @@ def versionCheck(version):
     return False
 
 
-
-### from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
+# from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
 
 class SingleApplicationWithMessaging(QApplication):
     messageAvailable = QtCore.pyqtSignal(object)
@@ -668,7 +679,6 @@ class SingleApplicationWithMessaging(QApplication):
             self._running = False
             if not self._memory.create(1):
                 raise RuntimeError(self._memory.errorString())
-
 
         self._key = key
         self._timeout = 1000
@@ -707,33 +717,33 @@ class SingleApplicationWithMessaging(QApplication):
         return False
 
 
-
 def main():
     # if not QApplication.instance():
     #     app = QApplication(sys.argv)
     # else:
     #     app = QApplication.instance()
 
-    #pyi_splash.close()
+    # pyi_splash.close()
 
     app = SingleApplicationWithMessaging(sys.argv, myappid)
     if app.isRunning():
         app.sendMessage(' '.join(sys.argv[1:]))
         sys.exit(1)
 
-    app_data_path = join(os.environ['APPDATA'],'Object Creator')
+    app_data_path = join(os.environ['APPDATA'], 'Object Creator')
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
-    window = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
+    window = MainWindowUi(app_data_path=app_data_path,
+                          opening_objects=sys.argv[1:],)
     app.messageAvailable.connect(window.handleMessage)
     window.show()
     window.activateWindow()
 
     app.exec_()
 
-
     return main
+
 
 if __name__ == '__main__':
     m = main()

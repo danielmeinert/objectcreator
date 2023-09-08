@@ -7,7 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -167,14 +167,14 @@ class SpriteTab(QWidget):
 
         self.main_window = main_window
 
-        self.scroll_area.connectTab(self)
         self.canvas_size = 200
-
+        self.view.connectTab(self)
         self.lastpos = (0, 0)
 
-        self.view.setStyleSheet("QLabel{"
-                                f"background-color :  rgb{self.main_window.current_background_color};"
-                                "}")
+        self.view.setBackgroundBrush(QtCore.Qt.black)
+        # self.main_window.current_background_color[0],
+        # self.main_window.current_background_color[1],
+        # self.main_window.current_background_color[2]))
 
         # Sprite zoom
         self.zoom_factor = 1
@@ -248,8 +248,9 @@ class SpriteTab(QWidget):
 
     def zoomChanged(self, val):
         self.zoom_factor = val
+        self.view.scale(val, val)
 
-        self.updateView()
+        # self.updateView()
 
     def toolChanged(self, toolbox):
         color = [255-c for c in self.main_window.current_background_color]
@@ -701,7 +702,7 @@ class SpriteTab(QWidget):
             #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
-            #canvas.paste(self.frame_image, self.frame_image)
+            # canvas.paste(self.frame_image, self.frame_image)
 
             coords = (int(self.canvas_size/2)+self.sprite.x,
                       int(self.canvas_size*2/3)+self.sprite.y)
@@ -710,16 +711,10 @@ class SpriteTab(QWidget):
 
         canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(
             canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
-        image = ImageQt(canvas)
+        image = ImageQt(self.sprite.image)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.view.setPixmap(pixmap)
-
-        geometry = self.scroll_area.geometry()
-        scroll_width = max(self.view.size().width(), geometry.width())
-        scroll_height = max(self.view.size().height(), geometry.height())
-
-        self.scroll_area_content.resize(scroll_width, scroll_height)
+        pixmapitem = self.view.scene.addPixmap(pixmap)
 
     def giveSprite(self):
         if self.locked:
@@ -796,24 +791,24 @@ class SpriteTab(QWidget):
             pass
 
 
-class SpriteViewWidget(QScrollArea):
+class SpriteViewWidget(QGraphicsView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.tab = None
 
+        self.scene = QGraphicsScene()
+
         self.slider_zoom = None
         self.current_pressed_key = None
         self.mousepos = QtCore.QPoint(0, 0)
 
-        self.setVerticalScrollBar(
-            self.KeepPositionScrollBar(QtCore.Qt.Vertical, self))
-        self.setHorizontalScrollBar(
-            self.KeepPositionScrollBar(QtCore.Qt.Horizontal, self))
+        self.setScene(self.scene)
 
     def connectTab(self, tab):
         self.tab = tab
         self.slider_zoom = tab.slider_zoom
+        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
 
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -866,26 +861,6 @@ class SpriteViewWidget(QScrollArea):
         QApplication.restoreOverrideCursor()
         self.mousepos = event.localPos()
         super().mouseReleaseEvent(event)
-
-    class KeepPositionScrollBar(QScrollBar):
-        defaultRatio = .5
-        ratio = .5
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.rangeChanged.connect(self.restoreRatio)
-            self.valueChanged.connect(self.updateRatio)
-
-        def restoreRatio(self):
-            absValue = (self.maximum() - self.minimum()) * self.ratio
-            self.setValue(round(self.minimum() + absValue))
-
-        def updateRatio(self):
-            if self.maximum() - self.minimum():
-                absValue = self.value() - self.minimum()
-                self.ratio = absValue / (self.maximum() - self.minimum())
-            else:
-                self.ratio = self.defaultRatio
 
 
 # Tools
@@ -1018,11 +993,11 @@ class ChangeSettingsUi(QDialog):
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
 
         self.pushButton_firstRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[0])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
         self.pushButton_secondRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[1])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
         self.pushButton_thirdRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[2])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
 
     def loadSpriteSettings(self, settings):
         self.comboBox_transparency_color.setCurrentIndex(
