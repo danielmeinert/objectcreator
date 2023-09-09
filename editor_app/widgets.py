@@ -168,7 +168,7 @@ class SpriteTab(QWidget):
         self.main_window = main_window
 
         self.scroll_area.connectTab(self)
-        self.canvas_size = 200
+        self.canvas_size = 100
 
         self.lastpos = (0, 0)
 
@@ -198,7 +198,7 @@ class SpriteTab(QWidget):
         else:
             self.locked = False
             self.object_tab = None
-            self.layers = [spr.Sprite(None)]
+            self.layers = [[spr.Sprite(None), "Layer 1"]]
             self.history = [[]]
             self.history_redo = [[]]
 
@@ -890,27 +890,26 @@ class SpriteViewWidget(QScrollArea):
                 self.ratio = self.defaultRatio
 
 
-<<<<<<< Updated upstream
-# Tools
-=======
+# Layers
+
 class LayersWidget(QWidget):
     def __init__(self, main_window):
         super().__init__()
-        uic.loadUi(aux.resource_path('gui/tools_sprites.ui'), self)
-
+        uic.loadUi(aux.resource_path('gui/layers_sprites.ui'), self)
 
         self.main_window = main_window
 
-        self.setDragDropMode(self.InternalMove)
+        self.layers_list.setDragDropMode(self.layers_list.InternalMove)
 
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
+            pass
 
 
-#### Tools
->>>>>>> Stashed changes
+# Tools
+
 
 class ToolWidgetSprite(QWidget):
     def __init__(self, main_window):

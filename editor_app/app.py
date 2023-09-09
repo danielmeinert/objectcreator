@@ -131,10 +131,10 @@ class MainWindowUi(QMainWindow):
         container = self.container_left_bar.layout()
 
         self.tool_widget = wdg.ToolWidgetSprite(self)
-        container.addWidget(self.tool_widget)
+        container.addWidget(self.tool_widget,0)
 
         self.layer_widget = wdg.LayersWidget(self)
-        container.addWidget(self.layer_widget)
+        container.addWidget(self.layer_widget,1)
 
         #function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
