@@ -7,7 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -171,7 +171,7 @@ class SpriteTab(QWidget):
         self.view.connectTab(self)
         self.lastpos = (0, 0)
 
-        self.view.setBackgroundBrush(QtCore.Qt.black)
+        self.view.setBackgroundBrush(QtCore.Qt.gray)
         # self.main_window.current_background_color[0],
         # self.main_window.current_background_color[1],
         # self.main_window.current_background_color[2]))
@@ -247,15 +247,15 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def zoomChanged(self, val):
-        self.zoom_factor = val
-        self.view.scale(val, val)
+        self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
 
-        # self.updateView()
+        self.zoom_factor = val
+
 
     def toolChanged(self, toolbox):
         color = [255-c for c in self.main_window.current_background_color]
         cursor = cwdg.ToolCursors(toolbox, self.zoom_factor, color)
-        self.view.setCursor(cursor)
+        self.view.viewport().setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
         self.addSpriteToHistory()
@@ -809,6 +809,13 @@ class SpriteViewWidget(QGraphicsView):
         self.tab = tab
         self.slider_zoom = tab.slider_zoom
         self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
+        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        
+        brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
+                                        tab.main_window.current_background_color[1],
+                                        tab.main_window.current_background_color[2]))
+        rect.setBrush(brush)
+        self.scene.addItem(rect)
 
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
