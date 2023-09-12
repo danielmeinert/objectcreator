@@ -601,12 +601,14 @@ class SpriteTab(QWidget):
     def viewMouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        screen_pos = event.localPos()
-        x = round(screen_pos.x()/self.zoom_factor)
-        y = round(screen_pos.y()/self.zoom_factor)
+        screen_pos = self.view.mapToScene(event.localPos().toPoint())
+        x = round(screen_pos.x())
+        y = round(screen_pos.y())
 
         x_display = -int(self.canvas_size/2)+x
         y_display = -int(self.canvas_size*2/3)+y
+        
+        
         self.label_x.setText(f'X   {x_display}')
         self.label_y.setText(f'Y   {y_display}')
 
@@ -798,6 +800,7 @@ class SpriteViewWidget(QGraphicsView):
         self.tab = None
 
         self.scene = QGraphicsScene()
+        self.viewport().setMouseTracking(True)
 
         self.slider_zoom = None
         self.current_pressed_key = None
