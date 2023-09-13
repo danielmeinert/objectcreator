@@ -10,7 +10,7 @@
 
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
-from PyQt5 import uic, QtGui, QtCore
+from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
 import traceback
@@ -31,7 +31,6 @@ from json import dump as jdump
 from enum import Enum
 import requests
 
-from customwidgets import ColorSelectWidget, ToolBoxWidget
 import customwidgets as cwdg
 import widgets as wdg
 import auxiliaries as aux
@@ -40,18 +39,24 @@ from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
 
-import ctypes
 #import pyi_splash
 
 # Update the text on the splash screen
 #pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.1'
+VERSION = 'v0.1.2'
 
 
 myappid = f'objectcreator.{VERSION}' # arbitrary string
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+try:
+    # Include in try/except block if you're also targeting Mac/Linux
+    from ctypes import windll  # Only exists on Windows.
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
+
 
 class MainWindowUi(QMainWindow):
     def __init__(self, app_data_path, opening_objects = None):
@@ -93,53 +98,6 @@ class MainWindowUi(QMainWindow):
         self.button_pull_sprite = self.findChild(QToolButton, "toolButton_pullSprite")
         self.button_pull_sprite.clicked.connect(self.pullSprite)
 
-
-        #### Tools
-        widget_tool_box = self.findChild(QWidget, "widget_tool_box")
-        self.toolbox = ToolBoxWidget()
-        self.giveTool = self.toolbox.giveTool
-        self.giveBrush = self.toolbox.giveBrush
-        self.giveBrushsize = self.toolbox.giveBrushsize
-        self.giveAirbrushStrength = self.toolbox.giveAirbrushStrength
-
-        widget_tool_box.layout().addWidget(self.toolbox)
-
-
-        # Color Panel
-        self.widget_color_panel = self.findChild(QGroupBox, "groupBox_selectedColor")
-
-        self.color_select_panel = ColorSelectWidget(self.current_palette, True, True, True)
-        self.giveActiveShade = self.color_select_panel.giveActiveShade #this is a function wrapper to get the current active shade
-
-        self.widget_color_panel.layout().addWidget(self.color_select_panel)
-
-        # Color Manipulations
-        self.checkbox_all_views = self.findChild(
-            QCheckBox, "checkBox_allViews")
-
-        self.button_remap_to = self.findChild(
-            QPushButton, "pushButton_remapTo")
-        self.combobox_remap_to_color = self.findChild(
-            QComboBox, "comboBox_remapToColor")
-
-        self.combobox_remap_to_color.addItems(
-            list(self.current_palette.color_dict))
-        self.combobox_remap_to_color.setCurrentIndex(
-            self.current_palette.color_dict['1st Remap'])
-
-        self.button_incr_brightness = self.findChild(
-            QPushButton, "pushButton_incrBrightness")
-        self.button_decr_brightness = self.findChild(
-            QPushButton, "pushButton_decrBrightness")
-        self.button_remove_color = self.findChild(
-            QPushButton, "pushButton_deleteColor")
-
-        self.button_remap_to.clicked.connect(self.colorRemapTo)
-        self.button_incr_brightness.clicked.connect(lambda x, step = 1: self.colorChangeBrightness(step))
-        self.button_decr_brightness.clicked.connect(lambda x, step = -1: self.colorChangeBrightness(step))
-        self.button_remove_color.clicked.connect(self.colorRemove)
-
-
         #### Menubar
         self.actionSmallScenery.triggered.connect(lambda x: self.newObject(cts.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.openObjectFile)
@@ -169,6 +127,19 @@ class MainWindowUi(QMainWindow):
         self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
         self.actionAbout.triggered.connect(self.aboutPage)
 
+        ### Left bar
+        container = self.container_left_bar.layout()
+
+        self.tool_widget = wdg.ToolWidgetSprite(self)
+        container.addWidget(self.tool_widget)
+
+        #function wrappers
+        self.giveTool = self.tool_widget.toolbox.giveTool
+        self.giveBrush = self.tool_widget.toolbox.giveBrush
+        self.giveBrushsize = self.tool_widget.toolbox.giveBrushsize
+        self.giveAirbrushStrength = self.tool_widget.toolbox.giveAirbrushStrength
+
+        self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 
         #Load empty object if not started with objects
 
@@ -244,8 +215,12 @@ class MainWindowUi(QMainWindow):
                 self.settings['opendefault'] =  "%USERPROFILE%/Documents/OpenRCT2/object"
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
+
+                self.settings['default_remaps'] = ['NoColor', 'NoColor', 'NoColor']
                 self.settings['no_zip'] = False
+                self.settings['clear_languages'] = False
                 self.settings['version'] = '1.0'
+
                 self.settings['transparency_color'] = 0
                 self.settings['import_color'] = [0,0,0]
                 self.settings['background_color'] = 0
@@ -317,7 +292,7 @@ class MainWindowUi(QMainWindow):
             self.actionPaletteOld.setChecked(True)
 
         if update_widgets:
-            self.color_select_panel.switchPalette(self.current_palette)
+            self.tool_widget.color_select_panel.switchPalette(self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
@@ -341,6 +316,7 @@ class MainWindowUi(QMainWindow):
             self.actionCustomColorBackground.setChecked(True)
 
         if update_widgets:
+            self.tool_widget.toolbox.toolChanged.emit(self.tool_widget.toolbox)
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.setStyleSheet("QLabel{"
@@ -391,7 +367,7 @@ class MainWindowUi(QMainWindow):
             o.switchPalette(self.current_palette)
 
 
-        object_tab = wdg.ObjectTabSS(o, self, filepath, author_id = author_id)
+        object_tab = wdg.ObjectTab(o, self, filepath, author_id = author_id)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
 
@@ -426,13 +402,13 @@ class MainWindowUi(QMainWindow):
                 self.button_lock.setChecked(True)
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
-                self.checkbox_all_views.setEnabled(True)
+                self.tool_widget.checkbox_all_views.setEnabled(True)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
-                self.checkbox_all_views.setEnabled(False)
-                self.checkbox_all_views.setChecked(False)
+                self.tool_widget.checkbox_all_views.setEnabled(False)
+                self.tool_widget.checkbox_all_views.setChecked(False)
 
 
     def lockClicked(self):
@@ -460,7 +436,7 @@ class MainWindowUi(QMainWindow):
 
             self.button_pull_sprite.setEnabled(False)
             self.button_push_sprite.setEnabled(False)
-            self.checkbox_all_views.setEnabled(True)
+            self.tool_widget.checkbox_all_views.setEnabled(True)
 
         else:
 
@@ -474,21 +450,23 @@ class MainWindowUi(QMainWindow):
 
             self.button_pull_sprite.setEnabled(True)
             self.button_push_sprite.setEnabled(True)
-            self.checkbox_all_views.setEnabled(False)
-            self.checkbox_all_views.setChecked(False)
+            self.tool_widget.checkbox_all_views.setEnabled(False)
+            self.tool_widget.checkbox_all_views.setChecked(False)
 
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        object_tab.setCurrentSprite(sprite_tab.sprite)
+        if object_tab:
+            object_tab.setCurrentSprite(sprite_tab.sprite)
 
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
+        if sprite_tab:
+            sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
 
     ### Menubar actions
 
@@ -500,7 +478,7 @@ class MainWindowUi(QMainWindow):
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-        object_tab = wdg.ObjectTabSS(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
+        object_tab = wdg.ObjectTab(o, self, author = self.settings['author'], author_id = self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
 
         object_tab.lockWithSpriteTab(sprite_tab)
@@ -594,49 +572,6 @@ class MainWindowUi(QMainWindow):
         msg.exec_()
 
 
-    #### Color manipulations
-
-    def colorRemapTo(self):
-        color_remap = self.combobox_remap_to_color.currentText()
-        selected_colors = self.color_select_panel.selectedColors()
-
-        if self.checkbox_all_views.isChecked():
-            widget = self.object_tabs.currentWidget()
-
-            widget.colorRemapToAll(color_remap, selected_colors)
-
-        else:
-            widget = self.sprite_tabs.currentWidget()
-
-            widget.colorRemap(color_remap, selected_colors)
-
-
-    def colorChangeBrightness(self, step):
-        selected_colors = self.color_select_panel.selectedColors()
-
-        if self.checkbox_all_views.isChecked():
-            widget = self.object_tabs.currentWidget()
-
-            widget.colorChangeBrightnessAll(step, selected_colors)
-
-        else:
-            widget = self.sprite_tabs.currentWidget()
-
-            widget.colorChangeBrightness(step, selected_colors)
-
-    def colorRemove(self):
-        selected_colors = self.color_select_panel.selectedColors()
-
-        if self.checkbox_all_views.isChecked():
-            widget = self.object_tabs.currentWidget()
-
-            widget.colorRemoveAll(selected_colors)
-
-        else:
-            widget = self.sprite_tabs.currentWidget()
-
-            widget.colorRemove(selected_colors)
-
     ### Sprite Actions
 
 
@@ -644,13 +579,13 @@ class MainWindowUi(QMainWindow):
 
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
-            self.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
+            self.tool_widget.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
 
 
 
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
-            self.toolbox.restoreTool()
+            self.tool_widget.toolbox.restoreTool()
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls:
@@ -671,6 +606,14 @@ class MainWindowUi(QMainWindow):
             if extension in ['.parkobj', '.dat', '.json']:
                 self.loadObjectFromPath(filepath)
 
+    def handleMessage(self, message):
+        for filepath in message.split(' '):
+            extension = splitext(filepath)[1].lower()
+
+            if extension in ['.parkobj', '.dat', '.json']:
+                self.loadObjectFromPath(filepath)
+        else:
+            self.activateWindow()
 
 
 
@@ -707,6 +650,64 @@ def versionCheck(version):
     return False
 
 
+
+### from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
+
+class SingleApplicationWithMessaging(QApplication):
+    messageAvailable = QtCore.pyqtSignal(object)
+
+    def __init__(self, argv, key):
+        super().__init__(argv)
+        # cleanup (only needed for unix)
+        QtCore.QSharedMemory(key).attach()
+        self._memory = QtCore.QSharedMemory(self)
+        self._memory.setKey(key)
+        if self._memory.attach():
+            self._running = True
+        else:
+            self._running = False
+            if not self._memory.create(1):
+                raise RuntimeError(self._memory.errorString())
+
+
+        self._key = key
+        self._timeout = 1000
+        self._server = QtNetwork.QLocalServer(self)
+        if not self.isRunning():
+            self._server.newConnection.connect(self.handleMessage)
+            self._server.listen(self._key)
+
+    def isRunning(self):
+        return self._running
+
+    def handleMessage(self):
+        socket = self._server.nextPendingConnection()
+        if socket.waitForReadyRead(self._timeout):
+            self.messageAvailable.emit(
+                socket.readAll().data().decode('utf-8'))
+            socket.disconnectFromServer()
+        else:
+            QtCore.qDebug(socket.errorString())
+
+    def sendMessage(self, message):
+        if self.isRunning():
+            socket = QtNetwork.QLocalSocket(self)
+            socket.connectToServer(self._key, QtCore.QIODevice.WriteOnly)
+            if not socket.waitForConnected(self._timeout):
+                print(socket.errorString())
+                return False
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
+            socket.write(message)
+            if not socket.waitForBytesWritten(self._timeout):
+                print(socket.errorString())
+                return False
+            socket.disconnectFromServer()
+            return True
+        return False
+
+
+
 def main():
     # if not QApplication.instance():
     #     app = QApplication(sys.argv)
@@ -714,15 +715,20 @@ def main():
     #     app = QApplication.instance()
 
     #pyi_splash.close()
-    app = QApplication(sys.argv)
+
+    app = SingleApplicationWithMessaging(sys.argv, myappid)
+    if app.isRunning():
+        app.sendMessage(' '.join(sys.argv[1:]))
+        sys.exit(1)
 
     app_data_path = join(os.environ['APPDATA'],'Object Creator')
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
-    main = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
-    main.show()
-    main.activateWindow()
+    window = MainWindowUi(app_data_path= app_data_path, opening_objects= sys.argv[1:],)
+    app.messageAvailable.connect(window.handleMessage)
+    window.show()
+    window.activateWindow()
 
     app.exec_()
 

@@ -74,7 +74,7 @@ class RCTObject:
             if isinstance(data['images'][0], str) and dat_id:
                 dat_id = dat_id.split('|')[1].replace(' ', '')
                 data['images'], sprites = dat.import_sprites(dat_id, openpath)
-                
+
             # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
             # The file is assumed to be called "object.json" in this case.
             elif isinstance(data['images'][0], dict):
@@ -95,7 +95,7 @@ class RCTObject:
         if isinstance(data['images'][0], str) and dat_id:
             dat_id = dat_id.split('|')[1].replace(' ', '')
             data['images'], sprites = dat.import_sprites(dat_id, openpath)
-            
+
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
         elif isinstance(data['images'][0], dict):
@@ -111,7 +111,7 @@ class RCTObject:
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .DAT file. Sprite exporting is done
         by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
-        
+
         if not exists(f'{openpath}/bin/openrct2.exe'):
             raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
 
@@ -200,12 +200,13 @@ class RCTObject:
             sprite.switchPalette(palette)
 
     def changeRemap(self, color, remap):
-        if remap == '1st Remap':
-            self.current_first_remap = color
-        elif remap == '2nd Remap':
-            self.current_second_remap = color
-        elif remap == '3rd Remap':
-            self.current_third_remap = color
+        if color:
+            if remap == '1st Remap':
+                self.current_first_remap = color
+            elif remap == '2nd Remap':
+                self.current_second_remap = color
+            elif remap == '3rd Remap':
+                self.current_third_remap = color
 
     def updateImageOffsets(self):
         for im in self.data['images']:
