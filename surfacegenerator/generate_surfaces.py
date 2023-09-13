@@ -10,15 +10,14 @@ from PIL import Image, ImageOps
 from shutil import make_archive, copyfile
 from json import load, dump
 
-import palette as pal
-import sprites as spr
+from rctobject import palette as pal
+from rctobject import sprites as spr
 
 types = ['grass','sand','ice','sand_red', 'sand_brown', 'dirt', 'rock', 'martian', ]
 
-names = {'grass' : 'Grass','sand' : 'Sand', 'ice': 'Ice ','sand_red' : 'Sand (Red)', 'sand_brown' : 'Sand (Brown)', 'dirt' : 'Dirt', 'rock' : 'Rock', 'martian' : 'Martian'}
+names = {'grass' : 'Grass','sand' : 'Sand', 'ice': 'Ice ','sand_red' : 'Sand (Red)', 'sand_brown' : 'Sand (Brown)', 'dirt' : 'Dirt', 'rock' : 'Rock', 'martian' : 'Martian', 'water' : 'Water'}
 
-
-def generateMixedSurface(top_name, bottom_name, folder):
+def generateMixedSurface(top_name, bottom_name, folder, colors):
     
     root = folder
     
@@ -27,14 +26,16 @@ def generateMixedSurface(top_name, bottom_name, folder):
     
     top_folder = root + '/' + top_name
     bottom_folder = root + '/' + bottom_name
-    mask_folder = root + '/masks'
+    mask_folder = root + '/masks_3'
     
-    merge_folder =  root + '/' + bottom_name + '_' + top_name
+    merge_folder =  root + '/output/' + bottom_name + '_' + top_name
     
     os.makedirs(f'{merge_folder}/images',exist_ok=True)
     
     ID= "tols.terrain_surface." + bottom_name + '_' + top_name
     data['id'] = ID
+    
+    data['properties']['mapColours'] = colors
     
     for lang in data['strings']['name']:
         data['strings']['name'][lang] = names[bottom_name] + '/' + names[top_name] + ' mixed' 
@@ -49,14 +50,17 @@ def generateMixedSurface(top_name, bottom_name, folder):
         top = spr.pasteOnMask(mask, top)
         fin = spr.mergeSprites(top, bottom, palette= pal.save_colors)
         
-        fin.save(f'{merge_folder}/images/{im_name}')
+        bottom.paste(fin, mask=bottom)
+        
+        
+        bottom.save(f'{merge_folder}/images/{im_name}')
      
     with open(f'{merge_folder}/object.json', mode='w') as file:
         dump(data, fp=file,indent=2)
         
     make_archive(base_name=f'{root}/objects/{ID}', root_dir=merge_folder, format='zip')
     os.replace(f'{root}/objects/{ID}.zip', f'{root}/objects/{ID}.parkobj')
-    return 
+    return  
     
     
 def generateMaskSprites(folder_in, folder_out):
@@ -96,7 +100,7 @@ def generateMaskSprites(folder_in, folder_out):
     #4
     im_l = base["flat"].crop(box=(0, 0,32,base["flat"].height))
     im_l = ImageOps.expand(im_l, border=(0, 1,32,0), fill = (0,0,0,0))
-    im_r = (base["right"].transpose(Image.FLIP_TOP_BOTTOM)).crop(box=(32, 0,64,32))
+    im_r = (base["right"].transpose(Image.FLIP_TOP_BOTTOM)).crop(box=(31, 0,63,32))
     im_r = ImageOps.expand(im_r, border=(32, 0,0,0), fill = (0,0,0,0))
     
     im = Image.alpha_composite(im_l, im_r)
@@ -106,7 +110,7 @@ def generateMaskSprites(folder_in, folder_out):
     #5
     im_l = base["right"].crop(box=(0, 0,32,base["right"].height))
     im_l = ImageOps.expand(im_l, border=(0, 0,32,0), fill = (0,0,0,0))
-    im_r = base["right"].crop(box=(32, 0,64,base["right"].height)).transpose(Image.FLIP_TOP_BOTTOM)
+    im_r = base["right"].crop(box=(31, 0,63,base["right"].height)).transpose(Image.FLIP_TOP_BOTTOM)
     im_r = ImageOps.expand(im_r, border=(32, 0,0,0), fill = (0,0,0,0))
     
     im = Image.alpha_composite(im_l, im_r)
@@ -117,13 +121,13 @@ def generateMaskSprites(folder_in, folder_out):
     im.save(f'{folder_out}/06.png')
     
     #7
-    im = base["flat"].crop(box=(0, 16,64,32))
+    im = base["flat"].crop(box=(0, 15,64,31))
     im.save(f'{folder_out}/07.png')
      
     #8
     im_l = base["down"].crop(box=(0, 0,64,31))
     im_l = ImageOps.expand(im_l, border=(0, 0,0,16), fill = (0,0,0,0))
-    im_r = base["flat"].crop(box=(0, 16,64,32))
+    im_r = base["flat"].crop(box=(0, 15,64,31))
     im_r = ImageOps.expand(im_r, border=(0, 31,0,0), fill = (0,0,0,0))
     
     im = Image.alpha_composite(im_l, im_r)
@@ -140,7 +144,7 @@ def generateMaskSprites(folder_in, folder_out):
     #11
     im_l = base["flat"].crop(box=(0, 0,32,base["flat"].height))
     im_l = ImageOps.expand(im_l, border=(0, 0,31,0), fill = (0,0,0,0))
-    im_r = base["right"].crop(box=(33, 1,64,32))
+    im_r = base["right"].crop(box=(32, 1,63,32))
     im_r = ImageOps.expand(im_r, border=(32, 0,0,0), fill = (0,0,0,0))
     
     im = Image.alpha_composite(im_l, im_r)
@@ -151,7 +155,7 @@ def generateMaskSprites(folder_in, folder_out):
     im.save(f'{folder_out}/12.png')  
     
     #13
-    im_l = base["down"].crop(box=(0, 33,64,64))
+    im_l = base["down"].crop(box=(0, 32,64,63))
     im_l = ImageOps.expand(im_l, border=(0, 16,0,0), fill = (0,0,0,0))
     im_r = base["flat"].crop(box=(0, 0,64,16))
     im_r = ImageOps.expand(im_r, border=(0, 0,0,31), fill = (0,0,0,0))
@@ -160,7 +164,7 @@ def generateMaskSprites(folder_in, folder_out):
     im.save(f'{folder_out}/13.png')
     
     #14
-    im_l = (base["right"].transpose(Image.FLIP_TOP_BOTTOM)).crop(box=(0, 0,31,31))
+    im_l = (base["right"].transpose(Image.FLIP_LEFT_RIGHT)).crop(box=(1, 0,32,31))
     im_l = ImageOps.expand(im_l, border=(0, 0,32,0), fill = (0,0,0,0))
     im_r = base["flat"].crop(box=(32, 0,64,31))
     im_r = ImageOps.expand(im_r, border=(31, 0,0,0), fill = (0,0,0,0))
