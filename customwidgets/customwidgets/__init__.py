@@ -7,7 +7,9 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
+from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, \
+    QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel,\
+    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
@@ -21,7 +23,7 @@ from rctobject import palette as pal
 
 
 class ToolCursors(QtGui.QCursor):
-    def __init__(self, toolbox, zoom_factor, color = [0,0,0]):
+    def __init__(self, toolbox, zoom_factor, color=[0, 0, 0]):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
 
@@ -31,24 +33,24 @@ class ToolCursors(QtGui.QCursor):
             size = int(brushsize*zoom_factor)+2
             im = Image.new('RGBA', (size, size))
             draw = ImageDraw.Draw(im)
-            draw.line([(0,0), (size-1,0), (size-1,size-1), (0,size-1), (0,0)], fill = (color[0],color[1],color[2],255), width =1)
+            draw.line([(0, 0), (size-1, 0), (size-1, size-1), (0, size-1), (0, 0)],
+                      fill=(color[0], color[1], color[2], 255), width=1)
 
             im_qt = ImageQt(im)
 
-            super().__init__(QtGui.QPixmap.fromImage(im_qt), hotX=1, hotY= 1)
+            super().__init__(QtGui.QPixmap.fromImage(im_qt), hotX=1, hotY=1)
 
 
 class ToolBoxWidget(QWidget):
 
-    #define signals
+    # define signals
     toolChanged = QtCore.pyqtSignal(object, name='toolChanged')
-
 
     def __init__(self):
         super().__init__()
 
         outer_container = QHBoxLayout()
-        outer_container.setContentsMargins(0,0,0,0)
+        outer_container.setContentsMargins(0, 0, 0, 0)
 
         tool_button_widget = QWidget()
         separator = QFrame()
@@ -57,7 +59,6 @@ class ToolBoxWidget(QWidget):
         brush_widget = QGroupBox(title='Brush Options')
         brush_widget.setFlat(True)
 
-
         outer_container.addWidget(tool_button_widget)
         outer_container.addWidget(separator)
         outer_container.addWidget(brush_widget)
@@ -65,7 +66,7 @@ class ToolBoxWidget(QWidget):
         self.setLayout(outer_container)
 
         container_tool_buttons = QGridLayout()
-        container_tool_buttons.setContentsMargins(6,10,6,10)
+        container_tool_buttons.setContentsMargins(6, 10, 6, 10)
 
         self.tool_buttons = {}
 
@@ -74,13 +75,14 @@ class ToolBoxWidget(QWidget):
             btn.setCheckable(True)
             btn.setToolTip(tool.fullname)
             icon = QtGui.QPixmap()
-            icon.loadFromData(get_data("customwidgets", f'res/icon_{tool.fullname}.png'), 'png')
+            icon.loadFromData(
+                get_data("customwidgets", f'res/icon_{tool.fullname}.png'), 'png')
             btn.setIcon(QtGui.QIcon(icon))
             btn.setFixedSize(32, 32)
-            btn.clicked.connect(lambda x, tool = tool: self.selectTool(tool))
-            container_tool_buttons.addWidget(btn, int(tool.value/3), tool.value % 3)
+            btn.clicked.connect(lambda x, tool=tool: self.selectTool(tool))
+            container_tool_buttons.addWidget(
+                btn, int(tool.value/3), tool.value % 3)
             self.tool_buttons[tool] = btn
-
 
         tool_button_widget.setLayout(container_tool_buttons)
         self.tool = Tools.PEN
@@ -88,19 +90,18 @@ class ToolBoxWidget(QWidget):
         self.tool_buttons[Tools.PEN].setChecked(True)
 
         container_lr = QHBoxLayout()
-        container_lr.setContentsMargins(0,0,0,0)
+        container_lr.setContentsMargins(0, 0, 0, 0)
         brush_widget.setLayout(container_lr)
 
         container_btn = QVBoxLayout()
-        container_dial_brushsize  = QVBoxLayout()
-        container_dial_airbrush_strength  = QVBoxLayout()
+        container_dial_brushsize = QVBoxLayout()
+        container_dial_airbrush_strength = QVBoxLayout()
 
-        container_btn.setContentsMargins(0,3,0,3)
-        container_dial_brushsize.setContentsMargins(0,3,0,3)
+        container_btn.setContentsMargins(0, 3, 0, 3)
+        container_dial_brushsize.setContentsMargins(0, 3, 0, 3)
         container_dial_brushsize.setSpacing(2)
-        container_dial_airbrush_strength.setContentsMargins(0,3,0,3)
+        container_dial_airbrush_strength.setContentsMargins(0, 3, 0, 3)
         container_dial_airbrush_strength.setSpacing(2)
-
 
         brush_buttons = QWidget()
         dial_brushsize_widget = QWidget()
@@ -108,7 +109,8 @@ class ToolBoxWidget(QWidget):
 
         brush_buttons.setLayout(container_btn)
         dial_brushsize_widget.setLayout(container_dial_brushsize)
-        dial_airbrush_strength_widget.setLayout(container_dial_airbrush_strength)
+        dial_airbrush_strength_widget.setLayout(
+            container_dial_airbrush_strength)
 
         container_lr.addWidget(dial_brushsize_widget)
         container_lr.addWidget(brush_buttons)
@@ -137,14 +139,13 @@ class ToolBoxWidget(QWidget):
             btn.setCheckable(True)
             btn.setToolTip(brush.fullname)
             icon = QtGui.QPixmap()
-            icon.loadFromData(get_data("customwidgets", f'res/icon_{brush.fullname}.png'), 'png')
+            icon.loadFromData(
+                get_data("customwidgets", f'res/icon_{brush.fullname}.png'), 'png')
             btn.setIcon(QtGui.QIcon(icon))
             btn.setFixedSize(32, 32)
-            btn.clicked.connect(lambda x, brush = brush: self.selectBrush(brush))
+            btn.clicked.connect(lambda x, brush=brush: self.selectBrush(brush))
             self.brush_buttons[brush] = btn
             container_btn.addWidget(btn)
-
-
 
         self.dial_airbrush_strength = QDial()
         self.dial_airbrush_strength.setFixedSize(55, 55)
@@ -164,7 +165,6 @@ class ToolBoxWidget(QWidget):
         self.brush_buttons[Brushes.SOLID].setChecked(True)
 
         self.brushsize = 1
-
 
     def selectTool(self, tool):
         if tool == self.tool:
@@ -194,7 +194,6 @@ class ToolBoxWidget(QWidget):
 
         self.toolChanged.emit(self)
 
-
     def giveTool(self):
         return self.tool
 
@@ -209,35 +208,35 @@ class ToolBoxWidget(QWidget):
 
 
 class Tools(Enum):
-        PEN = 0, 'Draw'
-        ERASER = 1, 'Erase'
-        EYEDROPPER = 2, 'Eyedrop'
-        BRIGHTNESS = 3, 'Brightness'
-        REMAP = 4, 'Remap',
-        FILL = 5, 'Fill'
+    PEN = 0, 'Draw'
+    ERASER = 1, 'Erase'
+    EYEDROPPER = 2, 'Eyedrop'
+    BRIGHTNESS = 3, 'Brightness'
+    REMAP = 4, 'Remap',
+    FILL = 5, 'Fill'
 
-        def __new__(cls, value, name):
-            member = object.__new__(cls)
-            member._value_ = value
-            member.fullname = name
-            return member
+    def __new__(cls, value, name):
+        member = object.__new__(cls)
+        member._value_ = value
+        member.fullname = name
+        return member
 
-        def __int__(self):
-            return self.value
+    def __int__(self):
+        return self.value
+
 
 class Brushes(Enum):
-        SOLID = 0, 'Solid'
-        AIRBRUSH = 1, 'Airbrush'
+    SOLID = 0, 'Solid'
+    AIRBRUSH = 1, 'Airbrush'
 
-        def __new__(cls, value, name):
-            member = object.__new__(cls)
-            member._value_ = value
-            member.fullname = name
-            return member
+    def __new__(cls, value, name):
+        member = object.__new__(cls)
+        member._value_ = value
+        member.fullname = name
+        return member
 
-        def __int__(self):
-            return self.value
-
+    def __int__(self):
+        return self.value
 
 
 class ColorBar(QWidget):
@@ -251,8 +250,9 @@ class ColorBar(QWidget):
         color = palette.getColor(colorname)
         self.buttons = []
         for i, shade in enumerate(color):
-            border_shade = (0,0,0) if i > 3 else (230,230,230)
-            b = ShadeButton(self, tuple(shade), border_shade = tuple(border_shade), color_name = colorname, index = i)
+            border_shade = (0, 0, 0) if i > 3 else (230, 230, 230)
+            b = ShadeButton(self, tuple(shade), border_shade=tuple(
+                border_shade), color_name=colorname, index=i)
             b.clicked.connect(button_func)
             layout.insertWidget(0, b)
             self.buttons.append(b)
@@ -268,7 +268,7 @@ class ColorBar(QWidget):
 
 
 class ShadeButton(QPushButton):
-    def __init__(self, parent, shade, border_shade = (0,0,0), color_name = None, index = 0):
+    def __init__(self, parent, shade, border_shade=(0, 0, 0), color_name=None, index=0):
         super().__init__(parent)
         self.color_name = color_name
         self.index = index
@@ -284,11 +284,11 @@ class ShadeButton(QPushButton):
                            "{"
                            f"background-color : rgb{shade};"
                            "}"
-                            "QPushButton:checked"
-                            "{"
-                            f"background-color : rgb{shade};"
-                            f"border : 2px solid rgb{border_shade};"
-                            "}"
+                           "QPushButton:checked"
+                           "{"
+                           f"background-color : rgb{shade};"
+                           f"border : 2px solid rgb{border_shade};"
+                           "}"
                            )
 
 
@@ -296,18 +296,18 @@ class ColorSelectWidget(QWidget):
     def __init__(self, palette, first_remap: bool = False, second_remap: bool = False, third_remap: bool = False):
         super().__init__()
         container = QVBoxLayout()
-        container.setContentsMargins(5,5,5,5)
+        container.setContentsMargins(5, 5, 5, 5)
         container.setSpacing(0)
         self.setLayout(container)
 
         self.color_widget = QWidget()
         layout = QHBoxLayout()
         layout.setSpacing(0)
-        layout.setContentsMargins(3,3,3,0)
+        layout.setContentsMargins(3, 3, 3, 0)
 
         self.color_widget.setLayout(layout)
-        self.color_widget.setFixedSize(QtCore.QSize(240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
-
+        self.color_widget.setFixedSize(QtCore.QSize(
+            240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
 
         self.active_color_button = None
         self.active_shade = None
@@ -316,7 +316,8 @@ class ColorSelectWidget(QWidget):
         for colorname in palette.color_dict:
             if colorname == '1st Remap':
                 if first_remap:
-                    bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
+                    bar = ColorBar(palette, colorname,
+                                   self.shadeButtonClicked, 3)
                     layout.insertWidget(-1, bar)
             elif second_remap and colorname == '2nd Remap':
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
@@ -326,7 +327,7 @@ class ColorSelectWidget(QWidget):
                 layout.insertWidget(-1, bar)
             else:
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 0)
-                layout.insertWidget(0,bar)
+                layout.insertWidget(0, bar)
 
             self.bars[colorname] = bar
 
@@ -334,7 +335,7 @@ class ColorSelectWidget(QWidget):
 
         button_widget = QWidget()
         button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(3,3,0,0)
+        button_layout.setContentsMargins(3, 3, 0, 0)
 
         button_widget.setLayout(button_layout)
 
@@ -344,10 +345,10 @@ class ColorSelectWidget(QWidget):
         self.select_all.clicked.connect(self.clickSelectAll)
         self.invert_all.clicked.connect(self.clickInvert)
 
-        button_layout.addWidget(self.select_all,0,QtCore.Qt.AlignLeft)
-        button_layout.addWidget(self.invert_all,0,QtCore.Qt.AlignLeft)
+        button_layout.addWidget(self.select_all, 0, QtCore.Qt.AlignLeft)
+        button_layout.addWidget(self.invert_all, 0, QtCore.Qt.AlignLeft)
 
-        container.addWidget(button_widget,0,QtCore.Qt.AlignLeft)
+        container.addWidget(button_widget, 0, QtCore.Qt.AlignLeft)
 
     def shadeButtonClicked(self):
         button = self.sender()
@@ -414,7 +415,7 @@ class ColorSelectWidget(QWidget):
 
 
 class RemapColorSelectButton(QPushButton):
-    #define signals
+    # define signals
     colorChanged = QtCore.pyqtSignal(object, name='colorChanged')
     panelOpened = QtCore.pyqtSignal(name='panelOpened')
 
@@ -423,10 +424,10 @@ class RemapColorSelectButton(QPushButton):
 
         palette = pal.orct
 
-        self.select_panel = QWidget(parent=self.window())#QtCore.QCoreApplication.instance().centralwidget)
-        #self.select_panel.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.select_panel.setMinimumSize(QtCore.QSize(8*13,4*13))
-
+        # QtCore.QCoreApplication.instance().centralwidget)
+        self.select_panel = QWidget(parent=self.window())
+        # self.select_panel.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        self.select_panel.setMinimumSize(QtCore.QSize(8*13, 4*13))
 
         container = QGridLayout()
         container.setSpacing(0)
@@ -442,10 +443,11 @@ class RemapColorSelectButton(QPushButton):
 
             shade = palette.getRemapColor(color_name)[6]
             b = ShadeButton(self.select_panel, tuple(shade))
-            b.clicked.connect(lambda x, color_name = color_name: self.colorButtonClicked(color_name))
+            b.clicked.connect(
+                lambda x, color_name=color_name: self.colorButtonClicked(color_name))
             x = i % 8
             y = int(i/8)
-            container.addWidget(b,y,x)
+            container.addWidget(b, y, x)
             self.buttons[color_name] = b
 
         self.select_panel.hide()
@@ -455,10 +457,12 @@ class RemapColorSelectButton(QPushButton):
 
             self.select_panel.hide()
         else:
-            x = self.select_panel.parent().mapFromGlobal(self.mapToGlobal(QtCore.QPoint(0,0))).x()
-            y = self.select_panel.parent().mapFromGlobal(self.mapToGlobal(QtCore.QPoint(0,0))).y()
+            x = self.select_panel.parent().mapFromGlobal(
+                self.mapToGlobal(QtCore.QPoint(0, 0))).x()
+            y = self.select_panel.parent().mapFromGlobal(
+                self.mapToGlobal(QtCore.QPoint(0, 0))).y()
 
-            self.select_panel.setGeometry(x+13,y-39,8*13,4*13)
+            self.select_panel.setGeometry(x+13, y-39, 8*13, 4*13)
             self.select_panel.show()
 
             self.panelOpened.emit()
@@ -498,8 +502,6 @@ class RemapColorSelectButton(QPushButton):
     def currentColor(self):
         return self.active_color
 
-
     def hidePanel(self):
         if self.select_panel.isVisible():
             self.select_panel.hide()
-

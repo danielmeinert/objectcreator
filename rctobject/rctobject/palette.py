@@ -38,7 +38,7 @@ class Palette(np.ndarray):
         self.name = getattr(obj, 'name', None)
 
     def __str__(self):
-         return self.name
+        return self.name
 
     def __eq__(self, other):
         return self.name == other.name
@@ -60,7 +60,6 @@ class Palette(np.ndarray):
             return self.sparkles
 
         return None
-
 
     def getRemapColor(self, color_name: str):
         color = np.zeros((12, 3))
@@ -125,43 +124,43 @@ def allColors(sparkles=False):
 
 
 def remapColors():
-    return {	'NoColor': -1,
+    return {'NoColor': -1,
 
-             'Black': 0,
-             'Grey': 1,
-             'White': 2,
-             'Dark Purple': 3,
-             'Light Purple': 4,
-             'Bright Purple': 5,
-             'Dark Blue': 6,
-             'Light Blue': 7,
+            'Black': 0,
+            'Grey': 1,
+            'White': 2,
+            'Dark Purple': 3,
+            'Light Purple': 4,
+            'Bright Purple': 5,
+            'Dark Blue': 6,
+            'Light Blue': 7,
 
-             'Icy Blue': 8,
-             'Dark Water': 9,
-             'Light Water': 10,
-             'Saturated Green': 11,
-             'Dark Green': 12,
-             'Moss Green': 13,
-             'Bright Green': 14,
-             'Olive Green': 15,
+            'Icy Blue': 8,
+            'Dark Water': 9,
+            'Light Water': 10,
+            'Saturated Green': 11,
+            'Dark Green': 12,
+            'Moss Green': 13,
+            'Bright Green': 14,
+            'Olive Green': 15,
 
-             'Dark Olive Green': 16,
-             'Bright Yellow': 17,
-             'Yellow': 18,
-             'Dark Yellow': 19,
-             'Light Orange': 20,
-             'Dark Orange': 21,
-             'Light Brown': 22,
-             'Saturated Brown': 23,
+            'Dark Olive Green': 16,
+            'Bright Yellow': 17,
+            'Yellow': 18,
+            'Dark Yellow': 19,
+            'Light Orange': 20,
+            'Dark Orange': 21,
+            'Light Brown': 22,
+            'Saturated Brown': 23,
 
-             'Dark Brown': 24,
-             'Salmon Pink': 25,
-             'Bordeaux Red': 26,
-             'Saturated Red': 27,
-             'Bright Red': 28,
-             'Dark Pink': 29,
-             'Light Pink': 30,
-             'Bright Pink': 31}
+            'Dark Brown': 24,
+            'Salmon Pink': 25,
+            'Bordeaux Red': 26,
+            'Saturated Red': 27,
+            'Bright Red': 28,
+            'Dark Pink': 29,
+            'Light Pink': 30,
+            'Bright Pink': 31}
 
 
 remap_lookup = np.load(
@@ -193,7 +192,7 @@ save_colors_dict = {
 }
 save_colors = Palette(data, save_colors_dict, 'save_colors')
 
-del(data)
+del (data)
 
 
 def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include_sparkles=True):
@@ -286,19 +285,19 @@ def removeBlackPixels(image: Image.Image):
 
     return Image.fromarray(data_out)
 
-def removeColorWhenImport(image: Image.Image, color = None):
-    ##If no color is given we remove the color from (0,0) pixel
+
+def removeColorWhenImport(image: Image.Image, color=None):
+    # If no color is given we remove the color from (0,0) pixel
     data_in = np.array(image)
     data_out = np.array(data_in)
 
     if color:
         r1, g1, b1 = color
     else:
-        r1, g1, b1 = data_in[0,0][:3]
+        r1, g1, b1 = data_in[0, 0][:3]
 
     red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
     mask = (red == r1) & (green == g1) & (blue == b1)
     data_out[:, :, :][mask] = [0, 0, 0, 0]
 
     return Image.fromarray(data_out)
-
