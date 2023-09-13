@@ -9,7 +9,7 @@
 """
 
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -669,6 +669,10 @@ class SingleApplicationWithMessaging(QApplication):
 
     def __init__(self, argv, key):
         super().__init__(argv)
+        
+        # for disabling alt and space behaviour:
+        self.setStyle(self.MenuStyle())
+        
         # cleanup (only needed for unix)
         QtCore.QSharedMemory(key).attach()
         self._memory = QtCore.QSharedMemory(self)
@@ -715,6 +719,18 @@ class SingleApplicationWithMessaging(QApplication):
             socket.disconnectFromServer()
             return True
         return False
+    
+    class MenuStyle(QProxyStyle):
+
+        def styleHint(self, stylehint, opt=None, widget=None, returnData=None):
+            if stylehint == QStyle.SH_MenuBar_AltKeyNavigation:
+                return 0
+            
+            if stylehint == QStyle.SH_Menu_SpaceActivatesItem:
+                return 0
+
+            return QProxyStyle.styleHint(stylehint, opt, widget, returnData)
+        
 
 
 def main():

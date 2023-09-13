@@ -211,10 +211,6 @@ class SpriteTab(QWidget):
             self.toolChanged)
         self.toolChanged(self.main_window.tool_widget.toolbox)
 
-        self.view.mousePressEvent = self.viewMousePressEvent
-        self.view.mouseMoveEvent = self.viewMouseMoveEvent
-        self.view.wheelEvent = self.viewWheelEvent
-        self.view.keyPressEvent = self.viewKeyPressEvent
 
         self.updateView()
 
@@ -479,9 +475,160 @@ class SpriteTab(QWidget):
                 self.canvas_size, self.canvas_size), p=[1-strength, strength]).T)
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
-    def viewKeyPressEvent(self, e):
-        if e.key() == QtCore.Qt.Key_Up:
+
+    def updateView(self, skip_locked=False):
+        if self.locked:
+            if not skip_locked:
+                self.object_tab.updateCurrentMainView()
+
+                return
+
+            canvas = self.object_tab.giveCurrentMainView(
+                self.canvas_size, add_auxilaries=True)
+
+        else:
+            canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
+
+            # if add_auxiliaries and self.button_bounding_box.isChecked():
+            #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
+            #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
+
+            # canvas.paste(self.frame_image, self.frame_image)
+
+            coords = (int(self.canvas_size/2)+self.sprite.x,
+                      int(self.canvas_size*2/3)+self.sprite.y)
+
+            canvas.paste(self.sprite.image, coords, self.sprite.image)
+
+        canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(
+            canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
+        image = ImageQt(self.sprite.image)
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        pixmapitem = self.view.scene.addPixmap(pixmap)
+
+    def giveSprite(self):
+        if self.locked:
+            return self.object_tab.giveCurrentMainViewSprite()
+        else:
+            return self.sprite, 0
+
+    def addSpriteToHistory(self):
+        sprite_import, index = self.giveSprite()
+        sprite = copy(sprite_import)
+
+        if len(self.history[index]) == self.main_window.settings['history_maximum']:
+            self.history[index].pop(0)
+
+        self.history[index].append(sprite)
+        self.history_redo[index] = []
+
+    def addSpriteToHistoryAllViews(self):
+        if not self.locked:
+            return
+
+        for index, sprite_import in enumerate(self.object_tab.o.sprites.items()):
+            sprite = copy(sprite_import[1])
+
+            if len(self.history[index]) == self.main_window.settings['history_maximum']:
+                self.history[index].pop(0)
+
+            self.history[index].append(sprite)
+            self.history_redo[index] = []
+
+    def undo(self):
+        sprite_old, index = self.giveSprite()
+
+        if len(self.history[index]) == 0:
+            return
+
+        sprite_new = self.history[index].pop(-1)
+
+        self.history_redo[index].append(copy(sprite_old))
+
+        sprite_old.image = sprite_new.image
+        sprite_old.x = sprite_new.x
+        sprite_old.y = sprite_new.y
+
+        self.updateView()
+
+    def redo(self):
+        sprite_old, index = self.giveSprite()
+
+        if len(self.history_redo[index]) == 0:
+            return
+
+        sprite_new = self.history_redo[index].pop(-1)
+
+        self.history[index].append(copy(sprite_old))
+
+        sprite_old.image = sprite_new.image
+        sprite_old.x = sprite_new.x
+        sprite_old.y = sprite_new.y
+
+        self.updateView()
+
+    def paste(self):
+        self.addSpriteToHistory()
+        if self.locked:
+            self.object_tab.sprites_tab.pasteSpriteFromClipboard()
+        else:
+            pass
+
+    def copy(self):
+        if self.locked:
+            self.object_tab.sprites_tab.copySpriteToClipboard()
+        else:
+            pass
+
+
+class SpriteViewWidget(QGraphicsView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.tab = None
+
+        self.scene = QGraphicsScene()
+        self.viewport().setMouseTracking(True)
+
+        self.setDragMode(self.NoDrag)
+
+
+        self.slider_zoom = None
+        self.current_pressed_key = None
+        self.mousepos = QtCore.QPoint(0, 0)
+
+        self.setScene(self.scene)
+
+    def connectTab(self, tab):
+        self.tab = tab
+        self.slider_zoom = tab.slider_zoom
+        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
+        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        
+        brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
+                                        tab.main_window.current_background_color[1],
+                                        tab.main_window.current_background_color[2]))
+        rect.setBrush(brush)
+        self.scene.addItem(rect)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Up:
             self.clickSpriteControl('up')
+            
+        elif event.key() == QtCore.Qt.Key_Space:
+            self.setDragMode(self.ScrollHandDrag)
+            
+        super().keyPressEvent(event)
+            
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Space:
+            self.setDragMode(self.NoDrag)
+            self.tab.main_window.tool_widget.toolbox.restoreTool()
+            
+        super().keyReleaseEvent(event)
+
+
 
     def viewMousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
@@ -687,139 +834,6 @@ class SpriteTab(QWidget):
                 toolbox.dial_brushsize.setValue(
                     toolbox.dial_brushsize.value()-1)
 
-    def updateView(self, skip_locked=False):
-        if self.locked:
-            if not skip_locked:
-                self.object_tab.updateCurrentMainView()
-
-                return
-
-            canvas = self.object_tab.giveCurrentMainView(
-                self.canvas_size, add_auxilaries=True)
-
-        else:
-            canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
-
-            # if add_auxiliaries and self.button_bounding_box.isChecked():
-            #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
-            #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
-
-            # canvas.paste(self.frame_image, self.frame_image)
-
-            coords = (int(self.canvas_size/2)+self.sprite.x,
-                      int(self.canvas_size*2/3)+self.sprite.y)
-
-            canvas.paste(self.sprite.image, coords, self.sprite.image)
-
-        canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(
-            canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
-        image = ImageQt(self.sprite.image)
-
-        pixmap = QtGui.QPixmap.fromImage(image)
-        pixmapitem = self.view.scene.addPixmap(pixmap)
-
-    def giveSprite(self):
-        if self.locked:
-            return self.object_tab.giveCurrentMainViewSprite()
-        else:
-            return self.sprite, 0
-
-    def addSpriteToHistory(self):
-        sprite_import, index = self.giveSprite()
-        sprite = copy(sprite_import)
-
-        if len(self.history[index]) == self.main_window.settings['history_maximum']:
-            self.history[index].pop(0)
-
-        self.history[index].append(sprite)
-        self.history_redo[index] = []
-
-    def addSpriteToHistoryAllViews(self):
-        if not self.locked:
-            return
-
-        for index, sprite_import in enumerate(self.object_tab.o.sprites.items()):
-            sprite = copy(sprite_import[1])
-
-            if len(self.history[index]) == self.main_window.settings['history_maximum']:
-                self.history[index].pop(0)
-
-            self.history[index].append(sprite)
-            self.history_redo[index] = []
-
-    def undo(self):
-        sprite_old, index = self.giveSprite()
-
-        if len(self.history[index]) == 0:
-            return
-
-        sprite_new = self.history[index].pop(-1)
-
-        self.history_redo[index].append(copy(sprite_old))
-
-        sprite_old.image = sprite_new.image
-        sprite_old.x = sprite_new.x
-        sprite_old.y = sprite_new.y
-
-        self.updateView()
-
-    def redo(self):
-        sprite_old, index = self.giveSprite()
-
-        if len(self.history_redo[index]) == 0:
-            return
-
-        sprite_new = self.history_redo[index].pop(-1)
-
-        self.history[index].append(copy(sprite_old))
-
-        sprite_old.image = sprite_new.image
-        sprite_old.x = sprite_new.x
-        sprite_old.y = sprite_new.y
-
-        self.updateView()
-
-    def paste(self):
-        self.addSpriteToHistory()
-        if self.locked:
-            self.object_tab.sprites_tab.pasteSpriteFromClipboard()
-        else:
-            pass
-
-    def copy(self):
-        if self.locked:
-            self.object_tab.sprites_tab.copySpriteToClipboard()
-        else:
-            pass
-
-
-class SpriteViewWidget(QGraphicsView):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.tab = None
-
-        self.scene = QGraphicsScene()
-        self.viewport().setMouseTracking(True)
-
-        self.slider_zoom = None
-        self.current_pressed_key = None
-        self.mousepos = QtCore.QPoint(0, 0)
-
-        self.setScene(self.scene)
-
-    def connectTab(self, tab):
-        self.tab = tab
-        self.slider_zoom = tab.slider_zoom
-        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
-        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
-        
-        brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
-                                        tab.main_window.current_background_color[1],
-                                        tab.main_window.current_background_color[2]))
-        rect.setBrush(brush)
-        self.scene.addItem(rect)
-
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
@@ -842,6 +856,8 @@ class SpriteViewWidget(QGraphicsView):
 
     def mousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
+        
+        print('lol')
 
         if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
             QApplication.setOverrideCursor(QtCore.Qt.ClosedHandCursor)
@@ -850,22 +866,6 @@ class SpriteViewWidget(QGraphicsView):
 
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()
-
-        delta = event.localPos() - self.mousepos
-
-        # panning area
-        if event.buttons() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
-            h = self.horizontalScrollBar().value()
-            v = self.verticalScrollBar().value()
-
-            self.horizontalScrollBar().setValue(int(h - delta.x()))
-            self.verticalScrollBar().setValue(int(v - delta.y()))
-
-        self.mousepos = event.localPos()
-
-        super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         QApplication.restoreOverrideCursor()

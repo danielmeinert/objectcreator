@@ -303,6 +303,9 @@ border: 1px solid darkgrey;}
      <height>21</height>
     </rect>
    </property>
+   <property name="nativeMenuBar">
+    <bool>false</bool>
+   </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Object</string>
@@ -575,6 +578,13 @@ border: 1px solid darkgrey;}
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget_sprites</tabstop>
+  <tabstop>tabWidget_objects</tabstop>
+  <tabstop>toolButton_pushSprite</tabstop>
+  <tabstop>toolButton_pullSprite</tabstop>
+  <tabstop>toolButton_lock</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
