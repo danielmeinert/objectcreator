@@ -474,14 +474,14 @@ class MainWindowUi(QMainWindow):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        if object_tab:
+        if sprite_tab and object_tab:
             object_tab.setCurrentSprite(sprite_tab.sprite)
 
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        if sprite_tab:
+        if sprite_tab and object_tab:
             sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
 
     # Menubar actions
@@ -671,7 +671,7 @@ class SingleApplicationWithMessaging(QApplication):
         super().__init__(argv)
         
         # for disabling alt and space behaviour:
-        self.setStyle(self.MenuStyle())
+        #self.setStyle(self.MenuStyle())
         
         # cleanup (only needed for unix)
         QtCore.QSharedMemory(key).attach()
@@ -720,7 +720,7 @@ class SingleApplicationWithMessaging(QApplication):
             return True
         return False
     
-    class MenuStyle(QProxyStyle):
+    """ class MenuStyle(QProxyStyle):
 
         def styleHint(self, stylehint, opt=None, widget=None, returnData=None):
             if stylehint == QStyle.SH_MenuBar_AltKeyNavigation:
@@ -729,7 +729,7 @@ class SingleApplicationWithMessaging(QApplication):
             if stylehint == QStyle.SH_Menu_SpaceActivatesItem:
                 return 0
 
-            return QProxyStyle.styleHint(stylehint, opt, widget, returnData)
+            return QProxyStyle.styleHint(stylehint, opt, widget, returnData) """
         
 
 

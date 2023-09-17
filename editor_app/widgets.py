@@ -169,12 +169,10 @@ class SpriteTab(QWidget):
 
         self.canvas_size = 200
         self.view.connectTab(self)
-        self.lastpos = (0, 0)
-
         self.view.setBackgroundBrush(QtCore.Qt.gray)
-        # self.main_window.current_background_color[0],
-        # self.main_window.current_background_color[1],
-        # self.main_window.current_background_color[2]))
+
+        self.lastpos = (0, 0)
+        
 
         # Sprite zoom
         self.zoom_factor = 1
@@ -506,6 +504,7 @@ class SpriteTab(QWidget):
 
         pixmap = QtGui.QPixmap.fromImage(image)
         pixmapitem = self.view.scene.addPixmap(pixmap)
+        pixmapitem.setPos(coords[0],coords[1])
 
     def giveSprite(self):
         if self.locked:
@@ -602,6 +601,7 @@ class SpriteViewWidget(QGraphicsView):
 
     def connectTab(self, tab):
         self.tab = tab
+        self.main_window = tab.main_window
         self.slider_zoom = tab.slider_zoom
         self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
         rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
@@ -616,7 +616,7 @@ class SpriteViewWidget(QGraphicsView):
         if event.key() == QtCore.Qt.Key_Up:
             self.clickSpriteControl('up')
             
-        elif event.key() == QtCore.Qt.Key_Space:
+        elif event.key() == QtCore.Qt.Key_Space and self.dragMode() == self.NoDrag:
             self.setDragMode(self.ScrollHandDrag)
             
         super().keyPressEvent(event)
@@ -624,199 +624,20 @@ class SpriteViewWidget(QGraphicsView):
     def keyReleaseEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space:
             self.setDragMode(self.NoDrag)
-            self.tab.main_window.tool_widget.toolbox.restoreTool()
+            self.main_window.tool_widget.toolbox.restoreTool()
             
         super().keyReleaseEvent(event)
 
+    def wheelEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()        
 
-
-    def viewMousePressEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()
-
-        # Control modifier = sprite control, dealt with by parent
         if modifiers == QtCore.Qt.ControlModifier:
-            event.ignore()
-            return
-
-        screen_pos = event.localPos()
-        x = round(screen_pos.x()/self.zoom_factor)
-        y = round(screen_pos.y()/self.zoom_factor)
-
-        self.lastpos = (x, y)
-
-        if event.button() == QtCore.Qt.LeftButton:
-            if self.main_window.giveTool() == cwdg.Tools.PEN:
-
-                shade = self.main_window.giveActiveShade()
-                if not shade:
-                    return
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.draw(x, y, shade)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.ERASER:
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.erase(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
-
-                # since the hotspot of the cross cursor is in the middle we have to round differently
-                x = int(screen_pos.x()/self.zoom_factor)
-                y = int(screen_pos.y()/self.zoom_factor)
-
-                self.eyedrop(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.REMAP:
-
-                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
-                    0]
-                if not color_remap:
-                    self.working_sprite = None
-                    return
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite()[0])
-
-                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
-                    self.working_sprite.remapColor(color, color_remap)
-
-                self.overdraw(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite()[0])
-
-                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
-                    0]
-
-                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
-                    self.working_sprite.changeBrightnessColor(1, color)
-
-                self.overdraw(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.FILL:
-
-                shade = self.main_window.giveActiveShade()
-                if not shade:
-                    return
-
-                # since the hotspot of the cross cursor is in the middle we have to round differently
-                x = int(screen_pos.x()/self.zoom_factor)
-                y = int(screen_pos.y()/self.zoom_factor)
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-
-                self.fill(x, y, shade)
-                return
-
-        if event.button() == QtCore.Qt.RightButton:
-
-            if self.main_window.giveTool() == cwdg.Tools.PEN:
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.erase(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
-
-                self.addSpriteToHistory()
-                self.generateProtectionMask()
-                self.working_sprite = copy(self.giveSprite()[0])
-
-                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
-                    0]
-
-                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
-                    self.working_sprite.changeBrightnessColor(-1, color)
-
-                self.overdraw(x, y)
-                return
-
-    def viewMouseMoveEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()
-
-        screen_pos = self.view.mapToScene(event.localPos().toPoint())
-        x = round(screen_pos.x())
-        y = round(screen_pos.y())
-
-        x_display = -int(self.canvas_size/2)+x
-        y_display = -int(self.canvas_size*2/3)+y
-        
-        
-        self.label_x.setText(f'X   {x_display}')
-        self.label_y.setText(f'Y   {y_display}')
-
-        # Control modifier = sprite control, dealt with by parent
-        if modifiers == QtCore.Qt.ControlModifier:
-            event.ignore()
-            return
-
-        if event.buttons() == QtCore.Qt.LeftButton:
-
-            if self.main_window.giveTool() == cwdg.Tools.PEN:
-                shade = self.main_window.giveActiveShade()
-                if not shade:
-                    return
-
-                self.draw(x, y, shade)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.ERASER:
-                self.erase(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
-
-                # since the hotspot of the cross cursor is in the middle we have to round differently
-                x = int(screen_pos.x()/self.zoom_factor)
-                y = int(screen_pos.y()/self.zoom_factor)
-
-                self.eyedrop(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.REMAP:
-                if not self.working_sprite:
-                    return
-
-                self.overdraw(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
-                if not self.working_sprite:
-                    return
-
-                self.overdraw(x, y)
-                return
-
-        if event.buttons() == QtCore.Qt.RightButton:
-
-            if self.main_window.giveTool() == cwdg.Tools.PEN:
-                self.erase(x, y)
-                return
-
-            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
-                self.overdraw(x, y)
-                return
-
-        return
-
-    def viewWheelEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()
-
-        if modifiers == QtCore.Qt.AltModifier:
+            zoom_factor = self.slider_zoom.value()
+            if event.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
+                self.slider_zoom.setValue(int(zoom_factor+1))
+            elif event.angleDelta().y() < 0 and zoom_factor != self.slider_zoom.minimum():
+                self.slider_zoom.setValue(int(zoom_factor-1))
+        elif modifiers == QtCore.Qt.AltModifier:
             color, shade = self.main_window.tool_widget.color_select_panel.getColorIndices()
             if color:
                 if event.angleDelta().x() > 0 and shade != 11:
@@ -833,38 +654,186 @@ class SpriteViewWidget(QGraphicsView):
             elif event.angleDelta().y() < 0:
                 toolbox.dial_brushsize.setValue(
                     toolbox.dial_brushsize.value()-1)
-
-    def wheelEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()
-
-        # we ignore the event when Alt is pressed as it is the color change movement
-        if modifiers in (QtCore.Qt.ShiftModifier, QtCore.Qt.AltModifier):
-            return
-
-        if not self.slider_zoom:
-            super().wheelEvent()
-            return
-
-        if modifiers == QtCore.Qt.ControlModifier:
-            zoom_factor = self.slider_zoom.value()
-            if event.angleDelta().y() > 0 and zoom_factor != self.slider_zoom.maximum():
-                self.slider_zoom.setValue(int(zoom_factor+1))
-            elif event.angleDelta().y() < 0 and zoom_factor != self.slider_zoom.minimum():
-                self.slider_zoom.setValue(int(zoom_factor-1))
         else:
             super().wheelEvent(event)
 
     def mousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
         
-        print('lol')
+        screen_pos = self.mapToScene(event.localPos().toPoint())
+        x = round(screen_pos.x())
+        y = round(screen_pos.y())
+        
+        self.tab.lastpos = (x, y)
 
+        if event.button() == QtCore.Qt.LeftButton:
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.draw(x, y, shade)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.ERASER:
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.erase(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
+
+                # since the hotspot of the cross cursor is in the middle we have to round differently
+                x = int(screen_pos.x())
+                y = int(screen_pos.y())
+
+                self.tab.eyedrop(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.REMAP:
+
+                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[0]
+                if not color_remap:
+                    self.tab.working_sprite = None
+                    return
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+
+                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
+                    self.tab.working_sprite.remapColor(color, color_remap)
+
+                self.tab.overdraw(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+
+                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[0]
+
+                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
+                    self.tab.working_sprite.changeBrightnessColor(1, color)
+
+                self.tab.overdraw(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.FILL:
+
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
+
+                # since the hotspot of the cross cursor is in the middle we have to round differently
+                x = int(screen_pos.x())
+                y = int(screen_pos.y())
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+
+                self.tab.fill(x, y, shade)
+                return
+
+        if event.button() == QtCore.Qt.RightButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.erase(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+
+                self.tab.addSpriteToHistory()
+                self.tab.generateProtectionMask()
+                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+
+                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
+                    0]
+
+                for color in self.main_window.tool_widget.color_select_panel.selectedColors():
+                    self.tab.working_sprite.changeBrightnessColor(-1, color)
+
+                self.tab.overdraw(x, y)
+                return
+
+        
         if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
             QApplication.setOverrideCursor(QtCore.Qt.ClosedHandCursor)
             self.mousepos = event.localPos()
             return
 
         super().mousePressEvent(event)
+    
+         
+    def mouseMoveEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+
+        screen_pos = self.mapToScene(event.localPos().toPoint())
+        x = round(screen_pos.x())
+        y = round(screen_pos.y())
+
+        x_display = -int(self.tab.canvas_size/2)+x
+        y_display = -int(self.tab.canvas_size*2/3)+y 
+        
+        self.tab.label_x.setText(f'X   {x_display}')
+        self.tab.label_y.setText(f'Y   {y_display}')
+
+        if event.buttons() == QtCore.Qt.LeftButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+                shade = self.main_window.giveActiveShade()
+                if not shade:
+                    return
+
+                self.tab.draw(x, y, shade)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.ERASER:
+                self.tab.erase(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.EYEDROPPER:
+
+                # since the hotspot of the cross cursor is in the middle we have to round differently
+                x = int(screen_pos.x())
+                y = int(screen_pos.y())
+
+                self.tab.eyedrop(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.REMAP:
+                if not self.tab.working_sprite:
+                    return
+
+                self.tab.overdraw(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+                if not self.tab.working_sprite:
+                    return
+
+                self.tab.overdraw(x, y)
+                return
+
+        if event.buttons() == QtCore.Qt.RightButton:
+
+            if self.main_window.giveTool() == cwdg.Tools.PEN:
+                self.tab.erase(x, y)
+                return
+
+            if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
+                self.tab.overdraw(x, y)
+                return
+     
 
 
     def mouseReleaseEvent(self, event):

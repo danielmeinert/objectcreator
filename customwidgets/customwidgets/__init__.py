@@ -180,6 +180,8 @@ class ToolBoxWidget(QWidget):
 
     def restoreTool(self):
         self.selectTool(self.last_tool)
+        self.toolChanged.emit(self)
+
 
     def selectBrush(self, brush):
         if brush == self.brush:
