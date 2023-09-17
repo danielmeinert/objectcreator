@@ -7,7 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -172,7 +172,6 @@ class SpriteTab(QWidget):
         self.view.setBackgroundBrush(QtCore.Qt.gray)
 
         self.lastpos = (0, 0)
-        
 
         # Sprite zoom
         self.zoom_factor = 1
@@ -209,7 +208,6 @@ class SpriteTab(QWidget):
             self.toolChanged)
         self.toolChanged(self.main_window.tool_widget.toolbox)
 
-
         self.updateView()
 
     def lockWithObjectTab(self, object_tab):
@@ -244,7 +242,6 @@ class SpriteTab(QWidget):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
 
         self.zoom_factor = val
-
 
     def toolChanged(self, toolbox):
         color = [255-c for c in self.main_window.current_background_color]
@@ -473,7 +470,6 @@ class SpriteTab(QWidget):
                 self.canvas_size, self.canvas_size), p=[1-strength, strength]).T)
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
-
     def updateView(self, skip_locked=False):
         if self.locked:
             if not skip_locked:
@@ -503,8 +499,8 @@ class SpriteTab(QWidget):
         image = ImageQt(self.sprite.image)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        pixmapitem = self.view.scene.addPixmap(pixmap)
-        pixmapitem.setPos(coords[0],coords[1])
+        self.view.pixmapitem.setPixmap(pixmap)
+        self.view.pixmapitem.setOffset(coords[0], coords[1])
 
     def giveSprite(self):
         if self.locked:
@@ -590,8 +586,10 @@ class SpriteViewWidget(QGraphicsView):
         self.scene = QGraphicsScene()
         self.viewport().setMouseTracking(True)
 
-        self.setDragMode(self.NoDrag)
-
+        # self.setDragMode(self.ScrollHandDrag)
+        self._isPanning = False
+        self._mousePressed = False
+        self._spacePressed = False
 
         self.slider_zoom = None
         self.current_pressed_key = None
@@ -605,31 +603,36 @@ class SpriteViewWidget(QGraphicsView):
         self.slider_zoom = tab.slider_zoom
         self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
         rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
-        
+
         brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
-                                        tab.main_window.current_background_color[1],
-                                        tab.main_window.current_background_color[2]))
+                                          tab.main_window.current_background_color[1],
+                                          tab.main_window.current_background_color[2]))
         rect.setBrush(brush)
         self.scene.addItem(rect)
 
+        self.pixmapitem = QGraphicsPixmapItem()
+        self.scene.addItem(self.pixmapitem)
+
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Up:
-            self.clickSpriteControl('up')
-            
-        elif event.key() == QtCore.Qt.Key_Space and self.dragMode() == self.NoDrag:
-            self.setDragMode(self.ScrollHandDrag)
-            
-        super().keyPressEvent(event)
-            
+        if event.key() == QtCore.Qt.Key_Space and not self._mousePressed:
+            self._isPanning = True
+            self._spacePressed = True
+            self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
+        else:
+            super().keyPressEvent(event)
+
     def keyReleaseEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space:
-            self.setDragMode(self.NoDrag)
-            self.main_window.tool_widget.toolbox.restoreTool()
-            
-        super().keyReleaseEvent(event)
+            self._spacePressed = False
+            if not self._mousePressed:
+                self._isPanning = False
+                self.main_window.tool_widget.toolbox.restoreTool()
+
+        else:
+            super().keyPressEvent(event)
 
     def wheelEvent(self, event):
-        modifiers = QApplication.keyboardModifiers()        
+        modifiers = QApplication.keyboardModifiers()
 
         if modifiers == QtCore.Qt.ControlModifier:
             zoom_factor = self.slider_zoom.value()
@@ -659,14 +662,21 @@ class SpriteViewWidget(QGraphicsView):
 
     def mousePressEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
-        
+
         screen_pos = self.mapToScene(event.localPos().toPoint())
         x = round(screen_pos.x())
         y = round(screen_pos.y())
-        
+
         self.tab.lastpos = (x, y)
 
         if event.button() == QtCore.Qt.LeftButton:
+            self._mousePressed = True
+            if self._isPanning:
+                self.viewport().setCursor(QtCore.Qt.ClosedHandCursor)
+                self._dragPos = event.pos()
+                event.accept()
+                return
+
             if self.main_window.giveTool() == cwdg.Tools.PEN:
 
                 shade = self.main_window.giveActiveShade()
@@ -765,25 +775,27 @@ class SpriteViewWidget(QGraphicsView):
                 self.tab.overdraw(x, y)
                 return
 
-        
-        if event.button() == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ControlModifier:
-            QApplication.setOverrideCursor(QtCore.Qt.ClosedHandCursor)
-            self.mousepos = event.localPos()
-            return
-
         super().mousePressEvent(event)
-    
-         
+
     def mouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
+
+        if self._mousePressed and self._isPanning:
+            newPos = event.pos()
+            diff = newPos - self._dragPos
+            self._dragPos = newPos
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - diff.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - diff.y())
+            event.accept()
+            return
 
         screen_pos = self.mapToScene(event.localPos().toPoint())
         x = round(screen_pos.x())
         y = round(screen_pos.y())
 
         x_display = -int(self.tab.canvas_size/2)+x
-        y_display = -int(self.tab.canvas_size*2/3)+y 
-        
+        y_display = -int(self.tab.canvas_size*2/3)+y
+
         self.tab.label_x.setText(f'X   {x_display}')
         self.tab.label_y.setText(f'Y   {y_display}')
 
@@ -833,12 +845,18 @@ class SpriteViewWidget(QGraphicsView):
             if self.main_window.giveTool() == cwdg.Tools.BRIGHTNESS:
                 self.tab.overdraw(x, y)
                 return
-     
 
+        super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        QApplication.restoreOverrideCursor()
-        self.mousepos = event.localPos()
+        if event.button() == QtCore.Qt.LeftButton:
+            if self._spacePressed:
+                self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
+            else:
+                self._isPanning = False
+                self.main_window.tool_widget.toolbox.restoreTool()
+
+            self._mousePressed = False
         super().mouseReleaseEvent(event)
 
 

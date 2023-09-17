@@ -66,6 +66,8 @@ class MainWindowUi(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+
         self.app_data_path = app_data_path
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
@@ -78,7 +80,7 @@ class MainWindowUi(QMainWindow):
         self.new_sprite_count = 1
 
         self.object_tabs = self.findChild(
-            QTabWidget, "tabWidget_objects")
+            QTabWidget, "tabWidget_objects")f
         self.sprite_tabs = self.findChild(
             QTabWidget, "tabWidget_sprites")
 
@@ -342,9 +344,8 @@ class MainWindowUi(QMainWindow):
 
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
-                tab.sprites_tab.sprite_view_main.setStyleSheet("QLabel{"
-                                                               f"background-color :  rgb{self.current_background_color};"
-                                                               "}")
+                tab.sprites_tab.sprite_view_main.setStyleSheet(
+                    "QLabel{" f"background-color :  rgb{self.current_background_color};" "}")
                 for _, preview in enumerate(tab.sprites_tab.sprite_preview):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"
@@ -521,7 +522,8 @@ class MainWindowUi(QMainWindow):
         if not folder:
             folder = getcwd()
         filepaths, _ = QFileDialog.getOpenFileNames(
-            self, "Open Object", folder, "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
+            self, "Open Object", folder,
+            "All Object Type Files (*.parkobj *.DAT *.json);; Parkobj Files (*.parkobj);; DAT files (*.DAT);; JSON Files (*.json);; All Files (*.*)")
 
         if filepaths:
             for filepath in filepaths:
@@ -669,10 +671,10 @@ class SingleApplicationWithMessaging(QApplication):
 
     def __init__(self, argv, key):
         super().__init__(argv)
-        
+
         # for disabling alt and space behaviour:
-        #self.setStyle(self.MenuStyle())
-        
+        # self.setStyle(self.MenuStyle())
+
         # cleanup (only needed for unix)
         QtCore.QSharedMemory(key).attach()
         self._memory = QtCore.QSharedMemory(self)
@@ -719,7 +721,7 @@ class SingleApplicationWithMessaging(QApplication):
             socket.disconnectFromServer()
             return True
         return False
-    
+
     """ class MenuStyle(QProxyStyle):
 
         def styleHint(self, stylehint, opt=None, widget=None, returnData=None):
@@ -730,7 +732,6 @@ class SingleApplicationWithMessaging(QApplication):
                 return 0
 
             return QProxyStyle.styleHint(stylehint, opt, widget, returnData) """
-        
 
 
 def main():
