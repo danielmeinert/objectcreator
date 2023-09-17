@@ -80,7 +80,7 @@ class MainWindowUi(QMainWindow):
         self.new_sprite_count = 1
 
         self.object_tabs = self.findChild(
-            QTabWidget, "tabWidget_objects")f
+            QTabWidget, "tabWidget_objects")
         self.sprite_tabs = self.findChild(
             QTabWidget, "tabWidget_sprites")
 
