@@ -617,6 +617,7 @@ class SpriteViewWidget(QGraphicsView):
         if event.key() == QtCore.Qt.Key_Space and not self._mousePressed:
             self._isPanning = True
             self._spacePressed = True
+            self.stored_cursor = self.viewport().cursor()
             self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
         else:
             super().keyPressEvent(event)
@@ -626,7 +627,7 @@ class SpriteViewWidget(QGraphicsView):
             self._spacePressed = False
             if not self._mousePressed:
                 self._isPanning = False
-                self.main_window.tool_widget.toolbox.restoreTool()
+                self.viewport().setCursor(self.stored_cursor)
 
         else:
             super().keyPressEvent(event)
@@ -706,7 +707,8 @@ class SpriteViewWidget(QGraphicsView):
 
             if self.main_window.giveTool() == cwdg.Tools.REMAP:
 
-                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[0]
+                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
+                    0]
                 if not color_remap:
                     self.tab.working_sprite = None
                     return
@@ -727,7 +729,8 @@ class SpriteViewWidget(QGraphicsView):
                 self.tab.generateProtectionMask()
                 self.tab.working_sprite = copy(self.tab.giveSprite()[0])
 
-                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[0]
+                color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
+                    0]
 
                 for color in self.main_window.tool_widget.color_select_panel.selectedColors():
                     self.tab.working_sprite.changeBrightnessColor(1, color)
@@ -852,10 +855,9 @@ class SpriteViewWidget(QGraphicsView):
         if event.button() == QtCore.Qt.LeftButton:
             if self._spacePressed:
                 self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
-            else:
+            elif self._isPanning:
                 self._isPanning = False
-                self.main_window.tool_widget.toolbox.restoreTool()
-
+                self.viewport().setCursor(self.stored_cursor)
             self._mousePressed = False
         super().mouseReleaseEvent(event)
 

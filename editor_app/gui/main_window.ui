@@ -16,6 +16,9 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -84,6 +87,9 @@
            <height>16</height>
           </size>
          </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>Pull sprite from object's current view to this sprite.</string>
          </property>
@@ -106,6 +112,9 @@
            <height>19</height>
           </size>
          </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lock/unlock current sprite to/from object. When locking, the sprite will be pushed to object's current view. If there is another sprite locked with the object, it will be unlocked first.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
@@ -124,6 +133,9 @@
         <widget class="QToolButton" name="toolButton_pushSprite">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
           <string>Push sprite from this sprite to object's current view.</string>
