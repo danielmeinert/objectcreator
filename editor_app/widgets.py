@@ -168,6 +168,10 @@ class SpriteTab(QWidget):
         self.main_window = main_window
 
         self.canvas_size = 200
+        self.base_x = int(self.canvas_size/2)
+        self.base_y = int(self.canvas_size*2/3)
+
+        self.layers = []
         self.view.connectTab(self)
         self.view.setBackgroundBrush(QtCore.Qt.gray)
 
@@ -184,20 +188,24 @@ class SpriteTab(QWidget):
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
 
-            self.sprite, _ = object_tab.giveCurrentMainViewSprite()
             o = object_tab.o
-            self.history = []
-            self.history_redo = []
-            for sprite in o.sprites:
-                self.history.append([])
-                self.history_redo.append([])
+            for _, sprite in o.sprites.items():
+                layer = SpriteLayer(
+                    sprite, self.main_window, self.base_x, self.base_y)
+                layer.setVisible(False)
+                self.layers.append(layer)
+                self.view.addLayer(layer)
+
+            self.active_layer = self.layers[0]
+            self.active_layer.setVisible(True)
 
         else:
             self.locked = False
             self.object_tab = None
-            self.sprite = spr.Sprite(None)
-            self.history = [[]]
-            self.history_redo = [[]]
+            self.active_layer = SpriteLayer(
+                spr.Sprite(None), self.main_window, self.base_x, self.base_y)
+            self.layers.append(self.active_layer)
+            self.view.addLayer(self.active_layer)
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_size, self.canvas_size))
@@ -249,8 +257,9 @@ class SpriteTab(QWidget):
         self.view.viewport().setCursor(cursor)
 
     def colorRemap(self, color_remap, selected_colors):
-        self.addSpriteToHistory()
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
+        sprite = layer.sprite
 
         for color in selected_colors:
             sprite.remapColor(color, color_remap)
@@ -258,32 +267,35 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def colorChangeBrightness(self, step, selected_colors):
-        self.addSpriteToHistory()
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
+        sprite = layer.sprite
 
         sprite.changeBrightnessColor(step, selected_colors)
 
         self.updateView()
 
     def colorRemove(self, selected_colors):
-        self.addSpriteToHistory()
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
+        sprite = layer.sprite
 
         sprite.removeColor(selected_colors)
 
         self.updateView()
 
     def clickSpriteControl(self, direction: str):
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
 
         if direction == 'left':
-            sprite.x -= 1
+            layer.setOffset(sprite.x - 1, sprite.y)
         elif direction == 'right':
-            sprite.x += 1
+            layer.setOffset(sprite.x + 1, sprite.y)
         elif direction == 'up':
-            sprite.y -= 1
+            layer.setOffset(sprite.x, sprite.y - 1)
         elif direction == 'down':
-            sprite.y += 1
+            layer.setOffset(sprite.x, sprite.y + 1)
         elif direction == 'leftright':
             sprite.image = sprite.image.transpose(
                 Image.FLIP_LEFT_RIGHT)
@@ -294,13 +306,14 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def draw(self, x, y, shade):
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
         canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
         canvas_protect = Image.new(
             'RGBA', (self.canvas_size, self.canvas_size))
 
-        coords = (int(self.canvas_size/2)+sprite.x,
-                  int(self.canvas_size*2/3)+sprite.y)
+        coords = (self.base_x+sprite.x,
+                  self.base_y+sprite.y)
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -334,15 +347,14 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -int(self.canvas_size/2) + bbox[0]
-            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+            x_offset = -self.base_x + bbox[0]
+            y_offset = -self.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
 
         sprite.image = canvas
-        sprite.x = x_offset
-        sprite.y = y_offset
+        layer.setOffset(x_offset, y_offset)
 
         self.updateView()
 
@@ -350,10 +362,11 @@ class SpriteTab(QWidget):
         self.draw(x, y, (0, 0, 0, 0))
 
     def eyedrop(self, x, y):
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
 
-        coords = (int(self.canvas_size/2)+sprite.x,
-                  int(self.canvas_size*2/3)+sprite.y)
+        coords = (self.base_x+sprite.x,
+                  self.base_y+sprite.y)
 
         indices = sprite.giveShade((x-coords[0], y-coords[1]))
 
@@ -365,15 +378,16 @@ class SpriteTab(QWidget):
 
     def overdraw(self, x, y):
         working_sprite = self.working_sprite
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
         canvas_mask = Image.new(
             '1', (self.canvas_size, self.canvas_size), color=1)
         canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
         canvas_protect = Image.new(
             'RGBA', (self.canvas_size, self.canvas_size))
 
-        coords = (int(self.canvas_size/2)+sprite.x,
-                  int(self.canvas_size*2/3)+sprite.y)
+        coords = (self.base_x+sprite.x,
+                  self.base_y+sprite.y)
 
         canvas.paste(working_sprite.image, coords, mask=working_sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -408,26 +422,26 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -int(self.canvas_size/2) + bbox[0]
-            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+            x_offset = -self.base_x + bbox[0]
+            y_offset = -self.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
 
         sprite.image = canvas
-        sprite.x = x_offset
-        sprite.y = y_offset
+        layer.setOffset(x_offset, y_offset)
 
         self.updateView()
 
     def fill(self, x, y, shade):
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
         canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
         canvas_protect = Image.new(
             'RGBA', (self.canvas_size, self.canvas_size))
 
-        coords = (int(self.canvas_size/2)+sprite.x,
-                  int(self.canvas_size*2/3)+sprite.y)
+        coords = (self.base_x+sprite.x,
+                  self.base_y+sprite.y)
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -441,23 +455,23 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -int(self.canvas_size/2) + bbox[0]
-            y_offset = -int(self.canvas_size*2/3) + bbox[1]
+            x_offset = -self.base_x + bbox[0]
+            y_offset = -self.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
 
         sprite.image = canvas
-        sprite.x = x_offset
-        sprite.y = y_offset
+        layer.setOffset(x_offset, y_offset)
 
         self.updateView()
 
     def generateProtectionMask(self):
-        sprite, _ = self.giveSprite()
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
 
-        coords = (int(self.canvas_size/2)+sprite.x,
-                  int(self.canvas_size*2/3)+sprite.y)
+        coords = (self.base_x+sprite.x,
+                  self.base_y+sprite.y)
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_size, self.canvas_size))
@@ -471,36 +485,7 @@ class SpriteTab(QWidget):
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
     def updateView(self, skip_locked=False):
-        if self.locked:
-            if not skip_locked:
-                self.object_tab.updateCurrentMainView()
-
-                return
-
-            canvas = self.object_tab.giveCurrentMainView(
-                self.canvas_size, add_auxilaries=True)
-
-        else:
-            canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
-
-            # if add_auxiliaries and self.button_bounding_box.isChecked():
-            #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
-            #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
-
-            # canvas.paste(self.frame_image, self.frame_image)
-
-            coords = (int(self.canvas_size/2)+self.sprite.x,
-                      int(self.canvas_size*2/3)+self.sprite.y)
-
-            canvas.paste(self.sprite.image, coords, self.sprite.image)
-
-        canvas = canvas.resize((int(canvas.size[0]*self.zoom_factor), int(
-            canvas.size[1]*self.zoom_factor)), resample=Image.NEAREST)
-        image = ImageQt(self.sprite.image)
-
-        pixmap = QtGui.QPixmap.fromImage(image)
-        self.view.pixmapitem.setPixmap(pixmap)
-        self.view.pixmapitem.setOffset(coords[0], coords[1])
+        self.active_layer.updateLayer()
 
     def giveSprite(self):
         if self.locked:
@@ -508,58 +493,29 @@ class SpriteTab(QWidget):
         else:
             return self.sprite, 0
 
+    def currentActiveLayer(self):
+        return self.active_layer
+
     def addSpriteToHistory(self):
-        sprite_import, index = self.giveSprite()
-        sprite = copy(sprite_import)
-
-        if len(self.history[index]) == self.main_window.settings['history_maximum']:
-            self.history[index].pop(0)
-
-        self.history[index].append(sprite)
-        self.history_redo[index] = []
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
 
     def addSpriteToHistoryAllViews(self):
         if not self.locked:
             return
 
-        for index, sprite_import in enumerate(self.object_tab.o.sprites.items()):
-            sprite = copy(sprite_import[1])
-
-            if len(self.history[index]) == self.main_window.settings['history_maximum']:
-                self.history[index].pop(0)
-
-            self.history[index].append(sprite)
-            self.history_redo[index] = []
+        for layer in self.view.layers:
+            layer.addSpriteToHistory()
 
     def undo(self):
-        sprite_old, index = self.giveSprite()
-
-        if len(self.history[index]) == 0:
-            return
-
-        sprite_new = self.history[index].pop(-1)
-
-        self.history_redo[index].append(copy(sprite_old))
-
-        sprite_old.image = sprite_new.image
-        sprite_old.x = sprite_new.x
-        sprite_old.y = sprite_new.y
+        layer = self.currentActiveLayer()
+        layer.undo()
 
         self.updateView()
 
     def redo(self):
-        sprite_old, index = self.giveSprite()
-
-        if len(self.history_redo[index]) == 0:
-            return
-
-        sprite_new = self.history_redo[index].pop(-1)
-
-        self.history[index].append(copy(sprite_old))
-
-        sprite_old.image = sprite_new.image
-        sprite_old.x = sprite_new.x
-        sprite_old.y = sprite_new.y
+        layer = self.currentActiveLayer()
+        layer.redo()
 
         self.updateView()
 
@@ -600,17 +556,20 @@ class SpriteViewWidget(QGraphicsView):
         self.tab = tab
         self.main_window = tab.main_window
         self.slider_zoom = tab.slider_zoom
-        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
-        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        self.base_x = tab.base_x
+        self.base_y = tab.base_y
 
+        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
+
+        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
         brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
                                           tab.main_window.current_background_color[1],
                                           tab.main_window.current_background_color[2]))
         rect.setBrush(brush)
         self.scene.addItem(rect)
 
-        self.pixmapitem = QGraphicsPixmapItem()
-        self.scene.addItem(self.pixmapitem)
+    def addLayer(self, layer):
+        self.scene.addItem(layer)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:
@@ -795,8 +754,8 @@ class SpriteViewWidget(QGraphicsView):
         x = round(screen_pos.x())
         y = round(screen_pos.y())
 
-        x_display = -int(self.tab.canvas_size/2)+x
-        y_display = -int(self.tab.canvas_size*2/3)+y
+        x_display = -int(self.tab.base_x)+x
+        y_display = -int(self.tab.base_y)+y
 
         self.tab.label_x.setText(f'X   {x_display}')
         self.tab.label_y.setText(f'Y   {y_display}')
@@ -859,6 +818,71 @@ class SpriteViewWidget(QGraphicsView):
                 self.viewport().setCursor(self.stored_cursor)
             self.mouse_pressed = False
         super().mouseReleaseEvent(event)
+
+
+class SpriteLayer(QGraphicsPixmapItem):
+    def __init__(self, sprite, main_window, base_x, base_y):
+        super().__init__()
+
+        self.main_window = main_window
+        self.base_x = base_x
+        self.base_y = base_y
+
+        self.sprite = sprite
+        self.history = []
+        self.history_redo = []
+
+        self.setOffset(sprite.x, sprite.y)
+        self.updateLayer()
+
+    def addSpriteToHistory(self):
+        sprite = copy(self.sprite)
+
+        if len(self.history) == self.main_window.settings['history_maximum']:
+            self.history.pop(0)
+
+        self.history.append(sprite)
+        self.history_redo = []
+
+    def undo(self):
+        if len(self.history) == 0:
+            return
+
+        sprite_new = self.history.pop(-1)
+
+        self.history_redo.append(copy(self.sprite))
+
+        self.sprite.image = sprite_new.image
+        self.sprite.x = sprite_new.x
+        self.sprite.y = sprite_new.y
+
+        self.updateLayer()
+
+    def redo(self):
+        if len(self.history_redo) == 0:
+            return
+
+        sprite_new = self.history_redo.pop(-1)
+
+        self.history.append(copy(self.sprite))
+
+        self.sprite.image = sprite_new.image
+        self.sprite.x = sprite_new.x
+        self.sprite.y = sprite_new.y
+
+        self.updateLayer()
+
+    def setOffset(self, x, y):
+        self.sprite.x = x
+        self.sprite.y = y
+
+        super().setOffset(self.base_x + x, self.base_y + y)
+
+    def updateLayer(self):
+        image = ImageQt(self.sprite.image)
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.setPixmap(pixmap)
 
 
 # Tools
