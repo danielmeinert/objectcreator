@@ -23,6 +23,7 @@ from pkgutil import get_data
 import auxiliaries as aux
 
 import customwidgets as cwdg
+import widgets as wdg
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -546,6 +547,7 @@ class SpritesTab(QWidget):
             f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset green;")
 
         self.o.rotateObject(rot)
+        self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
 
@@ -584,7 +586,7 @@ class SpritesTab(QWidget):
 
         self.updateAllViews()
 
-    def updateMainView(self):
+    def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
 
         coords = (76+x, 200+y)
@@ -609,10 +611,33 @@ class SpritesTab(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_view_main.setPixmap(pixmap)
 
-        if self.object_tab.locked:
-            self.object_tab.locked_sprite_tab.updateView(skip_locked=True)
-
         self.updatePreview(self.o.rotation)
+        if emit_signal:
+            self.object_tab.mainViewUpdated.emit()
+
+    def giveLayers(self, base_x, base_y):
+        layers = []
+        rot = 0
+        for _, sprite in self.o.sprites.items():
+            layer = wdg.SpriteLayer(
+                sprite, self.main_window, base_x, base_y)
+            layer.rotation = rot
+            layer.setVisible(True if rot == self.o.rotation else False)
+
+            rot = (rot+1) % 4
+            layers.append(layer)
+
+        return layers
+
+    def requestNumberOfLayers(self):
+        if self.o.subtype == self.o.Subtype.SIMPLE:
+            return 1
+        elif self.o.subtype == self.o.Subtype.ANIMATED:
+            raise NotImplementedError("Subtype missing")
+        elif self.o.subtype == self.o.Subtype.GLASS:
+            return 2
+        elif self.o.subtype == self.o.Subtype.GARDENS:
+            return 3
 
     def giveMainView(self, canvas_size, add_auxiliaries):
         im, x, y = self.o.show()

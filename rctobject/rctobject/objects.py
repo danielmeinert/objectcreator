@@ -39,13 +39,13 @@ OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 class RCTObject:
     """Base class for all editable objects; loads from .parkobj or .DAT files."""
 
-    def __init__(self, data: dict, sprites: dict, old_id = None):
+    def __init__(self, data: dict, sprites: dict, old_id=None):
         """Instantiate object directly given JSON and image data."""
         self.data = data
         self.sprites = sprites
         self.old_id = old_id
 
-        self.object_type = None # to be set in subclass
+        self.object_type = None  # to be set in subclass
 
         self.rotation = 0
 
@@ -69,7 +69,7 @@ class RCTObject:
             unpack_archive(filename=filepath, extract_dir=temp, format='zip')
             # Raises error on incorrect object structure or missing json:
             data = jload(fp=open(f'{temp}/object.json', encoding='utf-8'))
-            dat_id = data.get('originalId',None)
+            dat_id = data.get('originalId', None)
             # If an original Id was given and the sprites are supposed to be loaded from the dat file we do so (aka "official" openRCT objects).
             if isinstance(data['images'][0], str) and dat_id:
                 dat_id = dat_id.split('|')[1].replace(' ', '')
@@ -83,7 +83,7 @@ class RCTObject:
             else:
                 raise RuntimeError('Cannot extract images.')
 
-        return cls(data=data, sprites=sprites, old_id = dat_id)
+        return cls(data=data, sprites=sprites, old_id=dat_id)
 
     @classmethod
     def fromJson(cls, filepath: str, openpath: str = OPENRCTPATH):
@@ -105,7 +105,7 @@ class RCTObject:
         else:
             raise RuntimeError('Cannot extract images.')
 
-        return cls(data=data, sprites=sprites, old_id = dat_id)
+        return cls(data=data, sprites=sprites, old_id=dat_id)
 
     @classmethod
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
@@ -119,8 +119,7 @@ class RCTObject:
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
         data['images'], sprites = dat.import_sprites(dat_id, openpath)
 
-        return cls(data=data, sprites=sprites, old_id = dat_id)
-
+        return cls(data=data, sprites=sprites, old_id=dat_id)
 
     def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
         """Saves an object as .parkobj file to specified path."""
@@ -154,12 +153,11 @@ class RCTObject:
                 self.data['strings']['name'].pop(lang)
 
         # Remove an empty scenery group
-        if self.data.get('sceneryGroup') == '' or  self.data.get('sceneryGroup') == '\x00\x00\x00\x00\x00\x00\x00\x00':
-             self.data.pop('sceneryGroup')
+        if self.data.get('sceneryGroup') == '' or self.data.get('sceneryGroup') == '\x00\x00\x00\x00\x00\x00\x00\x00':
+            self.data.pop('sceneryGroup')
 
         # All objects we save are custom objects
         self.data['sourceGame'] = "custom"
-
 
         if name:
             filename = f'{path}/{name}'
@@ -221,7 +219,7 @@ class RCTObject:
 
 
 class SmallScenery(RCTObject):
-    def __init__(self, data: dict, sprites: dict, old_id = None):
+    def __init__(self, data: dict, sprites: dict, old_id=None):
         super().__init__(data, sprites, old_id)
         if data:
             if data['objectType'] != 'scenery_small':
@@ -273,12 +271,11 @@ class SmallScenery(RCTObject):
                 for _, sprite in self.sprites.items():
                     sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
 
-
     def updateImageOffsets(self):
         """Override method from base class."""
 
         # Adjust sprite offsets from flags
-        if (self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ ) and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
+        if (self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ) and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
             offset = 12
             offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
 
@@ -294,8 +291,7 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-
-    def show(self, rotation = None, animation_frame: int = -1, wither: int = 0):
+    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -309,12 +305,10 @@ class SmallScenery(RCTObject):
             sprite_index = rotation
 
         sprite = self.sprites[self.data['images'][sprite_index]['path']]
-        return sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
-       # canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-     #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
+        return sprite.show(
+            self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
 
-       # return canvas
-    def giveSprite(self, rotation = None, animation_frame: int = -1, wither: int = 0, return_index = False):
+    def giveSprite(self, rotation=None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -327,10 +321,20 @@ class SmallScenery(RCTObject):
         else:
             sprite_index = rotation
 
-        if return_index:
-            return self.sprites[self.data['images'][sprite_index]['path']], sprite_index
+        return self.sprites[self.data['images'][sprite_index]['path']]
+
+    def giveIndex(self, rotation=None, animation_frame: int = -1, wither: int = 0):
+        if isinstance(rotation, int):
+            rotation = rotation % 4
         else:
-            return self.sprites[self.data['images'][sprite_index]['path']]
+            rotation = self.rotation
+
+        if self.subtype == self.Subtype.GARDENS:
+            sprite_index = rotation+4*wither
+        else:
+            sprite_index = rotation
+
+        return sprite_index
 
     def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
         """Still need to implement all possible animation cases and glass objects."""
@@ -348,7 +352,7 @@ class SmallScenery(RCTObject):
 
         self.sprites[self.data['images'][sprite_index]['path']] = sprite
 
-    def rotateObject(self, rot = None):
+    def rotateObject(self, rot=None):
         if not isinstance(rot, int):
             self.rotation = (self.rotation + 1) % 4
         else:
@@ -370,12 +374,9 @@ class SmallScenery(RCTObject):
         self.shape = shape
         self.data['properties']['shape'] = shape.fullname
 
-
-
         # quarter is a default
         if shape == self.Shape.QUARTER:
             self.data['properties'].pop('shape')
-
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
@@ -394,8 +395,6 @@ class SmallScenery(RCTObject):
         def __int__(self):
             return self.value
 
-
-
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
         ANIMATED = 1, 'Animated'
@@ -413,8 +412,9 @@ class SmallScenery(RCTObject):
 
 ###### Large scenery subclass ######
 
+
 class LargeScenery(RCTObject):
-    def __init__(self, data: dict, sprites: dict, old_id = None):
+    def __init__(self, data: dict, sprites: dict, old_id=None):
         super().__init__(data, sprites, old_id)
         if data:
             if data['objectType'] != 'scenery_large':
@@ -436,11 +436,11 @@ class LargeScenery(RCTObject):
                 self.num_glyph_sprites = 0
 
         self.rotation_matrices = [
-            np.array([[1,0],[0,1]]),      # R^0
+            np.array([[1, 0], [0, 1]]),      # R^0
             np.array([[0, 1], [-1, 0]]),  # R
-            np.array([[-1, 0], [0, -1]]), # R^2
+            np.array([[-1, 0], [0, -1]]),  # R^2
             np.array([[0, -1], [1, 0]])   # R^3
-            ]
+        ]
 
     def setSize(self):
         max_x = 0
@@ -482,10 +482,9 @@ class LargeScenery(RCTObject):
             y_baseline = z_size*8+(y_size-1)*16
             x_baseline = 32
 
-
         for tile_index in drawing_order:
             tile = tiles[tile_index]
-            y_base = y_baseline + int(tile['x']/2) + int(tile['y']/2) - tile.get('z',0)
+            y_base = y_baseline + int(tile['x']/2) + int(tile['y']/2) - tile.get('z', 0)
             x_base = x_baseline - tile['x'] + tile['y']
 
             sprite_index = 4 + 4*tile_index + view + self.num_glyph_sprites
@@ -511,7 +510,6 @@ class LargeScenery(RCTObject):
     def updateSpritesList(self):
         if self.subtype == self.Subtype.SIGN:
             self.sprites = self.glyphs_sprites.append(self.sprites)
-
 
     def getDrawingOrder(self):
         order = {}
@@ -539,7 +537,7 @@ class LargeScenery(RCTObject):
     def updateImageOffsets(self):
         for i, im in enumerate(self.data['images']):
             # Update the non-preview sprites
-            if i >3:
+            if i > 3:
                 im['x'] = self.sprites[im['path']].x
                 im['y'] = self.sprites[im['path']].y
             # preview sprites have different offsets
@@ -547,8 +545,6 @@ class LargeScenery(RCTObject):
                 image = self.sprites[im['path']].show()
                 im['x'] = -int(image.size[0]/2)
                 im['y'] = image.size[1]
-
-
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
@@ -564,10 +560,9 @@ class LargeScenery(RCTObject):
             return self.value
 
 
-
 # Wrapper to load any object type and instantiate is as the correct subclass
 
-def load(filepath: str, openpath = OPENRCTPATH):
+def load(filepath: str, openpath=OPENRCTPATH):
     """Instantiates a new object from a .parkobj  or .dat file."""
     extension = splitext(filepath)[1].lower()
 
@@ -588,8 +583,10 @@ def load(filepath: str, openpath = OPENRCTPATH):
     else:
         raise NotImplementedError(f"Object type {obj_type} unsupported by now.")
 
+
 def loadFromId(identifier: str):
     pass
+
 
 def new(data, sprites):
     """Instantiates a new object from given data and sprites."""
@@ -602,6 +599,7 @@ def new(data, sprites):
     else:
         raise NotImplementedError(f"Object type {object_type} unsupported by now.")
 
+
 def newEmpty(object_type: cts.Type):
     """Instantiates a new empty object of given type."""
 
@@ -610,23 +608,10 @@ def newEmpty(object_type: cts.Type):
     if object_type == cts.Type.SMALL:
         data = cts.data_template_small
     elif object_type == cts.Type.LARGE:
-            data = cts.data_template_large
+        data = cts.data_template_large
     else:
         raise NotImplementedError(f"Object type {object_type.value} unsupported by now.")
 
-
-
     sprites = {im['path']: spr.Sprite(None) for im in data['images']}
 
-    return new(data,sprites)
-
-
-
-
-
-
-
-
-
-
-
+    return new(data, sprites)

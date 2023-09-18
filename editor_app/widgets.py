@@ -36,6 +36,9 @@ import widgetsSS
 
 
 class ObjectTab(QWidget):
+    mainViewUpdated = QtCore.pyqtSignal()
+    rotationChanged = QtCore.pyqtSignal(int)
+
     def __init__(self, o, main_window, filepath=None, author=None, author_id=None):
         super().__init__()
 
@@ -109,10 +112,16 @@ class ObjectTab(QWidget):
 
         self.locked = True
         self.locked_sprite_tab = locked_sprite_tab
+        self.locked_sprite_tab.layerUpdated.connect(lambda: self.updateCurrentMainView(emit_signal=False))
 
     def unlockSpriteTab(self):
         self.locked = False
+        self.locked_sprite_tab.layerUpdated.disconnect()
         self.locked_sprite_tab = None
+
+    # to be defined in subclass
+    def giveLayers(self, base_x, base_y):
+        return self.sprites_tab.giveLayers(base_x, base_y)
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite(return_index=True)
@@ -120,8 +129,8 @@ class ObjectTab(QWidget):
     def giveCurrentMainView(self, canvas_size=200, add_auxilaries=False):
         return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
 
-    def updateCurrentMainView(self):
-        self.sprites_tab.updateMainView()
+    def updateCurrentMainView(self, emit_signal=True):
+        self.sprites_tab.updateMainView(emit_signal)
 
     def setCurrentSprite(self, sprite):
         self.o.setSprite(sprite)
@@ -161,6 +170,8 @@ class ObjectTab(QWidget):
 # Sprites Tab
 
 class SpriteTab(QWidget):
+    layerUpdated = QtCore.pyqtSignal()
+
     def __init__(self, main_window, object_tab=None, filepath=None):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/sprite.ui'), self)
@@ -171,7 +182,6 @@ class SpriteTab(QWidget):
         self.base_x = int(self.canvas_size/2)
         self.base_y = int(self.canvas_size*2/3)
 
-        self.layers = []
         self.view.connectTab(self)
         self.view.setBackgroundBrush(QtCore.Qt.gray)
 
@@ -183,21 +193,19 @@ class SpriteTab(QWidget):
         self.slider_zoom.valueChanged.connect(
             lambda x, toolbox=self.main_window.tool_widget.toolbox: self.toolChanged(toolbox))
 
+        self.layers = []
         if object_tab:
             self.locked = True
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
 
-            o = object_tab.o
-            for _, sprite in o.sprites.items():
-                layer = SpriteLayer(
-                    sprite, self.main_window, self.base_x, self.base_y)
-                layer.setVisible(False)
+            for layer in object_tab.giveLayers(self.base_x, self.base_y):
                 self.layers.append(layer)
                 self.view.addLayer(layer)
 
-            self.active_layer = self.layers[0]
-            self.active_layer.setVisible(True)
+            self.active_layer = self.layers[object_tab.o.rotation]
+            self.object_tab.mainViewUpdated.connect(lambda: self.updateView(emit_signal=False))
+            self.object_tab.rotationChanged.connect(self.rotationChanged)
 
         else:
             self.locked = False
@@ -219,26 +227,37 @@ class SpriteTab(QWidget):
         self.updateView()
 
     def lockWithObjectTab(self, object_tab):
+        self.view.clear()
+        self.layers = []
         if object_tab:
             self.locked = True
             self.object_tab = object_tab
-            self.sprite, _ = object_tab.giveCurrentMainViewSprite()
-            o = object_tab.o
-            self.history = []
-            self.history_redo = []
-            for sprite in o.sprites:
-                self.history.append([])
-                self.history_redo.append([])
+            object_tab.lockWithSpriteTab(self)
+            self.object_tab.mainViewUpdated.connect(lambda: self.updateView(emit_signal=False))
+            self.object_tab.rotationChanged.connect(self.rotationChanged)
+
+            for layer in object_tab.giveLayers(self.base_x, self.base_y):
+                self.layers.append(layer)
+                self.view.addLayer(layer)
+
+            self.active_layer = self.layers[object_tab.o.rotation]
 
         self.updateView()
 
     def unlockObjectTab(self):
         if self.locked:
-            self.sprite = copy(self.giveSprite()[0])
-            index = self.giveSprite()[1]
-            self.history = copy([self.history[index]])
-            self.history_redo = copy([self.history_redo[index]])
+            rot = self.object_tab.o.rotation
+
+            for layer in self.layers:
+                if layer.rotation != rot:
+                    del layer
+
+            self.active_layer = self.layers[0]
+
             self.locked = False
+            self.object_tab.mainViewUpdated.disconnect()
+            self.object_tab.rotationChanged.disconnect()
+
             self.object_tab = None
 
     def setSprite(self, sprite):
@@ -248,13 +267,21 @@ class SpriteTab(QWidget):
 
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
-
         self.zoom_factor = val
 
     def toolChanged(self, toolbox):
         color = [255-c for c in self.main_window.current_background_color]
         cursor = cwdg.ToolCursors(toolbox, self.zoom_factor, color)
         self.view.viewport().setCursor(cursor)
+
+    def rotationChanged(self, rot):
+        if not self.locked:
+            return
+
+        for layer in self.layers:
+            layer.setVisible(layer.rotation == rot)
+
+        self.active_layer = self.layers[rot]
 
     def colorRemap(self, color_remap, selected_colors):
         layer = self.currentActiveLayer()
@@ -484,8 +511,10 @@ class SpriteTab(QWidget):
                 self.canvas_size, self.canvas_size), p=[1-strength, strength]).T)
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
-    def updateView(self, skip_locked=False):
+    def updateView(self, emit_signal=True):
         self.active_layer.updateLayer()
+        if emit_signal:
+            self.layerUpdated.emit()
 
     def giveSprite(self):
         if self.locked:
@@ -504,7 +533,7 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        for layer in self.view.layers:
+        for layer in self.layers:
             layer.addSpriteToHistory()
 
     def undo(self):
@@ -570,6 +599,16 @@ class SpriteViewWidget(QGraphicsView):
 
     def addLayer(self, layer):
         self.scene.addItem(layer)
+
+    def clear(self):
+        self.scene.clear()
+
+        rect = QGraphicsRectItem(0, 0, self.tab.canvas_size, self.tab.canvas_size)
+        brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
+                                          self.tab.main_window.current_background_color[1],
+                                          self.tab.main_window.current_background_color[2]))
+        rect.setBrush(brush)
+        self.scene.addItem(rect)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:
@@ -821,12 +860,14 @@ class SpriteViewWidget(QGraphicsView):
 
 
 class SpriteLayer(QGraphicsPixmapItem):
-    def __init__(self, sprite, main_window, base_x, base_y):
+
+    def __init__(self, sprite, main_window, base_x, base_y, rotation=None):
         super().__init__()
 
         self.main_window = main_window
         self.base_x = base_x
         self.base_y = base_y
+        self.rotation = rotation
 
         self.sprite = sprite
         self.history = []
@@ -872,17 +913,33 @@ class SpriteLayer(QGraphicsPixmapItem):
 
         self.updateLayer()
 
+    def setSprite(self, sprite):
+        if sprite:
+            self.sprite = sprite
+            self.updateOffset()
+
+            self.updateLayer()
+
     def setOffset(self, x, y):
         self.sprite.x = x
         self.sprite.y = y
 
         super().setOffset(self.base_x + x, self.base_y + y)
 
-    def updateLayer(self):
-        image = ImageQt(self.sprite.image)
+    def updateOffset(self):
+        super().setOffset(self.base_x + self.sprite.x, self.base_y + self.sprite.y)
+
+    def updateLayer(self, sprite=None):
+        if not sprite:
+            sprite = self.sprite
+        else:
+            self.setSprite(sprite)
+
+        image = ImageQt(sprite.image)
 
         pixmap = QtGui.QPixmap.fromImage(image)
         self.setPixmap(pixmap)
+        self.updateOffset()
 
 
 # Tools

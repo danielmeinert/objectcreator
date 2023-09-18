@@ -88,7 +88,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.removeTab(0)
 
         # Tab actions
-        self.object_tabs.tabCloseRequested.connect(self.closeObject)
+        self.object_tabs.tabCloseRequested.connect(self.objectClose)
         self.object_tabs.currentChanged.connect(self.changeObjectTab)
         self.sprite_tabs.currentChanged.connect(self.changeSpriteTab)
 
@@ -103,8 +103,8 @@ class MainWindowUi(QMainWindow):
 
         # Menubar
         self.actionSmallScenery.triggered.connect(
-            lambda x: self.newObject(cts.Type.SMALL))
-        self.actionOpenFile.triggered.connect(self.openObjectFile)
+            lambda x: self.objectNew(cts.Type.SMALL))
+        self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
 
@@ -158,7 +158,7 @@ class MainWindowUi(QMainWindow):
         # Load empty object if not started with objects
 
         if not opening_objects:
-            self.spriteNew()
+            self.objectNew()
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
@@ -426,11 +426,12 @@ class MainWindowUi(QMainWindow):
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
 
-    def lockClicked(self):
+    def lockClicked(self, event):
         current_object_tab = self.object_tabs.currentWidget()
         current_sprite_tab = self.sprite_tabs.currentWidget()
 
         if current_object_tab is None or current_sprite_tab is None:
+            self.sender().setChecked(False)
             return
 
         if self.button_lock.isChecked():
@@ -487,7 +488,7 @@ class MainWindowUi(QMainWindow):
 
     # Menubar actions
 
-    def newObject(self, obj_type=cts.Type.SMALL):
+    def objectNew(self, obj_type=cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
@@ -509,7 +510,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.addTab(sprite_tab, f"{name} (locked)")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-    def closeObject(self, index):
+    def objectClose(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab.locked:
             self.sprite_tabs.removeTab(
@@ -517,7 +518,7 @@ class MainWindowUi(QMainWindow):
 
         self.object_tabs.removeTab(index)
 
-    def openObjectFile(self):
+    def objectOpenFile(self):
         folder = self.last_open_folder
         if not folder:
             folder = getcwd()
