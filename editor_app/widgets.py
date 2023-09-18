@@ -586,13 +586,12 @@ class SpriteViewWidget(QGraphicsView):
         self.scene = QGraphicsScene()
         self.viewport().setMouseTracking(True)
 
-        # self.setDragMode(self.ScrollHandDrag)
-        self._isPanning = False
-        self._mousePressed = False
-        self._spacePressed = False
+        # Panning flags
+        self.is_panning = False
+        self.mouse_pressed = False
+        self.space_pressed = False
 
         self.slider_zoom = None
-        self.current_pressed_key = None
         self.mousepos = QtCore.QPoint(0, 0)
 
         self.setScene(self.scene)
@@ -614,9 +613,9 @@ class SpriteViewWidget(QGraphicsView):
         self.scene.addItem(self.pixmapitem)
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Space and not self._mousePressed:
-            self._isPanning = True
-            self._spacePressed = True
+        if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:
+            self.is_panning = True
+            self.space_pressed = True
             self.stored_cursor = self.viewport().cursor()
             self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
         else:
@@ -624,9 +623,9 @@ class SpriteViewWidget(QGraphicsView):
 
     def keyReleaseEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space:
-            self._spacePressed = False
-            if not self._mousePressed:
-                self._isPanning = False
+            self.space_pressed = False
+            if not self.mouse_pressed:
+                self.is_panning = False
                 self.viewport().setCursor(self.stored_cursor)
 
         else:
@@ -671,8 +670,8 @@ class SpriteViewWidget(QGraphicsView):
         self.tab.lastpos = (x, y)
 
         if event.button() == QtCore.Qt.LeftButton:
-            self._mousePressed = True
-            if self._isPanning:
+            self.mouse_pressed = True
+            if self.is_panning:
                 self.viewport().setCursor(QtCore.Qt.ClosedHandCursor)
                 self._dragPos = event.pos()
                 event.accept()
@@ -783,7 +782,7 @@ class SpriteViewWidget(QGraphicsView):
     def mouseMoveEvent(self, event):
         modifiers = QApplication.keyboardModifiers()
 
-        if self._mousePressed and self._isPanning:
+        if self.mouse_pressed and self.is_panning:
             newPos = event.pos()
             diff = newPos - self._dragPos
             self._dragPos = newPos
@@ -853,12 +852,12 @@ class SpriteViewWidget(QGraphicsView):
 
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            if self._spacePressed:
+            if self.space_pressed:
                 self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
-            elif self._isPanning:
-                self._isPanning = False
+            elif self.is_panning:
+                self.is_panning = False
                 self.viewport().setCursor(self.stored_cursor)
-            self._mousePressed = False
+            self.mouse_pressed = False
         super().mouseReleaseEvent(event)
 
 
