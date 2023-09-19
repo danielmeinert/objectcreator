@@ -308,7 +308,8 @@ class SmallScenery(RCTObject):
             sprite_index = rotation
 
         sprite = self.sprites[self.data['images'][sprite_index]['path']]
-        return sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
+        return sprite.show(
+            self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
        # canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
      #                (x_base+sprite.x, y_base+sprite.y), sprite.image)
 

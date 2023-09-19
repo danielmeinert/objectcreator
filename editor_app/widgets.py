@@ -7,7 +7,10 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
+    QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
+    QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
+    QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -701,7 +704,7 @@ class SpriteTab(QWidget):
             #    backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(self.o)
             #    canvas.paste(backbox, (int(canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
-            #canvas.paste(self.frame_image, self.frame_image)
+            # canvas.paste(self.frame_image, self.frame_image)
 
             coords = (int(self.canvas_size/2)+self.sprite.x,
                       int(self.canvas_size*2/3)+self.sprite.y)
@@ -1018,11 +1021,11 @@ class ChangeSettingsUi(QDialog):
         self.doubleSpinBox_version.setValue(float(settings.get('version', 1)))
 
         self.pushButton_firstRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[0])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
         self.pushButton_secondRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[1])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
         self.pushButton_thirdRemap.setColor(
-            settings.get('default_remaps', ['NoColor','NoColor','NoColor'])[2])
+            settings.get('default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
 
     def loadSpriteSettings(self, settings):
         self.comboBox_transparency_color.setCurrentIndex(

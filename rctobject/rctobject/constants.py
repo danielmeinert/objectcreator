@@ -10,6 +10,7 @@
 
 from enum import Enum
 
+
 class Type(Enum):
     SMALL = 'scenery_small'
     LARGE = 'scenery_large'
@@ -19,38 +20,38 @@ class Type(Enum):
     PATHITEM = "footpath_item"
     GROUP = "scenery_group"
     ENTRANCE = "park_entrance"
-    PALETTE =  "water"
+    PALETTE = "water"
     TEXT = "scenario text"
-    
+
 
 cursors = [
-     "CURSOR_ARROW",
-     "CURSOR_BLANK",
-     "CURSOR_UP_ARROW",
-     "CURSOR_UP_DOWN_ARROW",
-     "CURSOR_HAND_POINT",
-     "CURSOR_ZZZ",
-     "CURSOR_DIAGONAL_ARROWS",
-     "CURSOR_PICKER",
-     "CURSOR_TREE_DOWN",
-     "CURSOR_FOUNTAIN_DOWN",
-     "CURSOR_STATUE_DOWN",
-     "CURSOR_BENCH_DOWN",
-     "CURSOR_CROSS_HAIR",
-     "CURSOR_BIN_DOWN",
-     "CURSOR_LAMPPOST_DOWN",
-     "CURSOR_FENCE_DOWN",
-     "CURSOR_FLOWER_DOWN",
-     "CURSOR_PATH_DOWN",
-     "CURSOR_DIG_DOWN",
-     "CURSOR_WATER_DOWN",
-     "CURSOR_HOUSE_DOWN",
-     "CURSOR_VOLCANO_DOWN",
-     "CURSOR_WALK_DOWN",
-     "CURSOR_PAINT_DOWN",
-     "CURSOR_ENTRANCE_DOWN",
-     "CURSOR_HAND_OPEN",
-     "CURSOR_HAND_CLOSED"
+    "CURSOR_ARROW",
+    "CURSOR_BLANK",
+    "CURSOR_UP_ARROW",
+    "CURSOR_UP_DOWN_ARROW",
+    "CURSOR_HAND_POINT",
+    "CURSOR_ZZZ",
+    "CURSOR_DIAGONAL_ARROWS",
+    "CURSOR_PICKER",
+    "CURSOR_TREE_DOWN",
+    "CURSOR_FOUNTAIN_DOWN",
+    "CURSOR_STATUE_DOWN",
+    "CURSOR_BENCH_DOWN",
+    "CURSOR_CROSS_HAIR",
+    "CURSOR_BIN_DOWN",
+    "CURSOR_LAMPPOST_DOWN",
+    "CURSOR_FENCE_DOWN",
+    "CURSOR_FLOWER_DOWN",
+    "CURSOR_PATH_DOWN",
+    "CURSOR_DIG_DOWN",
+    "CURSOR_WATER_DOWN",
+    "CURSOR_HOUSE_DOWN",
+    "CURSOR_VOLCANO_DOWN",
+    "CURSOR_WALK_DOWN",
+    "CURSOR_PAINT_DOWN",
+    "CURSOR_ENTRANCE_DOWN",
+    "CURSOR_HAND_OPEN",
+    "CURSOR_HAND_CLOSED"
 ]
 
 languages = {
@@ -72,7 +73,6 @@ languages = {
     "ru-RU": 'Russian',
     "eo-ZZ": 'Esperanto'
 }
-
 
 
 # Name: (Byte-Position,Bit)
@@ -140,83 +140,83 @@ Jlarge_flags = {
 
 
 data_template_small = {
-  "id": "",
-  "authors": "",
-  "sourceGame": "custom",
-  "objectType": "scenery_small",
-  "properties": {
-      "height": 1
-      },
-  "images": [
-    {
-      "path": "images/00.png",
-      "x": 0,
-      "y": 0
+    "id": "",
+    "authors": "",
+    "sourceGame": "custom",
+    "objectType": "scenery_small",
+    "properties": {
+        "height": 1
     },
-    {
-      "path": "images/01.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/02.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/03.png",
-      "x": 0,
-      "y": 0
+    "images": [
+        {
+            "path": "images/00.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/01.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/02.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/03.png",
+            "x": 0,
+            "y": 0
+        }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": ""
+        }
     }
-  ],
-  "strings": {
-    "name": {
-      "en-GB": ""
-    }
-  }
 }
 
-data_template_large =    {
-  "id": "",
-  "authors": "",
-  "sourceGame": "custom",
-  "objectType": "scenery_large",
-  "properties": { "tiles": [
+data_template_large = {
+    "id": "",
+    "authors": "",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {"tiles": [
         {
           "x": 0,
           "y": 0,
           "clearence": 1
-        }        ]},
-  "images": [
-    {
-      "path": "images/00.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/01.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/02.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/03.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/04.png",
-      "x": 0,
-      "y": 0
+        }]},
+    "images": [
+        {
+            "path": "images/00.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/01.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/02.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/03.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/04.png",
+            "x": 0,
+            "y": 0
+        }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": ""
+        }
     }
-  ],
-  "strings": {
-    "name": {
-      "en-GB": ""
-    }
-  }
 }
