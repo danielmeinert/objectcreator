@@ -291,7 +291,7 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0):
+    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -301,6 +301,8 @@ class SmallScenery(RCTObject):
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
+        elif self.subtype == self.Subtype.GLASS:
+            sprite_index = rotation+4*int(not glass)
         else:
             sprite_index = rotation
 
@@ -308,7 +310,7 @@ class SmallScenery(RCTObject):
         return sprite.show(
             self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
 
-    def giveSprite(self, rotation=None, animation_frame: int = -1, wither: int = 0):
+    def giveSprite(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -318,12 +320,14 @@ class SmallScenery(RCTObject):
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
+        elif self.subtype == self.Subtype.GLASS:
+            sprite_index = rotation+4*int(not glass)
         else:
             sprite_index = rotation
 
         return self.sprites[self.data['images'][sprite_index]['path']]
 
-    def giveIndex(self, rotation=None, animation_frame: int = -1, wither: int = 0):
+    def giveIndex(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
         if isinstance(rotation, int):
             rotation = rotation % 4
         else:
@@ -331,6 +335,8 @@ class SmallScenery(RCTObject):
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
+        elif self.subtype == self.Subtype.GLASS:
+            sprite_index = rotation+4*int(not glass)
         else:
             sprite_index = rotation
 

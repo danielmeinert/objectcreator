@@ -477,7 +477,10 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            object_tab.setCurrentSprite(sprite_tab.sprite)
+            num_layers = len(sprite_tab.layers)
+
+            if num_layers == object_tab.requestNumberOfLayers():
+                object_tab.setCurrentLayers(sprite_tab.layers)
 
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()

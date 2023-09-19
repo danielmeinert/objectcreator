@@ -176,10 +176,19 @@ class SettingsTab(QWidget):
                 shape = obj.SmallScenery.Shape.FULL
 
         self.o.changeShape(shape)
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+        self.object_tab.symmAxesChanged.emit(self.sprites_tab.button_symm_axes.isChecked(), symm_axis, coords)
         self.sprites_tab.updateMainView()
 
     def clearenceChanged(self, value):
         self.o['properties']['height'] = value*8
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+
         self.sprites_tab.updateMainView()
 
     def authorChanged(self, value):
@@ -348,8 +357,8 @@ class SpritesTab(QWidget):
         self.button_symm_axes = self.findChild(
             QToolButton, "toolButton_symmAxes")
 
-        self.button_bounding_box.clicked.connect(self.updateMainView)
-        self.button_symm_axes.clicked.connect(self.updateMainView)
+        self.button_bounding_box.clicked.connect(self.clickBoundingBox)
+        self.button_symm_axes.clicked.connect(self.clickSymmAxes)
 
         # Sprite control buttons
         self.button_sprite_left = self.findChild(
@@ -547,6 +556,11 @@ class SpritesTab(QWidget):
             f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset green;")
 
         self.o.rotateObject(rot)
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(self.button_bounding_box.isChecked(), backbox, coords)
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+        self.object_tab.symmAxesChanged.emit(self.button_symm_axes.isChecked(), symm_axis, coords)
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
@@ -585,6 +599,18 @@ class SpritesTab(QWidget):
         self.o.changeRemap(color, remap)
 
         self.updateAllViews()
+
+    def clickBoundingBox(self):
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(self.button_bounding_box.isChecked(), backbox, coords)
+
+        self.updateMainView()
+
+    def clickSymmAxes(self):
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+        self.object_tab.symmAxesChanged.emit(self.button_symm_axes.isChecked(), symm_axis, coords)
+
+        self.updateMainView()
 
     def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()

@@ -38,6 +38,8 @@ import widgetsSS
 class ObjectTab(QWidget):
     mainViewUpdated = QtCore.pyqtSignal()
     rotationChanged = QtCore.pyqtSignal(int)
+    boundingBoxChanged = QtCore.pyqtSignal(bool, object, tuple)
+    symmAxesChanged = QtCore.pyqtSignal(bool, object, tuple)
 
     def __init__(self, o, main_window, filepath=None, author=None, author_id=None):
         super().__init__()
@@ -124,7 +126,7 @@ class ObjectTab(QWidget):
         return self.sprites_tab.giveLayers(base_x, base_y)
 
     def giveCurrentMainViewSprite(self):
-        return self.o.giveSprite(return_index=True)
+        return self.o.giveSprite()
 
     def giveCurrentMainView(self, canvas_size=200, add_auxilaries=False):
         return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
@@ -135,6 +137,9 @@ class ObjectTab(QWidget):
     def setCurrentSprite(self, sprite):
         self.o.setSprite(sprite)
         self.updateCurrentMainView()
+
+    def requestNumberOfLayers(self):
+        return self.sprites_tab.requestNumberOfLayers()
 
     def colorRemapToAll(self, color_remap, selected_colors):
         if self.locked:
@@ -185,6 +190,14 @@ class SpriteTab(QWidget):
         self.view.connectTab(self)
         self.view.setBackgroundBrush(QtCore.Qt.gray)
 
+        self.layer_boundingbox = QGraphicsPixmapItem()
+        self.layer_boundingbox.setZValue(-1)
+        self.layer_symm_axes = QGraphicsPixmapItem()
+        self.layer_symm_axes.setZValue(1)
+
+        self.view.addLayer(self.layer_boundingbox)
+        self.view.addLayer(self.layer_symm_axes)
+
         self.lastpos = (0, 0)
 
         # Sprite zoom
@@ -206,6 +219,8 @@ class SpriteTab(QWidget):
             self.active_layer = self.layers[object_tab.o.rotation]
             self.object_tab.mainViewUpdated.connect(lambda: self.updateView(emit_signal=False))
             self.object_tab.rotationChanged.connect(self.rotationChanged)
+            self.object_tab.boundingBoxChanged.connect(self.boundingBoxesChanged)
+            self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
         else:
             self.locked = False
@@ -282,6 +297,24 @@ class SpriteTab(QWidget):
             layer.setVisible(layer.rotation == rot)
 
         self.active_layer = self.layers[rot]
+
+    def boundingBoxesChanged(self, visible, backbox, coords):
+        self.layer_boundingbox.setVisible(visible)
+
+        image = ImageQt(backbox)
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.layer_boundingbox.setPixmap(pixmap)
+        self.layer_boundingbox.setOffset(coords[0]+self.base_x, coords[1]+self.base_y)
+
+    def symmAxesChanged(self, visible, symm_axes, coords):
+        self.layer_symm_axes.setVisible(visible)
+
+        image = ImageQt(symm_axes)
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.layer_symm_axes.setPixmap(pixmap)
+        self.layer_symm_axes.setOffset(coords[0]+self.base_x, coords[1]+self.base_y)
 
     def colorRemap(self, color_remap, selected_colors):
         layer = self.currentActiveLayer()
@@ -516,14 +549,12 @@ class SpriteTab(QWidget):
         if emit_signal:
             self.layerUpdated.emit()
 
-    def giveSprite(self):
-        if self.locked:
-            return self.object_tab.giveCurrentMainViewSprite()
-        else:
-            return self.sprite, 0
-
     def currentActiveLayer(self):
         return self.active_layer
+
+    def giveSprite(self):
+        layer = self.currentActiveLayer()
+        return layer.sprite
 
     def addSpriteToHistory(self):
         layer = self.currentActiveLayer()
@@ -591,6 +622,7 @@ class SpriteViewWidget(QGraphicsView):
         self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
 
         rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        rect.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
                                           tab.main_window.current_background_color[1],
                                           tab.main_window.current_background_color[2]))
@@ -604,6 +636,7 @@ class SpriteViewWidget(QGraphicsView):
         self.scene.clear()
 
         rect = QGraphicsRectItem(0, 0, self.tab.canvas_size, self.tab.canvas_size)
+        rect.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
                                           self.tab.main_window.current_background_color[2]))
@@ -712,7 +745,7 @@ class SpriteViewWidget(QGraphicsView):
 
                 self.tab.addSpriteToHistory()
                 self.tab.generateProtectionMask()
-                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+                self.tab.working_sprite = copy(self.tab.giveSprite())
 
                 for color in self.main_window.tool_widget.color_select_panel.selectedColors():
                     self.tab.working_sprite.remapColor(color, color_remap)
@@ -724,7 +757,7 @@ class SpriteViewWidget(QGraphicsView):
 
                 self.tab.addSpriteToHistory()
                 self.tab.generateProtectionMask()
-                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+                self.tab.working_sprite = copy(self.tab.giveSprite())
 
                 color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
                     0]
@@ -764,7 +797,7 @@ class SpriteViewWidget(QGraphicsView):
 
                 self.tab.addSpriteToHistory()
                 self.tab.generateProtectionMask()
-                self.tab.working_sprite = copy(self.tab.giveSprite()[0])
+                self.tab.working_sprite = copy(self.tab.giveSprite())
 
                 color_remap = self.main_window.tool_widget.color_select_panel.getColorIndices()[
                     0]
