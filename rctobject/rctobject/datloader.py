@@ -114,7 +114,7 @@ def get_object_type(flag):
 
 
 def tag_small_scenery_header(data, tags):
-    if(len(data) < 0x1C):
+    if (len(data) < 0x1C):
         return RuntimeError('Could not read small scenery header, not correct length.')
     tags['price'] = int.from_bytes(data[12:14], 'little', signed=True)
     tags['removalPrice'] = int.from_bytes(data[14:16], 'little', signed=True)
@@ -174,7 +174,7 @@ def tag_small_scenery_scan_optional(data, tags, pos):
 
 
 def tag_large_scenery_header(data, tags):
-    if(len(data) < 0x1A):
+    if (len(data) < 0x1A):
         return RuntimeError('Could not read large scenery header, not correct length.')
     tags['price'] = int.from_bytes(data[8:10], 'little', signed=True)
     tags['removalPrice'] = int.from_bytes(data[10:12], 'little', signed=True)
@@ -191,7 +191,7 @@ def large_scenery_scan_optional(data, pos):
     length = len(data)
     if length < 8:
         return RuntimeError("Error while scanning optional")
-    if((data[7] & 0x4) == 0x4):
+    if ((data[7] & 0x4) == 0x4):
         pos += 0x40E
 
     tiles = []
@@ -227,7 +227,7 @@ def read_string_table(data, pos):
     names = {}
     while data[pos] != 0xFF:
 
-        if(pos >= length-1):
+        if (pos >= length-1):
             return False
         language = list(const.languages)[data[pos]]
         pos += 1
@@ -255,9 +255,9 @@ def read_dat_info(filename: str):
     with open(filename, "rb") as f:
         header = f.read(16)
         object_flag = header[0]
-        flag_string = hex(unpack('<L',header[:4])[0])[2:].upper().zfill(8)
+        flag_string = hex(unpack('<L', header[:4])[0])[2:].upper().zfill(8)
         name = header[4:12].decode('utf-8')
-        checksum = hex(unpack('<L',header[12:16])[0])[2:].upper().zfill(8)
+        checksum = hex(unpack('<L', header[12:16])[0])[2:].upper().zfill(8)
         result['id'] = ''
         result['version'] = '1.0'
         result['SourceGame'] = get_source(object_flag)
@@ -286,7 +286,7 @@ def read_dat_info(filename: str):
             tag_small_scenery_scan_optional(chunk, tags, pos)
 
             # result["image"] = small_scenery_get_preview(chunk, pos)
-            #	if(result["image"] == =FALSE)return FALSE
+            # if(result["image"] == =FALSE)return FALSE
 
         elif object_type == 'scenery_large':
             tag_large_scenery_header(chunk, tags)
@@ -310,7 +310,8 @@ def read_dat_info(filename: str):
         # 		if(result["image"] == =FALSE)return FALSE
 
         else:
-            raise NotImplementedError(f'dat-Import of {object_type} not supported.')
+            raise NotImplementedError(
+                f'dat-Import of {object_type} not supported.')
 
         result['properties'] = tags
 
@@ -384,9 +385,11 @@ def read_dat_info(filename: str):
     # 	result["image"] = park_entrance_get_preview(chunk, pos)
     # 		if(result["image"] == =FALSE)return FALSE
 
+
 def import_sprites(dat_id, openpath):
     if not exists(f'{openpath}/bin/openrct2.exe'):
-        raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+        raise RuntimeError(f'Could not find openrct2.exe in specified OpenRCT2 path: \n \
+                           "{openpath}/bin/openrct2.exe"')
 
     with TemporaryDirectory() as temp:
         temp = temp.replace('\\', '/')
@@ -410,6 +413,7 @@ def import_sprites(dat_id, openpath):
             f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
 
     return images, sprites
+
 
 def findKnowAuthor(dat_id):
     for author_id, author in known_author_ids.items():
@@ -449,5 +453,3 @@ known_author_ids = {
     'SV': 'Splitvision',
     'TT': 'ToonTowner',
     'XX': 'ToonTowner'}
-
-
