@@ -31,6 +31,8 @@ from json import load as jload
 from json import dump as jdump
 from enum import Enum
 import requests
+from copy import copy
+
 
 import customwidgets as cwdg
 import widgets as wdg
@@ -487,7 +489,9 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
+            layers = object_tab.pullCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y)
+            for layer in layers:
+                sprite_tab.addLayer(layer)
 
     # Menubar actions
 

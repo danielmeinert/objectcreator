@@ -655,6 +655,23 @@ class SpritesTab(QWidget):
 
         return layers
 
+    def pullCurrentMainViewLayers(self, base_x, base_y):
+        layers = []
+        rot = 0
+        for _, sprite in self.o.sprites.items():
+            layer = wdg.SpriteLayer(
+                copy(sprite), self.main_window, base_x, base_y)
+            layer.rotation = rot
+            if rot == self.o.rotation:
+                layer.setVisible(True)
+                layers.append(layer)
+            
+            rot = (rot+1) % 4
+            
+
+        return layers
+        
+
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
             return 1
