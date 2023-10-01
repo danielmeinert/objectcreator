@@ -478,6 +478,7 @@ class RemapColorSelectButton(QPushButton):
             self.active_color_button = None
             self.active_color = 'NoColor'
             self.setStyleSheet("")
+            color_name = 'NoColor'
         else:
             if self.active_color_button:
                 self.active_color_button.setChecked(False)
@@ -501,6 +502,7 @@ class RemapColorSelectButton(QPushButton):
                 self.hide()
         else:
             self.buttons[color_name].clicked.emit()
+            self.buttons[color_name].setChecked(True)
 
     def currentColor(self):
         return self.active_color
