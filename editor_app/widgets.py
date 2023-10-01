@@ -989,7 +989,44 @@ class SpriteLayer(QGraphicsPixmapItem):
         self.updateOffset()
 
 
+# Layers
+
+class LayersWidget(QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        uic.loadUi(aux.resource_path('gui/layers_sprites.ui'), self)
+
+        self.main_window = main_window
+
+        self.layers_list.setDragDropMode(self.layers_list.InternalMove)
+
+    def updateList(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            pass
+
+
+# Layers
+
+class LayersWidget(QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        uic.loadUi(aux.resource_path('gui/layers_sprites.ui'), self)
+
+        self.main_window = main_window
+
+        self.layers_list.setDragDropMode(self.layers_list.InternalMove)
+
+    def updateList(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            pass
+
+
 # Tools
+
 
 class ToolWidgetSprite(QWidget):
     def __init__(self, main_window):

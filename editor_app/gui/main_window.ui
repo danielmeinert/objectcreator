@@ -20,20 +20,96 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>10</number>
-    </property>
-    <property name="topMargin">
-     <number>10</number>
-    </property>
-    <property name="rightMargin">
-     <number>10</number>
-    </property>
-    <property name="bottomMargin">
-     <number>10</number>
-    </property>
-    <item row="0" column="2">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QWidget" name="container_left_bar" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tabWidget_sprites">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QTabWidget::pane {
+  border: 1px solid lightgray;
+  top:-1px; 
+  background: rgb(245, 245, 245);; 
+} 
+
+QTabBar::tab {
+  background: rgb(230, 230, 230); 
+  border: 1px solid lightgray; 
+  padding: 5px;
+} 
+
+QTabBar::tab:selected { 
+  background: rgb(245, 245, 245); 
+  margin-bottom: -1px; 
+}</string>
+      </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tab_sprite">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="title">
+        <string>Sprite 1</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+      </widget>
+     </widget>
+    </item>
+    <item>
      <widget class="QWidget" name="widget_spriteExchange" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -164,68 +240,7 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QTabWidget" name="tabWidget_sprites">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QTabWidget::pane {
-  border: 1px solid lightgray;
-  top:-1px; 
-  background: rgb(245, 245, 245);; 
-} 
-
-QTabBar::tab {
-  background: rgb(230, 230, 230); 
-  border: 1px solid lightgray; 
-  padding: 5px;
-} 
-
-QTabBar::tab:selected { 
-  background: rgb(245, 245, 245); 
-  margin-bottom: -1px; 
-}</string>
-      </property>
-      <property name="tabPosition">
-       <enum>QTabWidget::North</enum>
-      </property>
-      <property name="tabShape">
-       <enum>QTabWidget::Rounded</enum>
-      </property>
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <property name="documentMode">
-       <bool>false</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>false</bool>
-      </property>
-      <property name="movable">
-       <bool>false</bool>
-      </property>
-      <property name="tabBarAutoHide">
-       <bool>false</bool>
-      </property>
-      <widget class="QWidget" name="tab_sprite">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <attribute name="title">
-        <string>Sprite 1</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-      </widget>
-     </widget>
-    </item>
-    <item row="0" column="3">
+    <item>
      <widget class="QTabWidget" name="tabWidget_objects">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -281,27 +296,6 @@ border: 1px solid darkgrey;}
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_3"/>
       </widget>
-     </widget>
-    </item>
-    <item row="0" column="0" alignment="Qt::AlignTop">
-     <widget class="QWidget" name="container_left_bar" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>4</number>
-       </property>
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
-        <number>2</number>
-       </property>
-      </layout>
      </widget>
     </item>
    </layout>
