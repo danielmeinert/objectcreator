@@ -113,7 +113,8 @@ class RCTObject:
         by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
 
         if not exists(f'{openpath}/bin/openrct2.exe'):
-            raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+            raise RuntimeError(
+                'Could not find openrct.exe in specified OpenRCT2 path.')
 
         data = dat.read_dat_info(filepath)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
@@ -251,25 +252,30 @@ class SmallScenery(RCTObject):
                 self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '1/4+D':
                 self.shape = self.Shape.QUARTERD
-                self.size = (0.5, 0.5, int(self.data['properties']['height']/8))
+                self.size = (0.5, 0.5, int(
+                    self.data['properties']['height']/8))
             else:
                 self.shape = self.Shape.QUARTER
-                self.size = (0.5, 0.5, int(self.data['properties']['height']/8))
+                self.size = (0.5, 0.5, int(
+                    self.data['properties']['height']/8))
 
             # Adjust sprite offsets from flags
             if self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ:
                 if self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
                     offset = 12
-                    offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
+                    offset += 2 if self.data['properties'].get(
+                        'prohibitWalls', False) else 0
 
                     for _, sprite in self.sprites.items():
-                        sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
+                        sprite.overwriteOffsets(
+                            int(sprite.x), int(sprite.y) - offset)
 
             elif self.shape == SmallScenery.Shape.HALF:
                 offset = 12
 
                 for _, sprite in self.sprites.items():
-                    sprite.overwriteOffsets(int(sprite.x), int(sprite.y) - offset)
+                    sprite.overwriteOffsets(
+                        int(sprite.x), int(sprite.y) - offset)
 
     def updateImageOffsets(self):
         """Override method from base class."""
@@ -277,7 +283,8 @@ class SmallScenery(RCTObject):
         # Adjust sprite offsets from flags
         if (self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ) and self.data['properties'].get('SMALL_SCENERY_FLAG_VOFFSET_CENTRE', False):
             offset = 12
-            offset += 2 if self.data['properties'].get('prohibitWalls', False) else 0
+            offset += 2 if self.data['properties'].get(
+                'prohibitWalls', False) else 0
 
         elif self.shape == SmallScenery.Shape.HALF:
             offset = 12
@@ -342,7 +349,7 @@ class SmallScenery(RCTObject):
 
         return sprite_index
 
-    def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0):
+    def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
         """Still need to implement all possible animation cases and glass objects."""
         sprite = copy.deepcopy(sprite_in)
 
@@ -435,7 +442,8 @@ class LargeScenery(RCTObject):
                 self.subtype = self.Subtype.SIGN
                 self.font = self.data['properties']['3dFont']
                 self.glyphs = self.font['glyphs']
-                self.num_glyph_sprites = self.font['numImages']*2*(2-int(self.font.get('isVertical', 0)))
+                self.num_glyph_sprites = self.font['numImages'] * \
+                    2*(2-int(self.font.get('isVertical', 0)))
 
             else:
                 self.subtype = self.Subtype.SIMPLE
@@ -490,7 +498,8 @@ class LargeScenery(RCTObject):
 
         for tile_index in drawing_order:
             tile = tiles[tile_index]
-            y_base = y_baseline + int(tile['x']/2) + int(tile['y']/2) - tile.get('z', 0)
+            y_base = y_baseline + \
+                int(tile['x']/2) + int(tile['y']/2) - tile.get('z', 0)
             x_base = x_baseline - tile['x'] + tile['y']
 
             sprite_index = 4 + 4*tile_index + view + self.num_glyph_sprites
@@ -537,7 +546,8 @@ class LargeScenery(RCTObject):
                 self.sprites[im['path']] = spr.Sprite(image, (x, y))
                 self.rotateObject()
         else:
-            raise NotImplementedError("Creating thumbnails is not supported yet for 3d sign objects.")
+            raise NotImplementedError(
+                "Creating thumbnails is not supported yet for 3d sign objects.")
 
     # Override base class
     def updateImageOffsets(self):
@@ -587,7 +597,8 @@ def load(filepath: str, openpath=OPENRCTPATH):
    # elif obj_type == 'scenery_large':
    #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
-        raise NotImplementedError(f"Object type {obj_type} unsupported by now.")
+        raise NotImplementedError(
+            f"Object type {obj_type} unsupported by now.")
 
 
 def loadFromId(identifier: str):
@@ -603,7 +614,8 @@ def new(data, sprites):
     elif object_type == 'scenery_large':
         return LargeScenery(data, sprites)
     else:
-        raise NotImplementedError(f"Object type {object_type} unsupported by now.")
+        raise NotImplementedError(
+            f"Object type {object_type} unsupported by now.")
 
 
 def newEmpty(object_type: cts.Type):
@@ -616,7 +628,8 @@ def newEmpty(object_type: cts.Type):
     elif object_type == cts.Type.LARGE:
         data = cts.data_template_large
     else:
-        raise NotImplementedError(f"Object type {object_type.value} unsupported by now.")
+        raise NotImplementedError(
+            f"Object type {object_type.value} unsupported by now.")
 
     sprites = {im['path']: spr.Sprite(None) for im in data['images']}
 

@@ -8,7 +8,7 @@
  *****************************************************************************
 """
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -178,16 +178,19 @@ class SettingsTab(QWidget):
         self.o.changeShape(shape)
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+        self.object_tab.boundingBoxChanged.emit(
+            self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(self.sprites_tab.button_symm_axes.isChecked(), symm_axis, coords)
+        self.object_tab.symmAxesChanged.emit(
+            self.sprites_tab.button_symm_axes.isChecked(), symm_axis, coords)
         self.sprites_tab.updateMainView()
 
     def clearenceChanged(self, value):
         self.o['properties']['height'] = value*8
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+        self.object_tab.boundingBoxChanged.emit(
+            self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
 
         self.sprites_tab.updateMainView()
 
@@ -558,9 +561,11 @@ class SpritesTab(QWidget):
         self.o.rotateObject(rot)
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(self.button_bounding_box.isChecked(), backbox, coords)
+        self.object_tab.boundingBoxChanged.emit(
+            self.button_bounding_box.isChecked(), backbox, coords)
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(self.button_symm_axes.isChecked(), symm_axis, coords)
+        self.object_tab.symmAxesChanged.emit(
+            self.button_symm_axes.isChecked(), symm_axis, coords)
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
@@ -602,13 +607,15 @@ class SpritesTab(QWidget):
 
     def clickBoundingBox(self):
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(self.button_bounding_box.isChecked(), backbox, coords)
+        self.object_tab.boundingBoxChanged.emit(
+            self.button_bounding_box.isChecked(), backbox, coords)
 
         self.updateMainView()
 
     def clickSymmAxes(self):
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(self.button_symm_axes.isChecked(), symm_axis, coords)
+        self.object_tab.symmAxesChanged.emit(
+            self.button_symm_axes.isChecked(), symm_axis, coords)
 
         self.updateMainView()
 
@@ -665,12 +672,10 @@ class SpritesTab(QWidget):
             if rot == self.o.rotation:
                 layer.setVisible(True)
                 layers.append(layer)
-            
+
             rot = (rot+1) % 4
-            
 
         return layers
-        
 
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
@@ -681,6 +686,39 @@ class SpritesTab(QWidget):
             return 2
         elif self.o.subtype == self.o.Subtype.GARDENS:
             return 3
+
+    def setCurrentLayers(self, layers):
+        if self.requestNumberOfLayers() != len(layers):
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("Layers number does not match!")
+            msg.setTextFormat(QtCore.Qt.RichText)
+
+            msg.setText(f"The number of layers of current sprite does not match the required number of layers for this object type. <br> \
+                    Do you want to merge all layers and push to main layer of object?")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+            reply = msg.exec_()
+
+            if reply == QMessageBox.Yes:
+                pass
+            else:
+                return
+
+        if self.o.subtype == self.o.Subtype.SIMPLE:
+            self.o.setSprite(layers[0].sprite)
+            return
+        elif self.o.subtype == self.o.Subtype.ANIMATED:
+            raise NotImplementedError("Subtype missing")
+        elif self.o.subtype == self.o.Subtype.GLASS:
+            self.o.setSprite(layers[0].sprite, glass=False)
+            self.o.setSprite(layers[1].sprite, glass=True)
+            return
+        elif self.o.subtype == self.o.Subtype.GARDENS:
+            self.o.setSprite(layers[0].sprite, wither=0)
+            self.o.setSprite(layers[1].sprite, wither=1)
+            self.o.setSprite(layers[2].sprite, wither=2)
+            return
 
     def giveMainView(self, canvas_size, add_auxiliaries):
         im, x, y = self.o.show()

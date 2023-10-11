@@ -114,7 +114,8 @@ class ObjectTab(QWidget):
 
         self.locked = True
         self.locked_sprite_tab = locked_sprite_tab
-        self.locked_sprite_tab.layerUpdated.connect(lambda: self.updateCurrentMainView(emit_signal=False))
+        self.locked_sprite_tab.layerUpdated.connect(
+            lambda: self.updateCurrentMainView(emit_signal=False))
 
     def unlockSpriteTab(self):
         self.locked = False
@@ -127,7 +128,7 @@ class ObjectTab(QWidget):
 
     def pullCurrentMainViewLayers(self, base_x, base_y):
         return self.sprites_tab.pullCurrentMainViewLayers(base_x, base_y)
-    
+
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
 
@@ -143,6 +144,9 @@ class ObjectTab(QWidget):
 
     def requestNumberOfLayers(self):
         return self.sprites_tab.requestNumberOfLayers()
+
+    def setCurrentLayers(self, layers):
+        self.sprites_tab.setCurrentLayers(layers)
 
     def colorRemapToAll(self, color_remap, selected_colors):
         if self.locked:
@@ -212,9 +216,11 @@ class SpriteTab(QWidget):
                 self.view.addLayer(layer)
 
             self.active_layer = self.layers[object_tab.o.rotation]
-            self.object_tab.mainViewUpdated.connect(lambda: self.updateView(emit_signal=False))
+            self.object_tab.mainViewUpdated.connect(
+                lambda: self.updateView(emit_signal=False))
             self.object_tab.rotationChanged.connect(self.rotationChanged)
-            self.object_tab.boundingBoxChanged.connect(self.boundingBoxesChanged)
+            self.object_tab.boundingBoxChanged.connect(
+                self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
         else:
@@ -242,9 +248,11 @@ class SpriteTab(QWidget):
             self.locked = True
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
-            self.object_tab.mainViewUpdated.connect(lambda: self.updateView(emit_signal=False))
+            self.object_tab.mainViewUpdated.connect(
+                lambda: self.updateView(emit_signal=False))
             self.object_tab.rotationChanged.connect(self.rotationChanged)
-            self.object_tab.boundingBoxChanged.connect(self.boundingBoxesChanged)
+            self.object_tab.boundingBoxChanged.connect(
+                self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
             for layer in object_tab.giveLayers(self.base_x, self.base_y):
@@ -258,11 +266,11 @@ class SpriteTab(QWidget):
         if self.locked:
             self.layers = []
             self.view.clear()
-            
-            layers = self.object_tab.pullCurrentMainViewLayers(self.base_x, self.base_y)
+
+            layers = self.object_tab.pullCurrentMainViewLayers(
+                self.base_x, self.base_y)
             for layer in layers:
                 self.addLayer(layer)
-
 
             self.active_layer = self.layers[0]
 
@@ -273,7 +281,7 @@ class SpriteTab(QWidget):
             self.object_tab.symmAxesChanged.disconnect()
 
             self.object_tab = None
-        
+
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
         self.zoom_factor = val
@@ -299,7 +307,8 @@ class SpriteTab(QWidget):
 
         pixmap = QtGui.QPixmap.fromImage(image)
         self.view.layer_boundingbox.setPixmap(pixmap)
-        self.view.layer_boundingbox.setOffset(coords[0]+self.base_x, coords[1]+self.base_y)
+        self.view.layer_boundingbox.setOffset(
+            coords[0]+self.base_x, coords[1]+self.base_y)
 
     def symmAxesChanged(self, visible, symm_axes, coords):
         self.view.layer_symm_axes.setVisible(visible)
@@ -308,7 +317,8 @@ class SpriteTab(QWidget):
 
         pixmap = QtGui.QPixmap.fromImage(image)
         self.view.layer_symm_axes.setPixmap(pixmap)
-        self.view.layer_symm_axes.setOffset(coords[0]+self.base_x, coords[1]+self.base_y)
+        self.view.layer_symm_axes.setOffset(
+            coords[0]+self.base_x, coords[1]+self.base_y)
 
     def colorRemap(self, color_remap, selected_colors):
         layer = self.currentActiveLayer()
@@ -542,8 +552,8 @@ class SpriteTab(QWidget):
         self.active_layer.updateLayer()
         if emit_signal:
             self.layerUpdated.emit()
-            
-    def addLayer(self, layer):        
+
+    def addLayer(self, layer):
         self.layers.append(layer)
         self.view.addLayer(layer)
 
@@ -626,7 +636,7 @@ class SpriteViewWidget(QGraphicsView):
                                           tab.main_window.current_background_color[2]))
         rect.setBrush(brush)
         self.scene.addItem(rect)
-        
+
         self.layer_boundingbox = QGraphicsPixmapItem()
         self.layer_boundingbox.setZValue(-1)
         self.layer_symm_axes = QGraphicsPixmapItem()
@@ -641,14 +651,15 @@ class SpriteViewWidget(QGraphicsView):
     def clear(self):
         self.scene.clear()
 
-        rect = QGraphicsRectItem(0, 0, self.tab.canvas_size, self.tab.canvas_size)
+        rect = QGraphicsRectItem(
+            0, 0, self.tab.canvas_size, self.tab.canvas_size)
         rect.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
                                           self.tab.main_window.current_background_color[2]))
         rect.setBrush(brush)
         self.scene.addItem(rect)
-        
+
         self.layer_boundingbox = QGraphicsPixmapItem()
         self.layer_boundingbox.setZValue(-1)
         self.layer_symm_axes = QGraphicsPixmapItem()
@@ -987,8 +998,9 @@ class SpriteLayer(QGraphicsPixmapItem):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.setPixmap(pixmap)
         self.updateOffset()
-        
+
 # Layers
+
 
 class LayersWidget(QWidget):
     def __init__(self, main_window):

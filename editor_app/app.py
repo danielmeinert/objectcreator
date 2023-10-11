@@ -160,7 +160,6 @@ class MainWindowUi(QMainWindow):
 
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 
-
         # Load empty object if not started with objects
 
         if not opening_objects:
@@ -483,17 +482,15 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            num_layers = len(sprite_tab.layers)
-
-            if num_layers == object_tab.requestNumberOfLayers():
-                object_tab.setCurrentLayers(sprite_tab.layers)
+            object_tab.setCurrentLayers(sprite_tab.layers)
 
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            layers = object_tab.pullCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y)
+            layers = object_tab.pullCurrentMainViewLayers(
+                sprite_tab.base_x, sprite_tab.base_y)
             for layer in layers:
                 sprite_tab.addLayer(layer)
 
