@@ -655,7 +655,7 @@ class SpritesTab(QWidget):
             layer = wdg.SpriteLayer(
                 sprite, self.main_window, base_x, base_y)
             layer.rotation = rot
-            layer.setVisible(True if rot == self.o.rotation else False)
+            layer.setRender(True if rot == self.o.rotation else False)
 
             rot = (rot+1) % 4
             layers.append(layer)

@@ -7,7 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -183,6 +183,7 @@ class ObjectTab(QWidget):
 
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
+    layersChanged = QtCore.pyqtSignal()
 
     def __init__(self, main_window, object_tab=None, filepath=None):
         super().__init__()
@@ -212,10 +213,10 @@ class SpriteTab(QWidget):
             object_tab.lockWithSpriteTab(self)
 
             for layer in object_tab.giveLayers(self.base_x, self.base_y):
-                self.layers.append(layer)
-                self.view.addLayer(layer)
+                self.addLayer(layer)
 
             self.active_layer = self.layers[object_tab.o.rotation]
+
             self.object_tab.mainViewUpdated.connect(
                 lambda: self.updateView(emit_signal=False))
             self.object_tab.rotationChanged.connect(self.rotationChanged)
@@ -227,7 +228,7 @@ class SpriteTab(QWidget):
             self.locked = False
             self.object_tab = None
             self.active_layer = SpriteLayer(
-                spr.Sprite(None), self.main_window, self.base_x, self.base_y)
+                spr.Sprite(None), self.main_window, self.base_x, self.base_y, name='Layer 1')
             self.addLayer(self.active_layer)
 
         self.protected_pixels = Image.new(
@@ -296,9 +297,11 @@ class SpriteTab(QWidget):
             return
 
         for layer in self.layers:
+            layer.setRender(layer.rotation == rot)
             layer.setVisible(layer.rotation == rot)
 
         self.active_layer = self.layers[rot]
+        self.layersChanged.emit()
 
     def boundingBoxesChanged(self, visible, backbox, coords):
         self.view.layer_boundingbox.setVisible(visible)
@@ -553,9 +556,11 @@ class SpriteTab(QWidget):
         if emit_signal:
             self.layerUpdated.emit()
 
-    def addLayer(self, layer):
+    def addLayer(self, layer, pos=None):
         self.layers.append(layer)
         self.view.addLayer(layer)
+
+        self.layersChanged.emit()
 
     def currentActiveLayer(self):
         return self.active_layer
@@ -919,13 +924,17 @@ class SpriteViewWidget(QGraphicsView):
 
 class SpriteLayer(QGraphicsPixmapItem):
 
-    def __init__(self, sprite, main_window, base_x, base_y, rotation=None):
+    def __init__(self, sprite, main_window, base_x, base_y, rotation=None, name=None):
         super().__init__()
+
+        self.name = name
 
         self.main_window = main_window
         self.base_x = base_x
         self.base_y = base_y
         self.rotation = rotation
+
+        self.render = True
 
         self.sprite = sprite
         self.history = []
@@ -933,6 +942,9 @@ class SpriteLayer(QGraphicsPixmapItem):
 
         self.setOffset(sprite.x, sprite.y)
         self.updateLayer()
+
+    def setRender(self, val):
+        self.render = val
 
     def addSpriteToHistory(self):
         sprite = copy(self.sprite)
@@ -1015,7 +1027,14 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            pass
+            self.layers_list.clear()
+            for layer in widget.layers:
+                if layer.render:
+                    item = QListWidgetItem(layer.name)
+                    item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
+                                  QtCore.Qt.ItemIsEnabled)
+                    item.setCheckState(2*layer.isVisible())
+                    self.layers_list.addItem(item)
 
 
 # Tools

@@ -152,6 +152,8 @@ class MainWindowUi(QMainWindow):
         self.layer_widget = wdg.LayersWidget(self)
         container.addWidget(self.layer_widget)
 
+        self.sprite_tabs.currentChanged.connect(self.layer_widget.updateList)
+
         # function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
         self.giveBrush = self.tool_widget.toolbox.giveBrush
@@ -389,6 +391,7 @@ class MainWindowUi(QMainWindow):
         object_tab = wdg.ObjectTab(o, self, filepath, author_id=author_id)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
 
         self.object_tabs.addTab(object_tab, name)
         self.object_tabs.setCurrentWidget(object_tab)
@@ -507,6 +510,7 @@ class MainWindowUi(QMainWindow):
         object_tab = wdg.ObjectTab(
             o, self, author=self.settings['author'], author_id=self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
 
         object_tab.lockWithSpriteTab(sprite_tab)
 
@@ -554,6 +558,7 @@ class MainWindowUi(QMainWindow):
         name = f'Sprite {self.new_sprite_count}'
         self.new_sprite_count += 1
         sprite_tab = wdg.SpriteTab(self)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
 
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
