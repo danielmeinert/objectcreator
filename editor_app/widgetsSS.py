@@ -648,6 +648,16 @@ class SpritesTab(QWidget):
         if emit_signal:
             self.object_tab.mainViewUpdated.emit()
 
+    def createLayers(self, base_x, base_y):
+        self.layers = [[], [], [], []]
+        rot = 0
+        for _, sprite in self.o.sprites.items():
+            layer = wdg.SpriteLayer(
+                sprite, self.main_window, base_x, base_y)
+
+            rot = (rot+1) % 4
+            self.layers[rot].append(layer)
+
     def giveLayers(self, base_x, base_y):
         layers = []
         rot = 0
@@ -662,20 +672,8 @@ class SpritesTab(QWidget):
 
         return layers
 
-    def pullCurrentMainViewLayers(self, base_x, base_y):
-        layers = []
-        rot = 0
-        for _, sprite in self.o.sprites.items():
-            layer = wdg.SpriteLayer(
-                copy(sprite), self.main_window, base_x, base_y)
-            layer.rotation = rot
-            if rot == self.o.rotation:
-                layer.setVisible(True)
-                layers.append(layer)
-
-            rot = (rot+1) % 4
-
-        return layers
+    def giveCurrentMainViewLayers(self, base_x, base_y):
+        return self.layers[self.o.rotation]
 
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
@@ -694,7 +692,8 @@ class SpritesTab(QWidget):
             msg.setWindowTitle("Layers number does not match!")
             msg.setTextFormat(QtCore.Qt.RichText)
 
-            msg.setText(f"The number of layers of current sprite does not match the required number of layers for this object type. <br> \
+            msg.setText(
+                f"The number of layers of current sprite does not match the required number of layers for this object type. <br> \
                     Do you want to merge all layers and push to main layer of object?")
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 

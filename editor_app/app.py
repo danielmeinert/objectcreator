@@ -492,7 +492,7 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            layers = object_tab.pullCurrentMainViewLayers(
+            layers = object_tab.giveCurrentMainViewLayers(
                 sprite_tab.base_x, sprite_tab.base_y)
             for layer in layers:
                 sprite_tab.addLayer(layer)

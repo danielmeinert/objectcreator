@@ -117,6 +117,8 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
 
+        self.sprites_tab.createLayers(locked_sprite_tab.base_x, locked_sprite_tab.base_y)
+
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
@@ -126,8 +128,8 @@ class ObjectTab(QWidget):
     def giveLayers(self, base_x, base_y):
         return self.sprites_tab.giveLayers(base_x, base_y)
 
-    def pullCurrentMainViewLayers(self, base_x, base_y):
-        return self.sprites_tab.pullCurrentMainViewLayers(base_x, base_y)
+    def giveCurrentMainViewLayers(self, base_x, base_y):
+        return self.sprites_tab.giveCurrentMainViewLayers(base_x, base_y)
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
@@ -256,10 +258,12 @@ class SpriteTab(QWidget):
                 self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
-            for layer in object_tab.giveLayers(self.base_x, self.base_y):
+            self.view.clear()
+            for layer in object_tab.giveCurrenMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
 
-            self.active_layer = self.layers[object_tab.o.rotation]
+            self.active_layer = self.layers[0]
+            self.layersChanged.emit()
 
         self.updateView()
 
@@ -268,7 +272,7 @@ class SpriteTab(QWidget):
             self.layers = []
             self.view.clear()
 
-            layers = self.object_tab.pullCurrentMainViewLayers(
+            layers = self.object_tab.giveCurrentMainViewLayers(
                 self.base_x, self.base_y)
             for layer in layers:
                 self.addLayer(layer)
@@ -296,11 +300,11 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        for layer in self.layers:
-            layer.setRender(layer.rotation == rot)
-            layer.setVisible(layer.rotation == rot)
+        self.view.clear()
+        for layer in object_tab.giveCurrenMainViewLayers(self.base_x, self.base_y):
+            self.addLayer(layer)
 
-        self.active_layer = self.layers[rot]
+        self.active_layer = self.layers[0]
         self.layersChanged.emit()
 
     def boundingBoxesChanged(self, visible, backbox, coords):
