@@ -546,9 +546,13 @@ class SpritesTab(QWidget):
 
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
+
+        if self.object_tab.locked:
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x, self.object_tab.locked_sprite_tab.base_y)
+            self.object_tab.locked_sprite_tab.updateLayers()
+
         for rot in range(4):
             self.updatePreview(rot)
-
         self.updateMainView()
 
     def previewClicked(self, rot):
@@ -654,23 +658,9 @@ class SpritesTab(QWidget):
         for _, sprite in self.o.sprites.items():
             layer = wdg.SpriteLayer(
                 sprite, self.main_window, base_x, base_y)
-
-            rot = (rot+1) % 4
             self.layers[rot].append(layer)
 
-    def giveLayers(self, base_x, base_y):
-        layers = []
-        rot = 0
-        for _, sprite in self.o.sprites.items():
-            layer = wdg.SpriteLayer(
-                sprite, self.main_window, base_x, base_y)
-            layer.rotation = rot
-            layer.setRender(True if rot == self.o.rotation else False)
-
             rot = (rot+1) % 4
-            layers.append(layer)
-
-        return layers
 
     def giveCurrentMainViewLayers(self, base_x, base_y):
         return self.layers[self.o.rotation]

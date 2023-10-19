@@ -124,10 +124,6 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.disconnect()
         self.locked_sprite_tab = None
 
-    # to be defined in subclass
-    def giveLayers(self, base_x, base_y):
-        return self.sprites_tab.giveLayers(base_x, base_y)
-
     def giveCurrentMainViewLayers(self, base_x, base_y):
         return self.sprites_tab.giveCurrentMainViewLayers(base_x, base_y)
 
@@ -210,22 +206,7 @@ class SpriteTab(QWidget):
 
         self.layers = []
         if object_tab:
-            self.locked = True
-            self.object_tab = object_tab
-            object_tab.lockWithSpriteTab(self)
-
-            for layer in object_tab.giveLayers(self.base_x, self.base_y):
-                self.addLayer(layer)
-
-            self.active_layer = self.layers[object_tab.o.rotation]
-
-            self.object_tab.mainViewUpdated.connect(
-                lambda: self.updateView(emit_signal=False))
-            self.object_tab.rotationChanged.connect(self.rotationChanged)
-            self.object_tab.boundingBoxChanged.connect(
-                self.boundingBoxesChanged)
-            self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
-
+            self.lockWithObjectTab(object_tab)
         else:
             self.locked = False
             self.object_tab = None
@@ -253,13 +234,12 @@ class SpriteTab(QWidget):
             object_tab.lockWithSpriteTab(self)
             self.object_tab.mainViewUpdated.connect(
                 lambda: self.updateView(emit_signal=False))
-            self.object_tab.rotationChanged.connect(self.rotationChanged)
+            self.object_tab.rotationChanged.connect(self.updateLayers)
             self.object_tab.boundingBoxChanged.connect(
                 self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
-            self.view.clear()
-            for layer in object_tab.giveCurrenMainViewLayers(self.base_x, self.base_y):
+            for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
 
             self.active_layer = self.layers[0]
@@ -269,8 +249,10 @@ class SpriteTab(QWidget):
 
     def unlockObjectTab(self):
         if self.locked:
-            self.layers = []
-            self.view.clear()
+            for layer in self.layers:
+                self.view.scene.removeItem(layer)
+
+            layers = []
 
             layers = self.object_tab.giveCurrentMainViewLayers(
                 self.base_x, self.base_y)
@@ -295,17 +277,6 @@ class SpriteTab(QWidget):
         color = [255-c for c in self.main_window.current_background_color]
         cursor = cwdg.ToolCursors(toolbox, self.zoom_factor, color)
         self.view.viewport().setCursor(cursor)
-
-    def rotationChanged(self, rot):
-        if not self.locked:
-            return
-
-        self.view.clear()
-        for layer in object_tab.giveCurrenMainViewLayers(self.base_x, self.base_y):
-            self.addLayer(layer)
-
-        self.active_layer = self.layers[0]
-        self.layersChanged.emit()
 
     def boundingBoxesChanged(self, visible, backbox, coords):
         self.view.layer_boundingbox.setVisible(visible)
@@ -559,6 +530,21 @@ class SpriteTab(QWidget):
         self.active_layer.updateLayer()
         if emit_signal:
             self.layerUpdated.emit()
+
+    def updateLayers(self):
+        if not self.locked:
+            return
+
+        for layer in self.layers:
+            self.view.scene.removeItem(layer)
+
+        self.layers = []
+
+        for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+            self.addLayer(layer)
+
+        self.active_layer = self.layers[0]
+        self.layersChanged.emit()
 
     def addLayer(self, layer, pos=None):
         self.layers.append(layer)
@@ -928,7 +914,7 @@ class SpriteViewWidget(QGraphicsView):
 
 class SpriteLayer(QGraphicsPixmapItem):
 
-    def __init__(self, sprite, main_window, base_x, base_y, rotation=None, name=None):
+    def __init__(self, sprite, main_window, base_x, base_y, name=None):
         super().__init__()
 
         self.name = name
@@ -936,9 +922,6 @@ class SpriteLayer(QGraphicsPixmapItem):
         self.main_window = main_window
         self.base_x = base_x
         self.base_y = base_y
-        self.rotation = rotation
-
-        self.render = True
 
         self.sprite = sprite
         self.history = []
@@ -946,9 +929,6 @@ class SpriteLayer(QGraphicsPixmapItem):
 
         self.setOffset(sprite.x, sprite.y)
         self.updateLayer()
-
-    def setRender(self, val):
-        self.render = val
 
     def addSpriteToHistory(self):
         sprite = copy(self.sprite)
@@ -1033,12 +1013,11 @@ class LayersWidget(QWidget):
         if widget:
             self.layers_list.clear()
             for layer in widget.layers:
-                if layer.render:
-                    item = QListWidgetItem(layer.name)
-                    item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
-                                  QtCore.Qt.ItemIsEnabled)
-                    item.setCheckState(2*layer.isVisible())
-                    self.layers_list.addItem(item)
+                item = QListWidgetItem(layer.name)
+                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
+                              QtCore.Qt.ItemIsEnabled)
+                item.setCheckState(2*layer.isVisible())
+                self.layers_list.addItem(item)
 
 
 # Tools
