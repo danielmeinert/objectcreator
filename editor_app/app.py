@@ -10,7 +10,7 @@
 
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, \
-    QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox,\
+    QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
     QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
@@ -289,7 +289,7 @@ class MainWindowUi(QMainWindow):
             self.actionBlackImport.setChecked(False)
             self.actionWhiteImport.setChecked(False)
             self.actionUpperLeftPixelImport.setChecked(True)
-            self.actionCustomColor.setChecked(False)
+            self.actionCustomColorImport.setChecked(False)
         elif mode == 3:
             self.current_import_color = self.settings.get(
                 'import_color', (0, 0, 0))

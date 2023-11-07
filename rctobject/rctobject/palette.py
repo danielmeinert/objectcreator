@@ -229,9 +229,9 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, include_sparkles=False):
+def addPalette(image, palette: Palette = orct, dither=True, include_sparkles=False, transparent_color=(0, 0, 0)):
 
-    image = alphaToColor(image)
+    image = alphaToColor(image, transparent_color)
     image = image.convert('RGB')
 
     if include_sparkles and palette.has_sparkles:
@@ -251,7 +251,7 @@ def addPalette(image, palette: Palette = orct, dither=True, include_sparkles=Fal
     image = image.quantize(method=3, palette=p,
                            dither=int(dither)).convert('RGBA')
 
-    return removeBlackPixels(image)
+    return removeColorWhenImport(image, transparent_color)
 
 
 def alphaToColor(image: Image.Image, color=(0, 0, 0)):
@@ -293,8 +293,11 @@ def removeColorWhenImport(image: Image.Image, color=None):
 
     if color:
         r1, g1, b1 = color
+        print('lol', color)
+
     else:
         r1, g1, b1 = data_in[0, 0][:3]
+        print('lasdol', color)
 
     red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
     mask = (red == r1) & (green == g1) & (blue == b1)
