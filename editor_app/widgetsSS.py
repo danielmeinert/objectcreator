@@ -505,7 +505,6 @@ class SpritesTab(QWidget):
                 return
 
         if image:
-            print(self.main_window.current_import_color)
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color)
             self.o.setSprite(sprite)
