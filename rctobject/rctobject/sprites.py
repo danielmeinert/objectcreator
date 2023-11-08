@@ -13,14 +13,10 @@ import rctobject.palette as pal
 
 
 class Sprite:
-    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 use_transparency: bool = False, transparent_color: tuple = None):
+    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, transparent_color: tuple = None):
 
         if image:
-            if use_transparency:
-                image = pal.removeColorWhenImport(image, transparent_color)
-
-            image = pal.addPalette(image, palette, dither)
+            image = pal.addPalette(image, palette, dither, transparent_color)
 
             bbox = image.getbbox()
             image = image.crop(bbox)
@@ -43,12 +39,11 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 use_transparency: bool = False, transparent_color: tuple = None):
+                 transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
-            image=image, coords=coords, palette=palette, dither=dither, use_transparency=use_transparency,
-            transparent_color=transparent_color)
+            image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -75,9 +70,6 @@ class Sprite:
         self.y = y
         self.x_base = x
         self.y_base = y
-
-    def removeBlackPixels(self):
-        self.image = pal.removeBlackPixels(self.image)
 
     def checkPrimaryColor(self):
         return checkPrimaryColor(self.image, self.palette)
@@ -166,7 +158,7 @@ def checkPrimaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette.getColor('Pink')
+    colors = palette.getColor('2nd Remap')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True
@@ -176,7 +168,7 @@ def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkTertiaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette.getColor('Yellow')
+    colors = palette.getColor('3rd Remap')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True

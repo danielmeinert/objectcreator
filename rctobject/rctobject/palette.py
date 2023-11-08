@@ -229,9 +229,12 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, include_sparkles=False, transparent_color=(0, 0, 0)):
+def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), include_sparkles=False):
+    # If no transparent_color is given we choose the color from (0,0) pixel
+    if not transparent_color:
+        transparent_color = image.getpixel((0, 0))[:3]
 
-    image = alphaToColor(image, transparent_color)
+    mask = alphaMask(image, transparent_color)
     image = image.convert('RGB')
 
     if include_sparkles and palette.has_sparkles:
@@ -251,7 +254,7 @@ def addPalette(image, palette: Palette = orct, dither=True, include_sparkles=Fal
     image = image.quantize(method=3, palette=p,
                            dither=int(dither)).convert('RGBA')
 
-    return removeColorWhenImport(image, transparent_color)
+    return removeColorOnMask(image, mask)
 
 
 def alphaToColor(image: Image.Image, color=(0, 0, 0)):
@@ -263,7 +266,7 @@ def alphaToColor(image: Image.Image, color=(0, 0, 0)):
 
     Keyword Arguments:
     image -- PIL RGBA Image object
-    color -- Tuple r, g, b (default 255, 255, 255)
+    color -- Tuple r, g, b (default 0, 0, 0)
 
     """
     x = np.array(image)
@@ -275,32 +278,38 @@ def alphaToColor(image: Image.Image, color=(0, 0, 0)):
     return Image.fromarray(x, 'RGBA')
 
 
-def removeBlackPixels(image: Image.Image):
+def alphaMask(image: Image.Image, color=(0, 0, 0)):
     data_in = np.array(image)
-    data_out = np.array(data_in)
-    r1, g1, b1 = (0, 0, 0)  # Original value
-    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data_out[:, :, :][mask] = [0, 0, 0, 0]
+    r1, g1, b1 = color
 
-    return Image.fromarray(data_out)
+    red, green, blue, alpha = data_in[:, :, 0], data_in[:,
+                                                        :, 1], data_in[:, :, 2], data_in[:, :, 3]
+    mask = ((red == r1) & (green == g1) & (blue == b1)) | (alpha == 0)
+
+    print(mask)
+
+    return mask
 
 
-def removeColorWhenImport(image: Image.Image, color=None):
-    # If no color is given we remove the color from (0,0) pixel
+def removeColorWhenImport(image: Image.Image, color=(0, 0, 0)):
     data_in = np.array(image)
     data_out = np.array(data_in)
 
     if color:
         r1, g1, b1 = color
-        print('lol', color)
-
     else:
         r1, g1, b1 = data_in[0, 0][:3]
-        print('lasdol', color)
 
     red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
     mask = (red == r1) & (green == g1) & (blue == b1)
     data_out[:, :, :][mask] = [0, 0, 0, 0]
 
     return Image.fromarray(data_out)
+
+
+def removeColorOnMask(image: Image.Image, mask: np.array):
+    data = np.array(image)
+
+    data[:, :, :][mask] = [0, 0, 0, 0]
+
+    return Image.fromarray(data)
