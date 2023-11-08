@@ -286,8 +286,6 @@ def alphaMask(image: Image.Image, color=(0, 0, 0)):
                                                         :, 1], data_in[:, :, 2], data_in[:, :, 3]
     mask = ((red == r1) & (green == g1) & (blue == b1)) | (alpha == 0)
 
-    print(mask)
-
     return mask
 
 
