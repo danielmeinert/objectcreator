@@ -117,7 +117,8 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
 
-        self.sprites_tab.createLayers(locked_sprite_tab.base_x, locked_sprite_tab.base_y)
+        self.sprites_tab.createLayers(
+            locked_sprite_tab.base_x, locked_sprite_tab.base_y)
 
     def unlockSpriteTab(self):
         self.locked = False
@@ -536,7 +537,7 @@ class SpriteTab(QWidget):
             return
 
         for layer in self.layers:
-            self.view.scene.removeItem(layer)
+            self.view.scene.removeItem(layer.item)
 
         self.layers = []
 
@@ -641,7 +642,7 @@ class SpriteViewWidget(QGraphicsView):
         self.scene.addItem(self.layer_symm_axes)
 
     def addLayer(self, layer):
-        self.scene.addItem(layer)
+        self.scene.addItem(layer.giveItem())
 
     def clear(self):
         self.scene.clear()
@@ -912,10 +913,9 @@ class SpriteViewWidget(QGraphicsView):
         super().mouseReleaseEvent(event)
 
 
-class SpriteLayer(QGraphicsPixmapItem):
-
+class SpriteLayer:
     def __init__(self, sprite, main_window, base_x, base_y, name=None):
-        super().__init__()
+        self.item = QGraphicsPixmapItem()
 
         self.name = name
 
@@ -923,12 +923,16 @@ class SpriteLayer(QGraphicsPixmapItem):
         self.base_x = base_x
         self.base_y = base_y
 
+        self.visible = True
+
         self.sprite = sprite
         self.history = []
         self.history_redo = []
 
-        self.setOffset(sprite.x, sprite.y)
         self.updateLayer()
+
+    def isVisible(self):
+        return self.visible
 
     def addSpriteToHistory(self):
         sprite = copy(self.sprite)
@@ -978,10 +982,20 @@ class SpriteLayer(QGraphicsPixmapItem):
         self.sprite.x = x
         self.sprite.y = y
 
-        super().setOffset(self.base_x + x, self.base_y + y)
+        self.item.setOffset(self.base_x + x, self.base_y + y)
 
     def updateOffset(self):
-        super().setOffset(self.base_x + self.sprite.x, self.base_y + self.sprite.y)
+        self.item.setOffset(self.base_x + self.sprite.x,
+                            self.base_y + self.sprite.y)
+
+    def giveItem(self):
+
+        print(type(self.item))
+        if self.item is not None:
+            return self.item
+        else:
+            self.item = QGraphicsPixmapItem()
+            self.updateLayer()
 
     def updateLayer(self, sprite=None):
         if not sprite:
@@ -992,7 +1006,7 @@ class SpriteLayer(QGraphicsPixmapItem):
         image = ImageQt(sprite.image)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.setPixmap(pixmap)
+        self.item.setPixmap(pixmap)
         self.updateOffset()
 
 # Layers

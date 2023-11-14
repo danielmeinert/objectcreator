@@ -548,11 +548,13 @@ class SpritesTab(QWidget):
         self.o.cycleSpritesRotation()
 
         if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x, self.object_tab.locked_sprite_tab.base_y)
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
+                              self.object_tab.locked_sprite_tab.base_y)
             self.object_tab.locked_sprite_tab.updateLayers()
 
         for rot in range(4):
             self.updatePreview(rot)
+
         self.updateMainView()
 
     def previewClicked(self, rot):
