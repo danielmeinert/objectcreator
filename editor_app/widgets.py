@@ -989,8 +989,6 @@ class SpriteLayer:
                             self.base_y + self.sprite.y)
 
     def giveItem(self):
-
-        print(type(self.item))
         if self.item is not None:
             return self.item
         else:
@@ -1027,7 +1025,9 @@ class LayersWidget(QWidget):
         if widget:
             self.layers_list.clear()
             for layer in widget.layers:
-                item = QListWidgetItem(layer.name)
+                name = layer.name if layer.name else 'Layer'
+                item = QListWidgetItem(name)
+
                 item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
                               QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(2*layer.isVisible())

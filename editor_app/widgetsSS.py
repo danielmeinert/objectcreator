@@ -657,7 +657,8 @@ class SpritesTab(QWidget):
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
         rot = 0
-        for _, sprite in self.o.sprites.items():
+        for im in self.o.data['images']:
+            sprite = self.o.sprites[im['path']]
             layer = wdg.SpriteLayer(
                 sprite, self.main_window, base_x, base_y)
             self.layers[rot].append(layer)
