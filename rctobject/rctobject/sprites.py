@@ -44,7 +44,7 @@ class Sprite:
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
-        return cls(image=image, coords=coords, palette=palette, dither=dither, use_transparency = use_transparency, transparent_color = transparent_color)
+        return cls(image=image, coords=coords, palette=palette, dither=dither, use_transparency=use_transparency, transparent_color=transparent_color)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -119,7 +119,7 @@ class Sprite:
             return None
 
         try:
-            r,g,b,a = self.image.getpixel(coords)
+            r, g, b, a = self.image.getpixel(coords)
         except IndexError:
             return None
 
@@ -134,7 +134,7 @@ class Sprite:
 
         color = list(self.palette.color_dict.keys())[int(index/12)]
 
-        return (color, index %12)
+        return (color, index % 12)
 
 
 def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
@@ -163,7 +163,7 @@ def checkPrimaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette.getColor('Pink')
+    colors = palette.getColor('2nd Remap')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True
@@ -173,7 +173,7 @@ def checkSecondaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
 
 def checkTertiaryColor(image: Image.Image, palette: pal.Palette = pal.orct):
     data = np.array(image)
-    colors = palette.getColor('Yellow')
+    colors = palette.getColor('3rd Remap')
     for color in colors:
         if np.equal(color, data[:, :, :3]).all(axis=2).any():
             return True
@@ -213,7 +213,7 @@ def colorRemaps(image: Image.Image, first_remap: str, second_remap: str, third_r
     data_in = np.array(image)
     data_out = np.array(data_in)
 
-    for color_names in [['1st Remap', first_remap], ['Pink', second_remap], ['Yellow', third_remap]]:
+    for color_names in [['1st Remap', first_remap], ['2nd Remap', second_remap], ['3rd Remap', third_remap]]:
         if color_names[1] == 'NoColor':
             continue
 
@@ -224,7 +224,8 @@ def colorRemaps(image: Image.Image, first_remap: str, second_remap: str, third_r
 
             r1, g1, b1 = color_old[i]  # Original value
             r2, g2, b2 = color_new[i]  # Value that we want to replace it with
-            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            red, green, blue = data_in[:, :,
+                                       0], data_in[:, :, 1], data_in[:, :, 2]
             mask = (red == r1) & (green == g1) & (blue == b1)
             data_out[:, :, :3][mask] = [r2, g2, b2]
 
@@ -259,7 +260,7 @@ def colorSecondRemap(image: Image.Image, color_name: str,  palette: pal.Palette 
     if color_name == 'NoColor':
         return image
 
-    color_old = palette.getColor('Pink')
+    color_old = palette.getColor('2nd Remap')
     color_new = palette.getRemapColor(color_name)
 
     for i in range(12):
@@ -280,7 +281,7 @@ def colorThirdRemap(image: Image.Image, color_name: str,  palette: pal.Palette =
     if color_name == 'NoColor':
         return image
 
-    color_old = palette.getColor('Yellow')
+    color_old = palette.getColor('3rd Remap')
     color_new = palette.getRemapColor(color_name)
 
     for i in range(12):
@@ -299,7 +300,7 @@ def _decrBr(data_in, color):
 
     for i in range(12):
         j = i
-        if(i > 0):
+        if (i > 0):
             j -= 1
         r1, g1, b1 = color[i]  # Original value
         r2, g2, b2 = color[j]  # Value that we want to replace it with
@@ -315,7 +316,7 @@ def _incrBr(data_in, color):
 
     for i in range(12):
         j = i
-        if(i < 11):
+        if (i < 11):
             j += 1
         r1, g1, b1 = color[i]  # Original value
         r2, g2, b2 = color[j]  # Value that we want to replace it with
@@ -340,26 +341,30 @@ def changeBrightnessColor(image: Image.Image, value: int, color: str or list, pa
         if not isinstance(color, np.ndarray):
             continue
 
-        if(value < 0):
+        if (value < 0):
             for step in range(-value):
                 for i in range(12):
                     j = i
-                    if(i > 0):
+                    if (i > 0):
                         j -= 1
                     r1, g1, b1 = color[i]  # Original value
-                    r2, g2, b2 = color[j]  # Value that we want to replace it with
-                    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+                    # Value that we want to replace it with
+                    r2, g2, b2 = color[j]
+                    red, green, blue = data_in[:, :,
+                                               0], data_in[:, :, 1], data_in[:, :, 2]
                     mask = (red == r1) & (green == g1) & (blue == b1)
                     data_out[:, :, :3][mask] = [r2, g2, b2]
         else:
             for step in range(value):
                 for i in range(12):
                     j = i
-                    if(i < 11):
+                    if (i < 11):
                         j += 1
                     r1, g1, b1 = color[i]  # Original value
-                    r2, g2, b2 = color[j]  # Value that we want to replace it with
-                    red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+                    # Value that we want to replace it with
+                    r2, g2, b2 = color[j]
+                    red, green, blue = data_in[:, :,
+                                               0], data_in[:, :, 1], data_in[:, :, 2]
                     mask = (red == r1) & (green == g1) & (blue == b1)
                     data_out[:, :, :3][mask] = [r2, g2, b2]
 
@@ -386,7 +391,6 @@ def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = p
 
     mask = np.full(image.size, False).T
 
-
     if isinstance(color, str):
         color = [color]
 
@@ -398,11 +402,11 @@ def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = p
 
         for shade in color_arr:
             r1, g1, b1 = shade  # Original value
-            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            red, green, blue = data_in[:, :,
+                                       0], data_in[:, :, 1], data_in[:, :, 2]
             mask = mask | ((red == r1) & (green == g1) & (blue == b1))
 
     data_out[:, :, :][mask] = [0, 0, 0, 0]
-
 
     return Image.fromarray(data_out)
 
@@ -423,13 +427,8 @@ def protectColorMask(image: Image.Image, color: str or list, palette: pal.Palett
 
         for shade in color_arr:
             r1, g1, b1 = shade  # Original value
-            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
-            mask = mask &  ~((red == r1) & (green == g1) & (blue == b1))
-
+            red, green, blue = data_in[:, :,
+                                       0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = mask & ~((red == r1) & (green == g1) & (blue == b1))
 
     return Image.fromarray(~mask)
-
-
-
-
-
