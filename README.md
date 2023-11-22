@@ -10,7 +10,7 @@ Now there is also an update check included that asks you to update the program w
 The program is currently under constant development. With the first release version 0.1 you are able to edit and create simple small scenery objects. Eventually the program's scope should include all types of object types, however currently the focus is on the sprite editing part and added functionalities.
 
 ## Feedback and Contributing
-You can contribute and give feedback either through the Issues in this github or join the New Object Creator discord: https://discord.gg/GHCP2K7d
+You can contribute and give feedback either through the Issues in this github or join the New Object Creator discord: [https://discord.gg/GHCP2K7d](https://discord.gg/rmdeTmKWbh)
 
 ## Installation python develop version
 To run the develop version with python you need to have python installed and added to your path. Clone the repository then you need to install the following python packages to run the python code (run the following lines):
