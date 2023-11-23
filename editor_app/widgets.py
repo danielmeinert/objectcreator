@@ -912,6 +912,8 @@ class SpriteViewWidget(QGraphicsView):
             self.mouse_pressed = False
         super().mouseReleaseEvent(event)
 
+# Layers
+
 
 class SpriteLayer:
     def __init__(self, sprite, main_window, base_x, base_y, name=None):
@@ -933,6 +935,17 @@ class SpriteLayer:
 
     def isVisible(self):
         return self.visible
+
+    def giveListItem(self):
+        name = self.name if self.name else 'Layer'
+        item = QListWidgetItem(name)
+
+        item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
+                      QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
+        item.setCheckState(
+            QtCore.Qt.CheckState.Checked if self.visible else QtCore.Qt.CheckState.Unchecked)
+
+        return item
 
     def addSpriteToHistory(self):
         sprite = copy(self.sprite)
@@ -1007,7 +1020,21 @@ class SpriteLayer:
         self.item.setPixmap(pixmap)
         self.updateOffset()
 
-# Layers
+
+class SpriteLayerListModel(QtCore.QAbstractListModel):
+    def __init__(self, layers, parent=None):
+        super().__init__(parent)
+
+        self.layers = layers
+
+    def rowCount(self, parent):
+        return len(self.layers)
+
+    def data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            row = index.row()
+            layer = self.layers[row]
+            return layer.name
 
 
 class LayersWidget(QWidget):
@@ -1017,24 +1044,16 @@ class LayersWidget(QWidget):
 
         self.main_window = main_window
 
-        self.layers_list.setDragDropMode(self.layers_list.InternalMove)
-
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            self.layers_list.clear()
-            for layer in widget.layers:
-                name = layer.name if layer.name else 'Layer'
-                item = QListWidgetItem(name)
+            model = SpriteLayerListModel(widget.layers)
 
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
-                              QtCore.Qt.ItemIsEnabled)
-                item.setCheckState(2*layer.isVisible())
-                self.layers_list.addItem(item)
-
+            self.layers_list.setModel(model)
 
 # Tools
+
 
 class ToolWidgetSprite(QWidget):
     def __init__(self, main_window):
