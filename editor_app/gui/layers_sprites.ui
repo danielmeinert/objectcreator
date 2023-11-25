@@ -75,7 +75,31 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QListView" name="layers_list"/>
+       <widget class="SpriteLayerListView" name="layers_list">
+        <property name="acceptDrops">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"> QListView::item:selected:active{
+                                     background: lightblue;
+									font: black;
+                                }
+ QListView::item:selected:!active{
+                                     background: lightblue;
+                                }
+
+                               </string>
+        </property>
+        <property name="dragEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="dragDropMode">
+         <enum>QAbstractItemView::InternalMove</enum>
+        </property>
+        <property name="defaultDropAction">
+         <enum>Qt::MoveAction</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QWidget" name="widget" native="true">
@@ -106,6 +130,26 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QToolButton" name="button_up">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="arrowType">
+            <enum>Qt::UpArrow</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="button_down">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="arrowType">
+            <enum>Qt::DownArrow</enum>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -114,6 +158,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SpriteLayerListView</class>
+   <extends>QListView</extends>
+   <header>widgets</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

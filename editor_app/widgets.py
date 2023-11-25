@@ -8,7 +8,7 @@
  *****************************************************************************
 """
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
-from PyQt5 import uic, QtGui, QtCore
+from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
 from copy import copy
@@ -189,6 +189,7 @@ class SpriteTab(QWidget):
         uic.loadUi(aux.resource_path('gui/sprite.ui'), self)
 
         self.main_window = main_window
+        
 
         self.canvas_size = 200
         self.base_x = int(self.canvas_size/2)
@@ -205,7 +206,8 @@ class SpriteTab(QWidget):
         self.slider_zoom.valueChanged.connect(
             lambda x, toolbox=self.main_window.tool_widget.toolbox: self.toolChanged(toolbox))
 
-        self.layers = []
+        self.layers = QtGui.QStandardItemModel()
+
         if object_tab:
             self.lockWithObjectTab(object_tab)
         else:
@@ -228,7 +230,6 @@ class SpriteTab(QWidget):
 
     def lockWithObjectTab(self, object_tab):
         self.view.clear()
-        self.layers = []
         if object_tab:
             self.locked = True
             self.object_tab = object_tab
@@ -243,24 +244,25 @@ class SpriteTab(QWidget):
             for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
 
-            self.active_layer = self.layers[0]
+            self.active_layer = self.layers.item(0)
             self.layersChanged.emit()
 
         self.updateView()
 
     def unlockObjectTab(self):
         if self.locked:
-            for layer in self.layers:
-                self.view.scene.removeItem(layer)
+            for index in range(self.layers.rowCount()):
+                item = self.layers.item(index)
+                self.view.scene.removeItem(layer.giveItem())
 
-            layers = []
-
+                self.layers.takeRow(index)
+ 
             layers = self.object_tab.giveCurrentMainViewLayers(
                 self.base_x, self.base_y)
             for layer in layers:
                 self.addLayer(layer)
 
-            self.active_layer = self.layers[0]
+            self.active_layer = layers[0]
 
             self.locked = False
             self.object_tab.mainViewUpdated.disconnect()
@@ -536,19 +538,19 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        for layer in self.layers:
+        for index in range(self.layers.rowCount()):
+            layer = self.layers.takeRow(index)[0]
             self.view.scene.removeItem(layer.item)
 
-        self.layers = []
 
         for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
             self.addLayer(layer)
-
-        self.active_layer = self.layers[0]
+        else:
+            self.active_layer = layer
         self.layersChanged.emit()
 
-    def addLayer(self, layer, pos=None):
-        self.layers.append(layer)
+    def addLayer(self, layer, pos=0):
+        self.layers.insertRow(pos, layer)
         self.view.addLayer(layer)
 
         self.layersChanged.emit()
@@ -568,7 +570,8 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        for layer in self.layers:
+        for index in range(self.layers.rowCount()):
+            layer = self.layers.item(index)
             layer.addSpriteToHistory()
 
     def undo(self):
@@ -913,13 +916,11 @@ class SpriteViewWidget(QGraphicsView):
         super().mouseReleaseEvent(event)
 
 # Layers
-
-
-class SpriteLayer:
-    def __init__(self, sprite, main_window, base_x, base_y, name=None):
+class SpriteLayer(QtGui.QStandardItem):
+    def __init__(self, sprite, main_window, base_x, base_y, name="Layer", parent=None):
+        super().__init__(name)
+        
         self.item = QGraphicsPixmapItem()
-
-        self.name = name
 
         self.main_window = main_window
         self.base_x = base_x
@@ -930,22 +931,21 @@ class SpriteLayer:
         self.sprite = sprite
         self.history = []
         self.history_redo = []
+        
+        self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable |
+                      QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
+        self.setCheckState(
+            QtCore.Qt.CheckState.Checked if self.visible else QtCore.Qt.CheckState.Unchecked)
+        
 
         self.updateLayer()
 
     def isVisible(self):
         return self.visible
-
-    def giveListItem(self):
-        name = self.name if self.name else 'Layer'
-        item = QListWidgetItem(name)
-
-        item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable |
-                      QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
-        item.setCheckState(
-            QtCore.Qt.CheckState.Checked if self.visible else QtCore.Qt.CheckState.Unchecked)
-
-        return item
+    
+    def setVisible(self, val):
+        self.visible = val
+        self.item.setVisible(val)
 
     def addSpriteToHistory(self):
         sprite = copy(self.sprite)
@@ -1021,21 +1021,19 @@ class SpriteLayer:
         self.updateOffset()
 
 
-class SpriteLayerListModel(QtCore.QAbstractListModel):
-    def __init__(self, layers, parent=None):
-        super().__init__(parent)
+class SpriteLayerListView(QtWidgets.QListView):
+    checked = QtCore.pyqtSignal(QtCore.QModelIndex, bool)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setItemDelegate(self.Delegate(self))
 
-        self.layers = layers
-
-    def rowCount(self, parent):
-        return len(self.layers)
-
-    def data(self, index, role):
-        if role == QtCore.Qt.DisplayRole:
-            row = index.row()
-            layer = self.layers[row]
-            return layer.name
-
+    class Delegate(QtWidgets.QStyledItemDelegate):
+        def editorEvent(self, event, model, option, index):
+            checked = index.data(QtCore.Qt.CheckStateRole)
+            ret = QtWidgets.QStyledItemDelegate.editorEvent(self, event, model, option, index)
+            if checked != index.data(QtCore.Qt.CheckStateRole):
+                self.parent().checked.emit(index, bool(checked))
+            return ret
 
 class LayersWidget(QWidget):
     def __init__(self, main_window):
@@ -1043,15 +1041,30 @@ class LayersWidget(QWidget):
         uic.loadUi(aux.resource_path('gui/layers_sprites.ui'), self)
 
         self.main_window = main_window
-
+        
+        self.layers_list.checked.connect(self.layerChecked)
+        
+        self.updateList()
+        
+        
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            model = SpriteLayerListModel(widget.layers)
-
+            model = widget.layers
+            
             self.layers_list.setModel(model)
+            
+            self.layers_list.setCurrentIndex(model.index(0,0))
+        
+    def layerChecked(self, index, val):
+        widget = self.main_window.sprite_tabs.currentWidget()
 
+        if widget:
+            layer = widget.layers.itemFromIndex(index)
+            layer.setVisible(layer.checkState())
+            
+            
 # Tools
 
 
