@@ -207,15 +207,14 @@ class SpriteTab(QWidget):
             lambda x, toolbox=self.main_window.tool_widget.toolbox: self.toolChanged(toolbox))
 
         self.layers = QtGui.QStandardItemModel()
+        self.layercount = 1
 
         if object_tab:
             self.lockWithObjectTab(object_tab)
         else:
             self.locked = False
             self.object_tab = None
-            self.active_layer = SpriteLayer(
-                spr.Sprite(None), self.main_window, self.base_x, self.base_y, name='Layer 1')
-            self.addLayer(self.active_layer)
+            self.newLayer()
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_size, self.canvas_size))
@@ -236,7 +235,7 @@ class SpriteTab(QWidget):
             object_tab.lockWithSpriteTab(self)
             self.object_tab.mainViewUpdated.connect(
                 lambda: self.updateView(emit_signal=False))
-            self.object_tab.rotationChanged.connect(self.updateLayers)
+            self.object_tab.rotationChanged.connect(self.updateLayersModel)
             self.object_tab.boundingBoxChanged.connect(
                 self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
@@ -534,7 +533,7 @@ class SpriteTab(QWidget):
         if emit_signal:
             self.layerUpdated.emit()
 
-    def updateLayers(self):
+    def updateLayersModel(self):
         if not self.locked:
             return
 
@@ -551,9 +550,21 @@ class SpriteTab(QWidget):
 
     def addLayer(self, layer, pos=0):
         self.layers.insertRow(pos, layer)
-        self.view.addLayer(layer)
+        item = layer.giveItem()        
+        self.view.addLayerItem(item)
+        item.setZValue(self.layers.rowCount()-pos)
 
         self.layersChanged.emit()
+        
+    def newLayer(self, pos=0):
+        if self.locked:
+            return
+        
+        layer = SpriteLayer(spr.Sprite(None), self.main_window, self.base_x, self.base_y)
+        self.addLayer(layer, pos)
+    
+    def setCurrentActiveLayer(self, index, index_previous = None):
+        self.active_layer = self.layers.itemFromIndex(index) 
 
     def currentActiveLayer(self):
         return self.active_layer
@@ -570,9 +581,7 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        for index in range(self.layers.rowCount()):
-            layer = self.layers.item(index)
-            layer.addSpriteToHistory()
+        self.object_tab.addSpriteToHistoryAllViews()
 
     def undo(self):
         layer = self.currentActiveLayer()
@@ -628,36 +637,36 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
 
-        rect = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
-        rect.setZValue(-2)
+        self.background = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        self.background.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
                                           tab.main_window.current_background_color[1],
                                           tab.main_window.current_background_color[2]))
-        rect.setBrush(brush)
-        self.scene.addItem(rect)
+        self.background.setBrush(brush)
+        self.scene.addItem(self.background)
 
         self.layer_boundingbox = QGraphicsPixmapItem()
         self.layer_boundingbox.setZValue(-1)
         self.layer_symm_axes = QGraphicsPixmapItem()
-        self.layer_symm_axes.setZValue(1)
+        self.layer_symm_axes.setZValue(100)
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
 
-    def addLayer(self, layer):
-        self.scene.addItem(layer.giveItem())
+    def addLayerItem(self, item):
+        self.scene.addItem(item)
 
     def clear(self):
         self.scene.clear()
 
-        rect = QGraphicsRectItem(
+        self.background = QGraphicsRectItem(
             0, 0, self.tab.canvas_size, self.tab.canvas_size)
-        rect.setZValue(-2)
+        self.background.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
                                           self.tab.main_window.current_background_color[2]))
-        rect.setBrush(brush)
-        self.scene.addItem(rect)
+        self.background.setBrush(brush)
+        self.scene.addItem(self.background)
 
         self.layer_boundingbox = QGraphicsPixmapItem()
         self.layer_boundingbox.setZValue(-1)
@@ -666,6 +675,13 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
+        
+    def updateBackgroundColor(self):
+        brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
+                                          self.tab.main_window.current_background_color[1],
+                                          self.tab.main_window.current_background_color[2]))
+        self.background.setBrush(brush)
+        
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:
@@ -1043,6 +1059,12 @@ class LayersWidget(QWidget):
         self.main_window = main_window
         
         self.layers_list.checked.connect(self.layerChecked)
+               
+        self.button_new.clicked.connect(self.newLayer)
+        self.button_merge.clicked.connect(self.mergeLayer)
+        self.button_delete.clicked.connect(self.deleteLayer)
+        self.button_up.clicked.connect(lambda: self.moveLayer('up'))
+        self.button_down.clicked.connect(lambda: self.moveLayer('down'))
         
         self.updateList()
         
@@ -1056,6 +1078,8 @@ class LayersWidget(QWidget):
             self.layers_list.setModel(model)
             
             self.layers_list.setCurrentIndex(model.index(0,0))
+            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
+
         
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1064,6 +1088,27 @@ class LayersWidget(QWidget):
             layer = widget.layers.itemFromIndex(index)
             layer.setVisible(layer.checkState())
             
+    def selectedLayerChanged(self, index):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.setCurrentActiveLayer(index)
+    
+    def newLayer(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.newLayer()
+    
+    def mergeLayer(self):
+        pass
+    
+    def deleteLayer(self):
+        pass
+    
+    def moveLayer(self, direction):
+        pass
+                
             
 # Tools
 

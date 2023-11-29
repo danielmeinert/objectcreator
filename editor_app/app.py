@@ -345,10 +345,8 @@ class MainWindowUi(QMainWindow):
             self.tool_widget.toolbox.toolChanged.emit(self.tool_widget.toolbox)
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
-                tab.view.setStyleSheet("QLabel{"
-                                       f"background-color :  rgb{self.current_background_color};"
-                                       "}")
-
+                tab.view.updateBackgroundColor()
+                
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.sprites_tab.sprite_view_main.setStyleSheet(
@@ -663,7 +661,10 @@ sys.excepthook = excepthook
 
 
 def versionCheck(version):
-
+    """Compares the inserted version with the version of this app. 
+       If the app's version number is lower then True is returned,
+       meaning that the program should be updated."""
+       
     version = version[1:].split('.')
     version_this = VERSION[1:].split('.')
 
@@ -671,16 +672,18 @@ def versionCheck(version):
         version_this.append(0)
 
     for i, val in enumerate(version):
-
         if int(val) > int(version_this[i]):
             return True
+        elif int(val) < int(version_this[i]):
+            return False
+
 
     return False
 
 
-# from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
 
 class SingleApplicationWithMessaging(QApplication):
+    # from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
     messageAvailable = QtCore.pyqtSignal(object)
 
     def __init__(self, argv, key):

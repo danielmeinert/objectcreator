@@ -124,6 +124,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="button_merge">
+           <property name="text">
+            <string>Merge Down</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="button_delete">
            <property name="text">
             <string>Delete Layer</string>
