@@ -189,7 +189,6 @@ class SpriteTab(QWidget):
         uic.loadUi(aux.resource_path('gui/sprite.ui'), self)
 
         self.main_window = main_window
-        
 
         self.canvas_size = 200
         self.base_x = int(self.canvas_size/2)
@@ -215,8 +214,6 @@ class SpriteTab(QWidget):
             self.locked = False
             self.object_tab = None
             self.newLayer()
-            
-
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_size, self.canvas_size))
@@ -258,7 +255,7 @@ class SpriteTab(QWidget):
                 self.view.scene.removeItem(layer.giveItem())
 
                 self.layers.takeRow(index)
- 
+
             layers = self.object_tab.giveCurrentMainViewLayers(
                 self.base_x, self.base_y)
             for layer in layers:
@@ -544,7 +541,6 @@ class SpriteTab(QWidget):
             layer = self.layers.takeRow(index)[0]
             self.view.scene.removeItem(layer.item)
 
-
         for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
             self.addLayer(layer)
         else:
@@ -553,26 +549,31 @@ class SpriteTab(QWidget):
 
     def addLayer(self, layer, pos=0):
         self.layers.insertRow(pos, layer)
-        item = layer.giveItem()        
+        item = layer.giveItem()
         self.view.addLayerItem(item)
         item.setZValue(self.layers.rowCount()-pos)
 
         self.layersChanged.emit()
-        
+
     def newLayer(self, pos=0):
         if self.locked:
             return
-        
+
         layer = SpriteLayer(spr.Sprite(None), self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
         self.layercount += 1
-        
+
         self.addLayer(layer, pos)
         self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
         self.active_layer = layer
 
-    
-    def setCurrentActiveLayer(self, index, index_previous = None):
-        self.active_layer = self.layers.itemFromIndex(index) 
+    def deleteLayer(self, index):
+        if self.locked:
+            return
+
+        self.layers.removeRow(index.row())
+
+    def setCurrentActiveLayer(self, index, index_previous=None):
+        self.active_layer = self.layers.itemFromIndex(index)
 
     def currentActiveLayer(self):
         return self.active_layer
@@ -683,13 +684,12 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
-        
+
     def updateBackgroundColor(self):
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
                                           self.tab.main_window.current_background_color[2]))
         self.background.setBrush(brush)
-        
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:
@@ -940,10 +940,12 @@ class SpriteViewWidget(QGraphicsView):
         super().mouseReleaseEvent(event)
 
 # Layers
+
+
 class SpriteLayer(QtGui.QStandardItem):
     def __init__(self, sprite, main_window, base_x, base_y, name="Layer", parent=None):
         super().__init__(name)
-        
+
         self.item = QGraphicsPixmapItem()
 
         self.main_window = main_window
@@ -955,18 +957,17 @@ class SpriteLayer(QtGui.QStandardItem):
         self.sprite = sprite
         self.history = []
         self.history_redo = []
-        
+
         self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable |
                       QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
         self.setCheckState(
             QtCore.Qt.CheckState.Checked if self.visible else QtCore.Qt.CheckState.Unchecked)
-        
 
         self.updateLayer()
 
     def isVisible(self):
         return self.visible
-    
+
     def setVisible(self, val):
         self.visible = val
         self.item.setVisible(val)
@@ -1047,6 +1048,7 @@ class SpriteLayer(QtGui.QStandardItem):
 
 class SpriteLayerListView(QtWidgets.QListView):
     checked = QtCore.pyqtSignal(QtCore.QModelIndex, bool)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setItemDelegate(self.Delegate(self))
@@ -1059,65 +1061,77 @@ class SpriteLayerListView(QtWidgets.QListView):
                 self.parent().checked.emit(index, bool(checked))
             return ret
 
+
 class LayersWidget(QWidget):
     def __init__(self, main_window):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/layers_sprites.ui'), self)
 
         self.main_window = main_window
-        
+
         self.layers_list.checked.connect(self.layerChecked)
-               
+
         self.button_new.clicked.connect(self.newLayer)
         self.button_merge.clicked.connect(self.mergeLayer)
         self.button_delete.clicked.connect(self.deleteLayer)
         self.button_up.clicked.connect(lambda: self.moveLayer('up'))
         self.button_down.clicked.connect(lambda: self.moveLayer('down'))
-        
+
         self.updateList()
-        
-        
+
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             model = widget.layers
-            
+
             self.layers_list.setModel(model)
-            
+
             self.layers_list.setCurrentIndex(model.indexFromItem(widget.active_layer))
             self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
 
-        
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             layer = widget.layers.itemFromIndex(index)
             layer.setVisible(layer.checkState())
-            
+
     def selectedLayerChanged(self, index):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             widget.setCurrentActiveLayer(index)
-    
+
     def newLayer(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             widget.newLayer()
-    
+
     def mergeLayer(self):
-        pass
-    
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            if (self.layers_list.currentIndex().row() + 1) == widget.layers.rowCount():
+                print(12)
+                return
+
+            widget.mergeLayer(self.layers_list.currentIndex())
+
     def deleteLayer(self):
-        pass
-    
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            if widget.layers.rowCount() == 1:
+                return
+
+            widget.deleteLayer(self.layers_list.currentIndex())
+
     def moveLayer(self, direction):
         pass
-                
-            
+
+
 # Tools
 
 
