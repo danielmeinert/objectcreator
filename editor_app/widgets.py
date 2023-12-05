@@ -215,6 +215,8 @@ class SpriteTab(QWidget):
             self.locked = False
             self.object_tab = None
             self.newLayer()
+            
+
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_size, self.canvas_size))
@@ -244,6 +246,7 @@ class SpriteTab(QWidget):
                 self.addLayer(layer)
 
             self.active_layer = self.layers.item(0)
+
             self.layersChanged.emit()
 
         self.updateView()
@@ -560,8 +563,13 @@ class SpriteTab(QWidget):
         if self.locked:
             return
         
-        layer = SpriteLayer(spr.Sprite(None), self.main_window, self.base_x, self.base_y)
+        layer = SpriteLayer(spr.Sprite(None), self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+        self.layercount += 1
+        
         self.addLayer(layer, pos)
+        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+        self.active_layer = layer
+
     
     def setCurrentActiveLayer(self, index, index_previous = None):
         self.active_layer = self.layers.itemFromIndex(index) 
@@ -1077,7 +1085,7 @@ class LayersWidget(QWidget):
             
             self.layers_list.setModel(model)
             
-            self.layers_list.setCurrentIndex(model.index(0,0))
+            self.layers_list.setCurrentIndex(model.indexFromItem(widget.active_layer))
             self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
 
         

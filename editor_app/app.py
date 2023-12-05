@@ -425,12 +425,22 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setEnabled(True)
+                self.layer_widget.button_new.setEnabled(False)
+                self.layer_widget.button_delete.setEnabled(False)
+                self.layer_widget.button_merge.setEnabled(False)
+                self.layer_widget.button_up.setEnabled(False)
+                self.layer_widget.button_down.setEnabled(False)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
+                self.layer_widget.button_new.setEnabled(True)
+                self.layer_widget.button_delete.setEnabled(True)
+                self.layer_widget.button_merge.setEnabled(True)
+                self.layer_widget.button_up.setEnabled(True)
+                self.layer_widget.button_down.setEnabled(True)
 
     def lockClicked(self, event):
         current_object_tab = self.object_tabs.currentWidget()
@@ -457,13 +467,7 @@ class MainWindowUi(QMainWindow):
 
             self.sprite_tabs.setTabText(
                 self.sprite_tabs.currentIndex(), f"{name} (locked)")
-
-            self.button_pull_sprite.setEnabled(False)
-            self.button_push_sprite.setEnabled(False)
-            self.tool_widget.checkbox_all_views.setEnabled(True)
-
         else:
-
             name = f'Sprite {self.new_sprite_count}'
             self.new_sprite_count += 1
 
@@ -473,10 +477,7 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.setTabText(
                 self.sprite_tabs.currentIndex(), f"{name}")
 
-            self.button_pull_sprite.setEnabled(True)
-            self.button_push_sprite.setEnabled(True)
-            self.tool_widget.checkbox_all_views.setEnabled(False)
-            self.tool_widget.checkbox_all_views.setChecked(False)
+        self.changeSpriteTab(self.sprite_tabs.currentIndex())
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
