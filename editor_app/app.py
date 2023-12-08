@@ -50,7 +50,7 @@ from rctobject import palette as pal
 
 VERSION = 'v0.1.2'
 
-
+myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string
 
 try:
@@ -732,7 +732,11 @@ def main():
         app.sendMessage(' '.join(sys.argv[1:]))
         sys.exit(1)
 
-    app_data_path = join(os.environ['APPDATA'], 'Object Creator')
+    app.setApplicationName(myappname)
+
+    app_data_path = QtCore.QStandardPaths.writableLocation(
+        QtCore.QStandardPaths.AppDataLocation)
+
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 
