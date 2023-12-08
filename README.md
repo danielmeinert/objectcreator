@@ -18,7 +18,7 @@ To run the develop version with python you need to have python installed and add
 ```
 python -m pip install numpy 
 python -m pip install pyqt5 
-python -m pip install Pillow
+python -m pip install Pillow<10
 python -m pip install requests
 ```
 
