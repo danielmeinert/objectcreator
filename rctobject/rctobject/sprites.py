@@ -13,7 +13,8 @@ import rctobject.palette as pal
 
 
 class Sprite:
-    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
+    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
+                 use_transparency: bool = False, transparent_color: tuple = None):
 
         if image:
             if use_transparency:
@@ -41,10 +42,13 @@ class Sprite:
         self.palette = palette
 
     @classmethod
-    def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, use_transparency: bool = False, transparent_color: tuple = None):
+    def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
+                 use_transparency: bool = False, transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
-        return cls(image=image, coords=coords, palette=palette, dither=dither, use_transparency=use_transparency, transparent_color=transparent_color)
+        return cls(
+            image=image, coords=coords, palette=palette, dither=dither, use_transparency=use_transparency,
+            transparent_color=transparent_color)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -108,11 +112,36 @@ class Sprite:
             self.image, color_name_old, color_name_new,  self.palette)
 
     def crop(self):
+        # this doesn't make a lot of sense
         bbox = self.image.getbbox()
 
         self.image = self.image.crop(bbox)
         self.x = self.x + bbox[0]
         self.y = self.y + bbox[1]
+
+    def merge(self, sprite, offset_x, offset_y):
+        s1 = self
+        s2 = sprite
+        s2.x += offset_x
+        s2.y += offset_y
+
+        canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x), abs(s2.x), abs(s2.image.width+s2.x))
+        canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y), abs(s2.y), abs(s2.image.height+s2.y))
+        canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+
+        canvas.paste(s1.image, (s1.x+canvas_size_x, s1.y+canvas_size_y))
+        canvas.paste(s2.image, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+
+        bbox = canvas.getbbox()
+
+        canvas = canvas.crop(bbox)
+        x_offset = -canvas_size_x + bbox[0]
+        y_offset = -canvas_size_y + bbox[1]
+
+        self.image = canvas
+        self.x = x_offset
+        self.y = y_offset
+        self.crop()
 
     def giveShade(self, coords):
         if coords[0] < 0 or coords[1] < 0:

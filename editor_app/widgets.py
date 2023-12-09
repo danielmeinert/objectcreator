@@ -570,7 +570,26 @@ class SpriteTab(QWidget):
         if self.locked:
             return
 
-        self.layers.removeRow(index.row())
+        layer = self.layers.takeRow(index.row())[0]
+        self.view.scene.removeItem(layer.item)
+
+        self.layersChanged.emit()
+
+    def mergeLayer(self, index):
+        if self.locked:
+            return
+
+        if (index.row() + 1) == self.layers.rowCount():
+            return
+
+        layer_top = self.layers.item(index.row())
+        layer_bottom = self.layers.item(index.row()+1)
+
+        layer_bottom.merge(layer_top)
+
+        self.deleteLayer(index)
+
+        self.layersChanged.emit()
 
     def setCurrentActiveLayer(self, index, index_previous=None):
         self.active_layer = self.layers.itemFromIndex(index)
@@ -1016,6 +1035,16 @@ class SpriteLayer(QtGui.QStandardItem):
 
             self.updateLayer()
 
+    def merge(self, layer):
+        self.addSpriteToHistory()
+
+        sprite_top = copy(layer.sprite)
+        self.sprite.merge(sprite_top, layer.base_x-self.base_x,
+                          layer.base_y-self.base_y)
+
+        self.updateOffset()
+        self.updateLayer()
+
     def setOffset(self, x, y):
         self.sprite.x = x
         self.sprite.y = y
@@ -1114,7 +1143,6 @@ class LayersWidget(QWidget):
 
         if widget:
             if (self.layers_list.currentIndex().row() + 1) == widget.layers.rowCount():
-                print(12)
                 return
 
             widget.mergeLayer(self.layers_list.currentIndex())
