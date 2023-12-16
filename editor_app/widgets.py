@@ -547,11 +547,18 @@ class SpriteTab(QWidget):
             self.active_layer = layer
         self.layersChanged.emit()
 
+    def updateLayersZValues(self):
+        for index in range(self.layers.rowCount()):
+            layer = self.layers.item(index, 0)
+            item = layer.giveItem()
+
+            item.setZValue(self.layers.rowCount()-index)
+
     def addLayer(self, layer, pos=0):
         self.layers.insertRow(pos, layer)
         item = layer.giveItem()
         self.view.addLayerItem(item)
-        item.setZValue(self.layers.rowCount()-pos)
+        self.updateLayersZValues()
 
         self.layersChanged.emit()
 
@@ -572,6 +579,7 @@ class SpriteTab(QWidget):
 
         layer = self.layers.takeRow(index.row())[0]
         self.view.scene.removeItem(layer.item)
+        del (layer)
 
         self.layersChanged.emit()
 
@@ -588,6 +596,25 @@ class SpriteTab(QWidget):
         layer_bottom.merge(layer_top)
 
         self.deleteLayer(index)
+
+        self.layersChanged.emit()
+
+    def moveLayer(self, index, direction):
+        if self.locked:
+            return
+
+        layer = self.layers.takeRow(index.row())[0]
+
+        if direction == 'up':
+            self.layers.insertRow(index.row()-1, layer)
+
+        elif direction == 'down':
+            self.layers.insertRow(index.row()+1, layer)
+
+        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+        self.active_layer = layer
+
+        self.updateLayersZValues()
 
         self.layersChanged.emit()
 
@@ -1157,7 +1184,15 @@ class LayersWidget(QWidget):
             widget.deleteLayer(self.layers_list.currentIndex())
 
     def moveLayer(self, direction):
-        pass
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            if (self.layers_list.currentIndex().row() + 1) == widget.layers.rowCount() and direction == 'down':
+                return
+            if self.layers_list.currentIndex().row() == 0 and direction == 'up':
+                return
+
+            widget.moveLayer(self.layers_list.currentIndex(), direction)
 
 
 # Tools
