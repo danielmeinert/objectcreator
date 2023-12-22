@@ -131,8 +131,8 @@ class ObjectTab(QWidget):
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
 
-    def giveCurrentMainView(self, canvas_size=200, add_auxilaries=False):
-        return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
+    # def giveCurrentMainView(self, canvas_size=200, add_auxilaries=False):
+    #     return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
 
     def updateCurrentMainView(self, emit_signal=True):
         self.sprites_tab.updateMainView(emit_signal)
@@ -250,18 +250,12 @@ class SpriteTab(QWidget):
 
     def unlockObjectTab(self):
         if self.locked:
-            for index in range(self.layers.rowCount()):
-                item = self.layers.item(index)
-                self.view.scene.removeItem(layer.giveItem())
-
-                self.layers.takeRow(index)
-
-            layers = self.object_tab.giveCurrentMainViewLayers(
-                self.base_x, self.base_y)
-            for layer in layers:
+            for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
 
-            self.active_layer = layers[0]
+            self.active_layer = self.layers.item(0)
+
+            self.layersChanged.emit()
 
             self.locked = False
             self.object_tab.mainViewUpdated.disconnect()
@@ -1125,6 +1119,52 @@ class LayersWidget(QWidget):
 
         self.main_window = main_window
 
+        # Buttons auxiliary
+        self.button_bounding_box = self.findChild(
+            QToolButton, "toolButton_boundingBox")
+        self.button_symm_axes = self.findChild(
+            QToolButton, "toolButton_symmAxes")
+
+        self.button_bounding_box.clicked.connect(self.clickBoundingBox)
+        self.button_symm_axes.clicked.connect(self.clickSymmAxes)
+
+        # Sprite control buttons
+        self.button_sprite_left = self.findChild(
+            QToolButton, "toolButton_left")
+        self.button_sprite_down = self.findChild(
+            QToolButton, "toolButton_down")
+        self.button_sprite_right = self.findChild(
+            QToolButton, "toolButton_right")
+        self.button_sprite_up = self.findChild(
+            QToolButton, "toolButton_up")
+        self.button_sprite_left_right = self.findChild(
+            QToolButton, "toolButton_leftright")
+        self.button_sprite_up_down = self.findChild(
+            QToolButton, "toolButton_updown")
+
+        self.button_sprite_left.clicked.connect(
+            lambda x: self.clickSpriteControl('left'))
+        self.button_sprite_down.clicked.connect(
+            lambda x: self.clickSpriteControl('down'))
+        self.button_sprite_right.clicked.connect(
+            lambda x: self.clickSpriteControl('right'))
+        self.button_sprite_up.clicked.connect(
+            lambda x: self.clickSpriteControl('up'))
+        self.button_sprite_left_right.clicked.connect(
+            lambda x: self.clickSpriteControl('leftright'))
+        self.button_sprite_up_down.clicked.connect(
+            lambda x: self.clickSpriteControl('updown'))
+
+        icon = QtGui.QPixmap()
+        icon.loadFromData(
+            get_data("customwidgets", 'res/icon_reflectionLR.png'), 'png')
+        self.button_sprite_left_right.setIcon(QtGui.QIcon(icon))
+
+        icon = QtGui.QPixmap()
+        icon.loadFromData(
+            get_data("customwidgets", 'res/icon_reflectionUD.png'), 'png')
+        self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
+
         self.layers_list.checked.connect(self.layerChecked)
 
         self.button_new.clicked.connect(self.newLayer)
@@ -1193,6 +1233,23 @@ class LayersWidget(QWidget):
                 return
 
             widget.moveLayer(self.layers_list.currentIndex(), direction)
+
+    def clickBoundingBox(self):
+        widget = self.main_window.sprite_tabs.currentWidget()\
+
+        if widget:
+            if widget.locked:
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.object_tab.o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+
+    def clickSymmAxes(self):
+        widget = self.main_window.sprite_tabs.currentWidget()\
+
+        if widget:
+            if widget.locked:
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.object_tab.o)
+                widget.object_tab.symmAxesChanged.emit(
+                    self.button_symm_axes.isChecked(), symm_axis, coords)
 
 
 # Tools

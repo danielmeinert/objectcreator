@@ -346,7 +346,7 @@ class MainWindowUi(QMainWindow):
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
                 tab.view.updateBackgroundColor()
-                
+
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.sprites_tab.sprite_view_main.setStyleSheet(
@@ -491,10 +491,13 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            layers = object_tab.giveCurrentMainViewLayers(
-                sprite_tab.base_x, sprite_tab.base_y)
-            for layer in layers:
-                sprite_tab.addLayer(layer)
+            for layer in object_tab.giveCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y):
+
+                sprite_tab.addLayer(copy(layer))
+
+            sprite_tab.active_layer = sprite_tab.layers.item(0)
+
+            sprite_tab.layersChanged.emit()
 
     # Menubar actions
 
@@ -665,7 +668,7 @@ def versionCheck(version):
     """Compares the inserted version with the version of this app. 
        If the app's version number is lower then True is returned,
        meaning that the program should be updated."""
-       
+
     version = version[1:].split('.')
     version_this = VERSION[1:].split('.')
 
@@ -678,9 +681,7 @@ def versionCheck(version):
         elif int(val) < int(version_this[i]):
             return False
 
-
     return False
-
 
 
 class SingleApplicationWithMessaging(QApplication):

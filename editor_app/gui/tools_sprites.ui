@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>312</width>
-    <height>541</height>
+    <height>540</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -70,9 +70,15 @@
      <property name="title">
       <string>Tools</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
       <property name="topMargin">
        <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
       </property>
       <item>
        <widget class="QWidget" name="widget_tool_box" native="true">
@@ -115,7 +121,7 @@
         <property name="minimumSize">
          <size>
           <width>280</width>
-          <height>250</height>
+          <height>230</height>
          </size>
         </property>
         <property name="title">
@@ -146,10 +152,22 @@
       <item>
        <widget class="QGroupBox" name="groupBox_Colormani">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>130</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>130</height>
+         </size>
         </property>
         <property name="title">
          <string>Color Manipulations (selected colors are affected)</string>
@@ -158,6 +176,15 @@
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMinimumSize</enum>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item row="0" column="0" colspan="2">
           <widget class="QCheckBox" name="checkBox_allViews">
            <property name="enabled">

@@ -179,10 +179,10 @@ class SettingsTab(QWidget):
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
-            self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
         self.object_tab.symmAxesChanged.emit(
-            self.sprites_tab.button_symm_axes.isChecked(), symm_axis, coords)
+            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
         self.sprites_tab.updateMainView()
 
     def clearenceChanged(self, value):
@@ -190,7 +190,7 @@ class SettingsTab(QWidget):
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
-            self.sprites_tab.button_bounding_box.isChecked(), backbox, coords)
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
 
         self.sprites_tab.updateMainView()
 
@@ -353,52 +353,6 @@ class SpritesTab(QWidget):
         self.button_load_image.clicked.connect(self.loadImage)
         self.button_reset_image.clicked.connect(self.resetImage)
         self.button_reset_offsets.clicked.connect(self.resetOffsets)
-
-        # Buttons auxiliary
-        self.button_bounding_box = self.findChild(
-            QToolButton, "toolButton_boundingBox")
-        self.button_symm_axes = self.findChild(
-            QToolButton, "toolButton_symmAxes")
-
-        self.button_bounding_box.clicked.connect(self.clickBoundingBox)
-        self.button_symm_axes.clicked.connect(self.clickSymmAxes)
-
-        # Sprite control buttons
-        self.button_sprite_left = self.findChild(
-            QToolButton, "toolButton_left")
-        self.button_sprite_down = self.findChild(
-            QToolButton, "toolButton_down")
-        self.button_sprite_right = self.findChild(
-            QToolButton, "toolButton_right")
-        self.button_sprite_up = self.findChild(
-            QToolButton, "toolButton_up")
-        self.button_sprite_left_right = self.findChild(
-            QToolButton, "toolButton_leftright")
-        self.button_sprite_up_down = self.findChild(
-            QToolButton, "toolButton_updown")
-
-        self.button_sprite_left.clicked.connect(
-            lambda x: self.clickSpriteControl('left'))
-        self.button_sprite_down.clicked.connect(
-            lambda x: self.clickSpriteControl('down'))
-        self.button_sprite_right.clicked.connect(
-            lambda x: self.clickSpriteControl('right'))
-        self.button_sprite_up.clicked.connect(
-            lambda x: self.clickSpriteControl('up'))
-        self.button_sprite_left_right.clicked.connect(
-            lambda x: self.clickSpriteControl('leftright'))
-        self.button_sprite_up_down.clicked.connect(
-            lambda x: self.clickSpriteControl('updown'))
-
-        icon = QtGui.QPixmap()
-        icon.loadFromData(
-            get_data("customwidgets", 'res/icon_reflectionLR.png'), 'png')
-        self.button_sprite_left_right.setIcon(QtGui.QIcon(icon))
-
-        icon = QtGui.QPixmap()
-        icon.loadFromData(
-            get_data("customwidgets", 'res/icon_reflectionUD.png'), 'png')
-        self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
 
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
@@ -568,10 +522,10 @@ class SpritesTab(QWidget):
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
-            self.button_bounding_box.isChecked(), backbox, coords)
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
         self.object_tab.symmAxesChanged.emit(
-            self.button_symm_axes.isChecked(), symm_axis, coords)
+            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
@@ -611,20 +565,6 @@ class SpritesTab(QWidget):
 
         self.updateAllViews()
 
-    def clickBoundingBox(self):
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.button_bounding_box.isChecked(), backbox, coords)
-
-        self.updateMainView()
-
-    def clickSymmAxes(self):
-        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(
-            self.button_symm_axes.isChecked(), symm_axis, coords)
-
-        self.updateMainView()
-
     def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
 
@@ -632,19 +572,19 @@ class SpritesTab(QWidget):
 
         canvas = Image.new('RGBA', (152, 271))
 
-        if self.button_bounding_box.isChecked():
-            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-                self.o)
-            canvas.paste(
-                backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
+        # if self.button_bounding_box.isChecked():
+        #     backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
+        #         self.o)
+        #     canvas.paste(
+        #         backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
 
         canvas.paste(im, coords, im)
 
-        if self.button_symm_axes.isChecked():
-            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-                self.o)
-            canvas.paste(
-                symm_axis, (76+coords_symm_axis[0], 200+coords_symm_axis[1]), symm_axis)
+        # if self.button_symm_axes.isChecked():
+        #     symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
+        #         self.o)
+        #     canvas.paste(
+        #         symm_axis, (76+coords_symm_axis[0], 200+coords_symm_axis[1]), symm_axis)
 
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
