@@ -250,12 +250,17 @@ class SpriteTab(QWidget):
 
     def unlockObjectTab(self):
         if self.locked:
+            for index in range(self.layers.rowCount()):
+                layer = self.layers.takeRow(index)[0]
+                self.view.scene.removeItem(layer.item)
+            
             for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
-                self.addLayer(layer)
-
+                new_layer = SpriteLayer.fromLayer(layer)
+                new_layer.setVisible(layer.isVisible())
+                self.addLayer(new_layer)
+                
             self.active_layer = self.layers.item(0)
 
-            self.layersChanged.emit()
 
             self.locked = False
             self.object_tab.mainViewUpdated.disconnect()
@@ -1004,6 +1009,14 @@ class SpriteLayer(QtGui.QStandardItem):
             QtCore.Qt.CheckState.Checked if self.visible else QtCore.Qt.CheckState.Unchecked)
 
         self.updateLayer()
+        
+    @classmethod
+    def fromLayer(cls, layer):
+        sprite = copy(layer.sprite)
+        base_x = int(layer.base_x)
+        base_y = int(layer.base_y)        
+        
+        return cls(sprite, layer.main_window, base_x, base_y, layer.text())
 
     def isVisible(self):
         return self.visible
@@ -1119,7 +1132,11 @@ class LayersWidget(QWidget):
 
         self.main_window = main_window
 
-        # Buttons auxiliary
+        # Auxiliary
+        self.dummy_o = obj.newEmpty(cts.Type.SMALL)
+        self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
+        self.dummy_o['properties']['height'] = 0
+        
         self.button_bounding_box = self.findChild(
             QToolButton, "toolButton_boundingBox")
         self.button_symm_axes = self.findChild(
@@ -1235,13 +1252,17 @@ class LayersWidget(QWidget):
             widget.moveLayer(self.layers_list.currentIndex(), direction)
 
     def clickBoundingBox(self):
-        widget = self.main_window.sprite_tabs.currentWidget()\
+        widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             if widget.locked:
                 backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.object_tab.o)
                 widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+            else:
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.dummy_o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
 
+                
     def clickSymmAxes(self):
         widget = self.main_window.sprite_tabs.currentWidget()\
 
@@ -1250,6 +1271,23 @@ class LayersWidget(QWidget):
                 symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.object_tab.o)
                 widget.object_tab.symmAxesChanged.emit(
                     self.button_symm_axes.isChecked(), symm_axis, coords)
+            else:
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.dummy_o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), symm_axis, coords)
+ 
+                
+                
+    def setEnabledSpriteControls(self, val):
+    
+        self.button_new.setEnabled(val)
+        self.button_delete.setEnabled(val)
+        self.button_merge.setEnabled(val)
+        self.button_up.setEnabled(val)
+        self.button_down.setEnabled(val)
+        
+        self.combo_box_shape.setEnabled(val)
+        self.spin_box_clearance.setEnabled(val)
+        self.label_clearance.setEnabled(val)
 
 
 # Tools

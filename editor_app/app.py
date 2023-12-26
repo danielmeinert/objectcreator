@@ -425,22 +425,14 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setEnabled(True)
-                self.layer_widget.button_new.setEnabled(False)
-                self.layer_widget.button_delete.setEnabled(False)
-                self.layer_widget.button_merge.setEnabled(False)
-                self.layer_widget.button_up.setEnabled(False)
-                self.layer_widget.button_down.setEnabled(False)
+                self.layer_widget.setEnabledSpriteControls(False)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
-                self.layer_widget.button_new.setEnabled(True)
-                self.layer_widget.button_delete.setEnabled(True)
-                self.layer_widget.button_merge.setEnabled(True)
-                self.layer_widget.button_up.setEnabled(True)
-                self.layer_widget.button_down.setEnabled(True)
+                self.layer_widget.setEnabledSpriteControls(True)
 
     def lockClicked(self, event):
         current_object_tab = self.object_tabs.currentWidget()
@@ -492,8 +484,9 @@ class MainWindowUi(QMainWindow):
 
         if sprite_tab and object_tab:
             for layer in object_tab.giveCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y):
-
-                sprite_tab.addLayer(copy(layer))
+                new_layer = wdg.SpriteLayer.fromLayer(layer)
+                new_layer.setVisible(layer.isVisible())
+                sprite_tab.addLayer(new_layer)
 
             sprite_tab.active_layer = sprite_tab.layers.item(0)
 

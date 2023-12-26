@@ -65,9 +65,9 @@ class SettingsTab(QWidget):
         self.shape_box.currentIndexChanged.connect(self.shapeChanged)
         self.diagonal_box.stateChanged.connect(self.shapeChanged)
 
-        # Clearence Spinbox
-        self.clearence_box = self.findChild(QSpinBox, "spinBox_clearence")
-        self.clearence_box.valueChanged.connect(self.clearenceChanged)
+        # clearance Spinbox
+        self.clearance_box = self.findChild(QSpinBox, "spinBox_clearance")
+        self.clearance_box.valueChanged.connect(self.clearanceChanged)
 
         # Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
@@ -185,7 +185,7 @@ class SettingsTab(QWidget):
             self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
         self.sprites_tab.updateMainView()
 
-    def clearenceChanged(self, value):
+    def clearanceChanged(self, value):
         self.o['properties']['height'] = value*8
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
@@ -266,7 +266,7 @@ class SettingsTab(QWidget):
         else:
             self.shape_box.setCurrentIndex(shape.value)
 
-        self.clearence_box.setValue(int(self.o['properties']['height']/8))
+        self.clearance_box.setValue(int(self.o['properties']['height']/8))
 
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)

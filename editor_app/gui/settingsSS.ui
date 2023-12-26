@@ -326,7 +326,7 @@ QTabBar::tab:selected {
            <bool>false</bool>
           </property>
          </widget>
-         <widget class="QSpinBox" name="spinBox_clearence">
+         <widget class="QSpinBox" name="spinBox_clearance">
           <property name="geometry">
            <rect>
             <x>20</x>
@@ -342,7 +342,7 @@ QTabBar::tab:selected {
            <number>1</number>
           </property>
          </widget>
-         <widget class="QLabel" name="label_clearence">
+         <widget class="QLabel" name="label_clearance">
           <property name="geometry">
            <rect>
             <x>90</x>
@@ -1260,7 +1260,7 @@ QTabBar::tab:selected {
  <tabstops>
   <tabstop>comboBox_subtype</tabstop>
   <tabstop>comboBox_shape</tabstop>
-  <tabstop>spinBox_clearence</tabstop>
+  <tabstop>spinBox_clearance</tabstop>
   <tabstop>checkBox_diagonal</tabstop>
   <tabstop>isRotatable</tabstop>
   <tabstop>comboBox_cursor</tabstop>

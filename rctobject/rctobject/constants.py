@@ -185,7 +185,7 @@ data_template_large =    {
         {
           "x": 0,
           "y": 0,
-          "clearence": 1
+          "clearance": 1
         }        ]},
   "images": [
     {
