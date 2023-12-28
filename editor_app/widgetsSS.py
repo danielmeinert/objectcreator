@@ -145,6 +145,15 @@ class SettingsTab(QWidget):
                 self.o['strings']['name']['en-GB'])
 
     # bother with when other subtypes are introduced
+    
+    def giveDummy(self):
+        print(self.o['properties']['height'])
+
+        dummy_o  = obj.newEmpty(cts.Type.SMALL)
+        dummy_o.changeShape(self.o.shape)
+        dummy_o['properties']['height'] = int(self.o['properties']['height'])
+        
+        return dummy_o
 
     def subtypeChanged(self, value):
         pass
@@ -186,8 +195,8 @@ class SettingsTab(QWidget):
         self.sprites_tab.updateMainView()
 
     def clearanceChanged(self, value):
-        self.o['properties']['height'] = value*8
-
+        self.o['properties']['height'] = value*8        
+ 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)

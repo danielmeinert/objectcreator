@@ -627,7 +627,7 @@ def new(data, sprites):
 def newEmpty(object_type: cts.Type):
     """Instantiates a new empty object of given type."""
 
-    data = {}
+    data = {'properties':{}}
 
     if object_type == cts.Type.SMALL:
         data = cts.data_template_small

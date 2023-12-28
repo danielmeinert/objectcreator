@@ -107,6 +107,9 @@ class ObjectTab(QWidget):
             self.o.save(filepath, name=name, no_zip=self.main_window.settings['no_zip'],
                         include_originalId=self.settings_tab.checkbox_keep_dat_id.isChecked())
             self.saved = True
+            
+    def giveDummy(self):
+        return self.settings_tab.giveDummy()        
 
     def lockWithSpriteTab(self, locked_sprite_tab):
         if self.locked:
@@ -183,6 +186,7 @@ class ObjectTab(QWidget):
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
     layersChanged = QtCore.pyqtSignal()
+    dummyChanged = QtCore.pyqtSignal(object)
 
     def __init__(self, main_window, object_tab=None, filepath=None):
         super().__init__()
@@ -193,6 +197,10 @@ class SpriteTab(QWidget):
         self.canvas_size = 200
         self.base_x = int(self.canvas_size/2)
         self.base_y = int(self.canvas_size*2/3)
+        
+        self.dummy_o = obj.newEmpty(cts.Type.SMALL)
+        self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
+        self.dummy_o['properties']['height'] = 0
 
         self.view.connectTab(self)
         self.view.setBackgroundBrush(QtCore.Qt.gray)
@@ -241,6 +249,9 @@ class SpriteTab(QWidget):
 
             for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
+                
+            self.dummy_o = self.object_tab.giveDummy()
+            self.dummyChanged.emit(self.dummy_o)
 
             self.active_layer = self.layers.item(0)
 
@@ -261,6 +272,8 @@ class SpriteTab(QWidget):
                 
             self.active_layer = self.layers.item(0)
 
+            self.dummy_o = self.object_tab.giveDummy()
+            self.dummyChanged.emit(self.dummy_o)
 
             self.locked = False
             self.object_tab.mainViewUpdated.disconnect()
@@ -1132,11 +1145,7 @@ class LayersWidget(QWidget):
 
         self.main_window = main_window
 
-        # Auxiliary
-        self.dummy_o = obj.newEmpty(cts.Type.SMALL)
-        self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
-        self.dummy_o['properties']['height'] = 0
-        
+        # Auxiliary        
         self.button_bounding_box = self.findChild(
             QToolButton, "toolButton_boundingBox")
         self.button_symm_axes = self.findChild(
@@ -1259,26 +1268,35 @@ class LayersWidget(QWidget):
                 backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.object_tab.o)
                 widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
             else:
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.dummy_o)
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
                 widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
-
                 
     def clickSymmAxes(self):
-        widget = self.main_window.sprite_tabs.currentWidget()\
+        widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
             if widget.locked:
                 symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.object_tab.o)
-                widget.object_tab.symmAxesChanged.emit(
-                    self.button_symm_axes.isChecked(), symm_axis, coords)
+                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
             else:
-                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.dummy_o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), symm_axis, coords)
- 
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
+                widget.symmAxesChanged(self.button_bounding_box.isChecked(), symm_axis, coords)  
                 
+    def clearanceChanged(self, value):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        
+        if widget:
+            if not widget.locked:
+                widget.dummy_o['properties']['height'] = value*8
+
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+                
+    def setDummyControls(self, dummy_o):
+        self.spin_box_clearance.setValue(int(dummy_o['properties']['height']/8))
+        self.combo_box_shape.setCurrentIndex(dummy_o.shape)                       
                 
     def setEnabledSpriteControls(self, val):
-    
         self.button_new.setEnabled(val)
         self.button_delete.setEnabled(val)
         self.button_merge.setEnabled(val)

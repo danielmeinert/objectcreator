@@ -390,6 +390,7 @@ class MainWindowUi(QMainWindow):
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.object_tabs.addTab(object_tab, name)
         self.object_tabs.setCurrentWidget(object_tab)
@@ -426,6 +427,7 @@ class MainWindowUi(QMainWindow):
                 self.button_push_sprite.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setEnabled(True)
                 self.layer_widget.setEnabledSpriteControls(False)
+                self.layer_widget.setDummyControls(sprite_tab.object_tab.giveDummy())
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
@@ -433,6 +435,8 @@ class MainWindowUi(QMainWindow):
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
                 self.layer_widget.setEnabledSpriteControls(True)
+                self.layer_widget.setDummyControls(sprite_tab.dummy_o)
+
 
     def lockClicked(self, event):
         current_object_tab = self.object_tabs.currentWidget()
@@ -506,6 +510,8 @@ class MainWindowUi(QMainWindow):
             o, self, author=self.settings['author'], author_id=self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+
 
         object_tab.lockWithSpriteTab(sprite_tab)
 
@@ -554,6 +560,7 @@ class MainWindowUi(QMainWindow):
         self.new_sprite_count += 1
         sprite_tab = wdg.SpriteTab(self)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
