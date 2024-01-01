@@ -145,7 +145,7 @@ data_template_small = {
   "sourceGame": "custom",
   "objectType": "scenery_small",
   "properties": {
-      "height": 1
+      "height": 0
       },
   "images": [
     {

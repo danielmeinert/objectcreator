@@ -250,7 +250,6 @@ class SpriteTab(QWidget):
             for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
                 
-            self.dummy_o = self.object_tab.giveDummy()
             self.dummyChanged.emit(self.dummy_o)
 
             self.active_layer = self.layers.item(0)
@@ -282,6 +281,12 @@ class SpriteTab(QWidget):
             self.object_tab.symmAxesChanged.disconnect()
 
             self.object_tab = None
+            
+    def giveDummy(self):
+        if self.locked:
+            return self.object_tab.giveDummy()
+        else:
+            return self.dummy_o
 
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
@@ -1264,27 +1269,18 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            if widget.locked:
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.object_tab.o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
-            else:
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
-                
+            backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.giveDummy())
+            widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+
     def clickSymmAxes(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            if widget.locked:
-                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.object_tab.o)
-                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
-            else:
-                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
-                widget.symmAxesChanged(self.button_bounding_box.isChecked(), symm_axis, coords)  
+            symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.giveDummy())
+            widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
                 
     def clearanceChanged(self, value):
         widget = self.main_window.sprite_tabs.currentWidget()
-        
         if widget:
             if not widget.locked:
                 widget.dummy_o['properties']['height'] = value*8

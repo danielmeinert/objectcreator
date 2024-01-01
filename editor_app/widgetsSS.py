@@ -147,12 +147,12 @@ class SettingsTab(QWidget):
     # bother with when other subtypes are introduced
     
     def giveDummy(self):
-        print(self.o['properties']['height'])
-
         dummy_o  = obj.newEmpty(cts.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
         dummy_o['properties']['height'] = int(self.o['properties']['height'])
         
+        print(dummy_o['id'], cts.data_template_small)
+                
         return dummy_o
 
     def subtypeChanged(self, value):
@@ -200,7 +200,10 @@ class SettingsTab(QWidget):
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
+        
+        #print(self.o['properties']['height'])
 
+        
         self.sprites_tab.updateMainView()
 
     def authorChanged(self, value):

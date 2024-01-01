@@ -627,12 +627,12 @@ def new(data, sprites):
 def newEmpty(object_type: cts.Type):
     """Instantiates a new empty object of given type."""
 
-    data = {'properties':{}}
+    data = {}
 
     if object_type == cts.Type.SMALL:
-        data = cts.data_template_small
+        data = copy.deepcopy(cts.data_template_small)
     elif object_type == cts.Type.LARGE:
-        data = cts.data_template_large
+        data = copy.deepcopy(cts.data_template_large)
     else:
         raise NotImplementedError(
             f"Object type {object_type.value} unsupported by now.")
