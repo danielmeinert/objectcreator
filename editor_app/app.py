@@ -390,7 +390,7 @@ class MainWindowUi(QMainWindow):
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
-        #sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.object_tabs.addTab(object_tab, name)
         self.object_tabs.setCurrentWidget(object_tab)
@@ -416,13 +416,10 @@ class MainWindowUi(QMainWindow):
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
-        print(index)
 
         if sprite_tab:
             sprite_tab.updateView()
-            o = sprite_tab.giveDummy()
-            print(o['id'])
-            self.layer_widget.setDummyControls(sprite_tab.giveDummy())
+            self.layer_widget.setDummyControls()
 
             if sprite_tab.locked:
                 self.object_tabs.setCurrentIndex(
@@ -439,7 +436,6 @@ class MainWindowUi(QMainWindow):
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
                 self.layer_widget.setEnabledSpriteControls(True)
-                #print(sprite_tab.dummy_o['properties']['height'])
 
 
     def lockClicked(self, event):
@@ -514,7 +510,7 @@ class MainWindowUi(QMainWindow):
             o, self, author=self.settings['author'], author_id=self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
-        #sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
 
         object_tab.lockWithSpriteTab(sprite_tab)
@@ -564,8 +560,7 @@ class MainWindowUi(QMainWindow):
         self.new_sprite_count += 1
         sprite_tab = wdg.SpriteTab(self)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
-        #sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
-        #print(sprite_tab.dummy_o['properties']['height'])
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)

@@ -150,9 +150,7 @@ class SettingsTab(QWidget):
         dummy_o  = obj.newEmpty(cts.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
         dummy_o['properties']['height'] = int(self.o['properties']['height'])
-        
-        print(dummy_o['id'], cts.data_template_small)
-                
+                        
         return dummy_o
 
     def subtypeChanged(self, value):
@@ -200,9 +198,6 @@ class SettingsTab(QWidget):
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
-        
-        #print(self.o['properties']['height'])
-
         
         self.sprites_tab.updateMainView()
 
@@ -539,26 +534,6 @@ class SpritesTab(QWidget):
         self.object_tab.symmAxesChanged.emit(
             self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
         self.object_tab.rotationChanged.emit(rot)
-
-        self.updateMainView()
-
-    def clickSpriteControl(self, direction: str):
-        sprite = self.o.giveSprite()
-
-        if direction == 'left':
-            sprite.x -= 1
-        elif direction == 'right':
-            sprite.x += 1
-        elif direction == 'up':
-            sprite.y -= 1
-        elif direction == 'down':
-            sprite.y += 1
-        elif direction == 'leftright':
-            sprite.image = sprite.image.transpose(
-                Image.FLIP_LEFT_RIGHT)
-        elif direction == 'updown':
-            sprite.image = sprite.image.transpose(
-                Image.FLIP_TOP_BOTTOM)
 
         self.updateMainView()
 

@@ -186,7 +186,7 @@ class ObjectTab(QWidget):
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
     layersChanged = QtCore.pyqtSignal()
-    dummyChanged = QtCore.pyqtSignal(object)
+    dummyChanged = QtCore.pyqtSignal()
 
     def __init__(self, main_window, object_tab=None, filepath=None):
         super().__init__()
@@ -201,6 +201,9 @@ class SpriteTab(QWidget):
         self.dummy_o = obj.newEmpty(cts.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
         self.dummy_o['properties']['height'] = 0
+        
+        self.bounding_boxes_active = False
+        self.symm_axes_active = False
 
         self.view.connectTab(self)
         self.view.setBackgroundBrush(QtCore.Qt.gray)
@@ -250,7 +253,7 @@ class SpriteTab(QWidget):
             for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
                 self.addLayer(layer)
                 
-            self.dummyChanged.emit(self.dummy_o)
+            self.dummyChanged.emit()
 
             self.active_layer = self.layers.item(0)
 
@@ -272,7 +275,7 @@ class SpriteTab(QWidget):
             self.active_layer = self.layers.item(0)
 
             self.dummy_o = self.object_tab.giveDummy()
-            self.dummyChanged.emit(self.dummy_o)
+            self.dummyChanged.emit()
 
             self.locked = False
             self.object_tab.mainViewUpdated.disconnect()
@@ -298,6 +301,8 @@ class SpriteTab(QWidget):
         self.view.viewport().setCursor(cursor)
 
     def boundingBoxesChanged(self, visible, backbox, coords):
+        self.bounding_boxes_active = visible
+        
         self.view.layer_boundingbox.setVisible(visible)
 
         image = ImageQt(backbox)
@@ -306,8 +311,12 @@ class SpriteTab(QWidget):
         self.view.layer_boundingbox.setPixmap(pixmap)
         self.view.layer_boundingbox.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
+        
+        self.dummyChanged.emit()
 
     def symmAxesChanged(self, visible, symm_axes, coords):
+        self.symm_axes_active = visible
+        
         self.view.layer_symm_axes.setVisible(visible)
 
         image = ImageQt(symm_axes)
@@ -316,6 +325,9 @@ class SpriteTab(QWidget):
         self.view.layer_symm_axes.setPixmap(pixmap)
         self.view.layer_symm_axes.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
+        
+        self.dummyChanged.emit()
+
 
     def colorRemap(self, color_remap, selected_colors):
         layer = self.currentActiveLayer()
@@ -345,7 +357,7 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
-    def clickSpriteControl(self, direction: str):
+    def changeSpriteOffset(self, direction: str):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
 
@@ -1264,6 +1276,13 @@ class LayersWidget(QWidget):
                 return
 
             widget.moveLayer(self.layers_list.currentIndex(), direction)
+            
+    def clickSpriteControl(self, direction: str):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.changeSpriteOffset(direction)
+        
 
     def clickBoundingBox(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1288,11 +1307,19 @@ class LayersWidget(QWidget):
                 backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
                 widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
                 
-    def setDummyControls(self, dummy_o):
-        self.spin_box_clearance.setValue(int(dummy_o['properties']['height']/8))
-        self.combo_box_shape.setCurrentIndex(dummy_o.shape)                       
+    def setDummyControls(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            dummy_o = widget.giveDummy() 
+            self.spin_box_clearance.setValue(int(dummy_o['properties']['height']/8))
+            self.combo_box_shape.setCurrentIndex(dummy_o.shape)                       
                 
     def setEnabledSpriteControls(self, val):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            self.button_bounding_box.setChecked(widget.bounding_boxes_active)
+            self.button_symm_axes.setChecked(widget.symm_axes_active)
+        
         self.button_new.setEnabled(val)
         self.button_delete.setEnabled(val)
         self.button_merge.setEnabled(val)
