@@ -75,11 +75,14 @@ class RCTObject:
                 dat_id = dat_id.split('|')[1].replace(' ', '')
                 data['images'], sprites = dat.import_sprites(dat_id, openpath)
 
-            # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
-            # The file is assumed to be called "object.json" in this case.
+            # If no original dat is given, the images are assumed to lie in the relative path given in the json (zipped parkobj).
+            # We change the data structure to "images/i.png" for i = image index.
             elif isinstance(data['images'][0], dict):
-                sprites = {im['path']: spr.Sprite.fromFile(
-                    f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+                sprites = {}
+                for i, im in enumerate(data['images']):
+                    sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
+                        f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
+                    im['path'] = f'images/{i}.png'
             else:
                 raise RuntimeError('Cannot extract images.')
 
@@ -99,13 +102,17 @@ class RCTObject:
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
         elif isinstance(data['images'][0], dict):
+            sprites = {}
             filename_len = len(filepath.split('/')[-1])
-            sprites = {im['path']: spr.Sprite.fromFile(
-                f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y'])) for im in data['images']}
+            for i, im in enumerate(data['images']):
+                sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
+                    f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
+                im['path'] = f'images/{i}.png'
         else:
             raise RuntimeError('Cannot extract images.')
-
+        
         return cls(data=data, sprites=sprites, old_id=dat_id)
+
 
     @classmethod
     def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
