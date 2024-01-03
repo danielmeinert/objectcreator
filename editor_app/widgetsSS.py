@@ -8,7 +8,7 @@
  *****************************************************************************
 """
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -369,8 +369,14 @@ class SpritesTab(QWidget):
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(
             self.showSpriteMenu)
-        self.sprite_view_main.setStyleSheet(
-            f"background-color :  rgb{self.main_window.current_background_color};")
+        self.sprite_view_main.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.main_window.current_background_color[0],
+                                          self.main_window.current_background_color[1],
+                                          self.main_window.current_background_color[2])))
+        
+        self.sprite_view_main_item = QGraphicsPixmapItem()
+        self.sprite_view_main_scene = QGraphicsScene()
+        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
+        self.sprite_view_main.setScene(self.sprite_view_main_scene)
 
         self.offset = 16 if (self.o.shape == obj.SmallScenery.Shape.QUARTER or self.o.shape ==
                              obj.SmallScenery.Shape.QUARTERD) else 32
@@ -554,28 +560,16 @@ class SpritesTab(QWidget):
 
     def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
+        
+        #if im.size[0]+
 
-        coords = (76+x, 200+y)
+        coords = (76+x+self.offset, 200+y)
 
-        canvas = Image.new('RGBA', (152, 271))
-
-        # if self.button_bounding_box.isChecked():
-        #     backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-        #         self.o)
-        #     canvas.paste(
-        #         backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
-
-        canvas.paste(im, coords, im)
-
-        # if self.button_symm_axes.isChecked():
-        #     symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-        #         self.o)
-        #     canvas.paste(
-        #         symm_axis, (76+coords_symm_axis[0], 200+coords_symm_axis[1]), symm_axis)
-
-        image = ImageQt(canvas)
+        image = ImageQt(im)
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.sprite_view_main.setPixmap(pixmap)
+        self.sprite_view_main_item.setOffset(coords[0],coords[1])
+        
+        self.sprite_view_main_item.setPixmap(pixmap)
 
         self.updatePreview(self.o.rotation)
         if emit_signal:

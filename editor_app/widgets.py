@@ -755,7 +755,7 @@ class SpriteViewWidget(QGraphicsView):
         self.layer_boundingbox = QGraphicsPixmapItem()
         self.layer_boundingbox.setZValue(-1)
         self.layer_symm_axes = QGraphicsPixmapItem()
-        self.layer_symm_axes.setZValue(1)
+        self.layer_symm_axes.setZValue(100)
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
@@ -1135,8 +1135,9 @@ class SpriteLayer(QtGui.QStandardItem):
         image = ImageQt(sprite.image)
 
         pixmap = QtGui.QPixmap.fromImage(image)
-        self.item.setPixmap(pixmap)
         self.updateOffset()
+
+        self.item.setPixmap(pixmap)
 
 
 class SpriteLayerListView(QtWidgets.QListView):
