@@ -96,6 +96,16 @@ class MainWindowUi(QMainWindow):
 
         self.button_lock = self.findChild(QToolButton, "toolButton_lock")
         self.button_lock.clicked.connect(self.lockClicked)
+        
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        #icon.addPixmap(QPixmap('disabled.png'), QIcon.Disabled)
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Unlock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        #icon.addPixmap(QPixmap('on.png'), QIcon.Normal, QIcon.On)
+        self.button_lock.setIcon(icon)
+
+
+        
         self.button_push_sprite = self.findChild(
             QToolButton, "toolButton_pushSprite")
         self.button_push_sprite.clicked.connect(self.pushSprite)
