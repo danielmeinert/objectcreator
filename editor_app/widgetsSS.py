@@ -557,10 +557,10 @@ class SpritesTab(QWidget):
     def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
         
-        height = im.size[1] + 20 if im.size[1] > 248 else 268
+        height = -y + 90 if -y > 178 else 268
         self.sprite_view_main_scene.setSceneRect(0,0,151,height)
         
-        coords = (76+x, height-20+y)
+        coords = (76+x, height-70+y)
 
         image = ImageQt(im)
         pixmap = QtGui.QPixmap.fromImage(image)
