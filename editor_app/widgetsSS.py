@@ -376,10 +376,9 @@ class SpritesTab(QWidget):
         self.sprite_view_main_item = QGraphicsPixmapItem()
         self.sprite_view_main_scene = QGraphicsScene()
         self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
+        self.sprite_view_main_scene.setSceneRect(0,0,151,268)
         self.sprite_view_main.setScene(self.sprite_view_main_scene)
 
-        self.offset = 16 if (self.o.shape == obj.SmallScenery.Shape.QUARTER or self.o.shape ==
-                             obj.SmallScenery.Shape.QUARTERD) else 32
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
                                self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
@@ -561,9 +560,10 @@ class SpritesTab(QWidget):
     def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
         
-        #if im.size[0]+
-
-        coords = (76+x+self.offset, 200+y)
+        height = im.size[1] + 20 if im.size[1] > 248 else 268
+        self.sprite_view_main_scene.setSceneRect(0,0,151,height)
+        
+        coords = (76+x, height-20+y)
 
         image = ImageQt(im)
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -633,28 +633,28 @@ class SpritesTab(QWidget):
             self.o.setSprite(layers[2].sprite, wither=2)
             return
 
-    def giveMainView(self, canvas_size, add_auxiliaries):
-        im, x, y = self.o.show()
+    # def giveMainView(self, canvas_size, add_auxiliaries):
+    #     im, x, y = self.o.show()
 
-        canvas = Image.new('RGBA', (canvas_size, canvas_size))
+    #     canvas = Image.new('RGBA', (canvas_size, canvas_size))
 
-        if add_auxiliaries and self.button_bounding_box.isChecked():
-            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-                self.o)
-            canvas.paste(backbox, (int(
-                canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
+    #     if add_auxiliaries and self.button_bounding_box.isChecked():
+    #         backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
+    #             self.o)
+    #         canvas.paste(backbox, (int(
+    #             canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
 
-        coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
+    #     coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
 
-        canvas.paste(im, coords, im)
+    #     canvas.paste(im, coords, im)
 
-        if add_auxiliaries and self.button_symm_axes.isChecked():
-            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-                self.o)
-            canvas.paste(symm_axis, (int(
-                canvas_size/2)+coords_symm_axis[0], int(canvas_size*2/3)+coords_symm_axis[1]), symm_axis)
+    #     if add_auxiliaries and self.button_symm_axes.isChecked():
+    #         symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
+    #             self.o)
+    #         canvas.paste(symm_axis, (int(
+    #             canvas_size/2)+coords_symm_axis[0], int(canvas_size*2/3)+coords_symm_axis[1]), symm_axis)
 
-        return canvas
+    #     return canvas
 
     def updatePreview(self, rot):
         im, x, y = self.o.show(rotation=rot)

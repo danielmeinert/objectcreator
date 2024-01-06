@@ -134,9 +134,6 @@ class ObjectTab(QWidget):
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
 
-    # def giveCurrentMainView(self, canvas_size=200, add_auxilaries=False):
-    #     return self.sprites_tab.giveMainView(canvas_size, add_auxilaries)
-
     def updateCurrentMainView(self, emit_signal=True):
         self.sprites_tab.updateMainView(emit_signal)
 
@@ -193,10 +190,21 @@ class SpriteTab(QWidget):
         uic.loadUi(aux.resource_path('gui/sprite.ui'), self)
 
         self.main_window = main_window
+        
+        # Canvas size
 
-        self.canvas_size = 200
-        self.base_x = int(self.canvas_size/2)
-        self.base_y = int(self.canvas_size*2/3)
+        self.canvas_width = 200
+        self.canvas_height = 200
+
+        self.base_x = int(self.canvas_width/2)
+        self.base_y = self.canvas_height-70
+        
+        self.spinbox_width.setValue(self.canvas_width)
+        self.spinbox_height.setValue(self.canvas_height)
+        
+        self.spinbox_width.valueChanged.connect(lambda x: self.canvasSizeChanged(width = x))
+        self.spinbox_height.valueChanged.connect(lambda x: self.canvasSizeChanged(height = x))
+        
         
         self.dummy_o = obj.newEmpty(cts.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
@@ -215,6 +223,7 @@ class SpriteTab(QWidget):
         self.slider_zoom.valueChanged.connect(self.zoomChanged)
         self.slider_zoom.valueChanged.connect(
             lambda x, toolbox=self.main_window.tool_widget.toolbox: self.toolChanged(toolbox))
+        
 
         self.layers = QtGui.QStandardItemModel()
         self.layercount = 1
@@ -227,7 +236,7 @@ class SpriteTab(QWidget):
             self.newLayer()
 
         self.protected_pixels = Image.new(
-            '1', (self.canvas_size, self.canvas_size))
+            '1', (self.canvas_width, self.canvas_height))
 
         self.lastpath = filepath
         self.saved = False
@@ -290,6 +299,56 @@ class SpriteTab(QWidget):
             return self.object_tab.giveDummy()
         else:
             return self.dummy_o
+        
+    def canvasSizeChanged(self, width=None, height=None):
+        if height is not None and height < self.canvas_height:
+            dummy_o = self.giveDummy()
+            
+            _, sprite_height = dummy_o.spriteBoundingBox()
+            
+            if height < sprite_height + self.canvas_height - self.base_y:
+                self.spinbox_width.setValue(self.canvas_width)
+                self.spinbox_height.setValue(self.canvas_height)
+                return
+
+        if width is not None and width < self.canvas_width:
+            dummy_o = self.giveDummy()
+            
+            sprite_width, _ = dummy_o.spriteBoundingBox()
+            
+            if width < sprite_width + self.canvas_width - self.base_x:
+                self.spinbox_width.setValue(self.canvas_width)
+                self.spinbox_height.setValue(self.canvas_height)
+                return       
+        
+        if width:
+            self.canvas_width = width
+            self.spinbox_width.setValue(width)
+
+        if height:
+            self.canvas_height = height
+            self.spinbox_height.setValue(height)
+            
+        self.base_x = int(self.canvas_width/2)
+        self.base_y = self.canvas_height-70
+        
+        self.view.updateCanvasSize()
+        
+        for index in range(self.layers.rowCount()):
+            layer = self.layers.item(index, 0)
+            layer.setBaseOffset(self.base_x, self.base_y)
+            
+        _, coords = self.main_window.bounding_boxes.giveBackbox(self.giveDummy())
+        self.view.layer_boundingbox.setOffset(
+                    coords[0]+self.base_x, coords[1]+self.base_y)  
+              
+        _, coords = self.main_window.symm_axes.giveSymmAxes(self.giveDummy())
+        self.view.layer_symm_axes.setOffset(
+                    coords[0]+self.base_x, coords[1]+self.base_y)
+        
+        self.protected_pixels = Image.new(
+            '1', (self.canvas_width, self.canvas_height))
+        
 
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
@@ -311,6 +370,9 @@ class SpriteTab(QWidget):
         self.view.layer_boundingbox.setPixmap(pixmap)
         self.view.layer_boundingbox.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
+        
+        if -coords[1]  - self.base_y > -20:
+            self.canvasSizeChanged(height = -coords[1] + self.canvas_height - self.base_y+20)
         
         self.dummyChanged.emit()
 
@@ -381,9 +443,9 @@ class SpriteTab(QWidget):
     def draw(self, x, y, shade):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
-        canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
+        canvas = Image.new('RGBA', (self.canvas_width, self.canvas_height))
         canvas_protect = Image.new(
-            'RGBA', (self.canvas_size, self.canvas_size))
+            'RGBA', (self.canvas_width, self.canvas_height))
 
         coords = (self.base_x+sprite.x,
                   self.base_y+sprite.y)
@@ -454,10 +516,10 @@ class SpriteTab(QWidget):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
         canvas_mask = Image.new(
-            '1', (self.canvas_size, self.canvas_size), color=1)
-        canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
+            '1', (self.canvas_width, self.canvas_height), color=1)
+        canvas = Image.new('RGBA', (self.canvas_width, self.canvas_height))
         canvas_protect = Image.new(
-            'RGBA', (self.canvas_size, self.canvas_size))
+            'RGBA', (self.canvas_width, self.canvas_height))
 
         coords = (self.base_x+sprite.x,
                   self.base_y+sprite.y)
@@ -509,9 +571,9 @@ class SpriteTab(QWidget):
     def fill(self, x, y, shade):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
-        canvas = Image.new('RGBA', (self.canvas_size, self.canvas_size))
+        canvas = Image.new('RGBA', (self.canvas_width, self.canvas_height))
         canvas_protect = Image.new(
-            'RGBA', (self.canvas_size, self.canvas_size))
+            'RGBA', (self.canvas_width, self.canvas_height))
 
         coords = (self.base_x+sprite.x,
                   self.base_y+sprite.y)
@@ -547,14 +609,14 @@ class SpriteTab(QWidget):
                   self.base_y+sprite.y)
 
         self.protected_pixels = Image.new(
-            '1', (self.canvas_size, self.canvas_size))
+            '1', (self.canvas_width, self.canvas_height))
         self.protected_pixels.paste(sprite.giveProtectedPixelMask(
             self.main_window.tool_widget.color_select_panel.notSelectedColors()), coords)
 
         if self.main_window.giveBrush() == cwdg.Brushes.AIRBRUSH:
             strength = self.main_window.giveAirbrushStrength()
             noise_mask = Image.fromarray(np.random.choice(a=[True, False], size=(
-                self.canvas_size, self.canvas_size), p=[1-strength, strength]).T)
+                self.canvas_width, self.canvas_height), p=[1-strength, strength]).T)
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
     def updateView(self, emit_signal=True):
@@ -584,10 +646,28 @@ class SpriteTab(QWidget):
             item.setZValue(self.layers.rowCount()-index)
 
     def addLayer(self, layer, pos=0):
+        
         self.layers.insertRow(pos, layer)
         item = layer.giveItem()
         self.view.addLayerItem(item)
         self.updateLayersZValues()
+        
+        
+        #adjust sprite margins
+        width, height = layer.sprite.image.size
+        
+        if -layer.sprite.x > self.canvas_width/2 - 20:
+            self.canvasSizeChanged(width = -layer.sprite.x +20)        
+        
+        if width + layer.sprite.x > self.canvas_width/2 - 20:
+            self.canvasSizeChanged(width = width + self.base_x + layer.sprite.x +20)
+        
+        if -layer.sprite.y + 70 > self.canvas_height - 20:
+            self.canvasSizeChanged(height = -layer.sprite.y + 90)
+        
+        if height + layer.sprite.y +70 > self.canvas_height - 20:
+            self.canvasSizeChanged(height = height + layer.sprite.y + 90)
+
 
         self.layersChanged.emit()
 
@@ -719,9 +799,9 @@ class SpriteViewWidget(QGraphicsView):
         self.base_x = tab.base_x
         self.base_y = tab.base_y
 
-        self.scene.setSceneRect(0, 0, tab.canvas_size, tab.canvas_size)
+        self.scene.setSceneRect(0, 0, tab.canvas_width, tab.canvas_height)
 
-        self.background = QGraphicsRectItem(0, 0, tab.canvas_size, tab.canvas_size)
+        self.background = QGraphicsRectItem(0, 0, tab.canvas_width, tab.canvas_height)
         self.background.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(tab.main_window.current_background_color[0],
                                           tab.main_window.current_background_color[1],
@@ -744,7 +824,7 @@ class SpriteViewWidget(QGraphicsView):
         self.scene.clear()
 
         self.background = QGraphicsRectItem(
-            0, 0, self.tab.canvas_size, self.tab.canvas_size)
+            0, 0, self.tab.canvas_width, self.tab.canvas_height)
         self.background.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
@@ -759,6 +839,22 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
+        
+    def updateCanvasSize(self):
+        self.base_x = self.tab.base_x
+        self.base_y = self.tab.base_y
+
+        self.scene.setSceneRect(0, 0, self.tab.canvas_width, self.tab.canvas_height)
+        
+        self.scene.removeItem(self.background)
+
+        self.background = QGraphicsRectItem(0, 0, self.tab.canvas_width, self.tab.canvas_height)
+        self.background.setZValue(-2)
+        brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
+                                          self.tab.main_window.current_background_color[1],
+                                          self.tab.main_window.current_background_color[2]))
+        self.background.setBrush(brush)
+        self.scene.addItem(self.background)
 
     def updateBackgroundColor(self):
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
@@ -1118,7 +1214,14 @@ class SpriteLayer(QtGui.QStandardItem):
     def updateOffset(self):
         self.item.setOffset(self.base_x + self.sprite.x,
                             self.base_y + self.sprite.y)
+        
+    def setBaseOffset(self, x, y):
+        self.base_x = x
+        self.base_y = y
 
+        self.updateOffset()
+        
+        
     def giveItem(self):
         if self.item is not None:
             return self.item
@@ -1168,9 +1271,15 @@ class LayersWidget(QWidget):
             QToolButton, "toolButton_boundingBox")
         self.button_symm_axes = self.findChild(
             QToolButton, "toolButton_symmAxes")
+        self.button_rotate = self.findChild(
+            QToolButton, "toolButton_rotate")
 
         self.button_bounding_box.clicked.connect(self.clickBoundingBox)
         self.button_symm_axes.clicked.connect(self.clickSymmAxes)
+        self.button_rotate.clicked.connect(self.clickRotate)
+        
+        self.spin_box_clearance.valueChanged.connect(self.clearanceChanged)
+        self.combo_box_shape.currentIndexChanged.connect(self.shapeChanged)
 
         # Sprite control buttons
         self.button_sprite_left = self.findChild(
@@ -1298,15 +1407,52 @@ class LayersWidget(QWidget):
         if widget:
             symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.giveDummy())
             widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
+            
+    def clickRotate(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            if not widget.locked:
+                widget.dummy_o.rotateObject()
+                
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
+                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
+        
                 
     def clearanceChanged(self, value):
         widget = self.main_window.sprite_tabs.currentWidget()
         if widget:
             if not widget.locked:
                 widget.dummy_o['properties']['height'] = value*8
+                
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
+                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+                
+    def shapeChanged(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            if not widget.locked:
+                value = self.combo_box_shape.currentIndex()
+                if value == 0:
+                    shape = obj.SmallScenery.Shape.QUARTER
+                elif value == 1:
+                    shape = obj.SmallScenery.Shape.HALF
+                elif value == 2:
+                    shape = obj.SmallScenery.Shape.THREEQ
+                elif value == 3:
+                    shape = obj.SmallScenery.Shape.FULL
+                elif value == 4:
+                    shape = obj.SmallScenery.Shape.FULLD
+                elif value == 5:
+                    shape = obj.SmallScenery.Shape.QUARTERD
+
+                widget.dummy_o.changeShape(shape)
 
                 backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
                 widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
+                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
                 
     def setDummyControls(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1327,6 +1473,7 @@ class LayersWidget(QWidget):
         self.button_up.setEnabled(val)
         self.button_down.setEnabled(val)
         
+        self.button_rotate.setEnabled(val)
         self.combo_box_shape.setEnabled(val)
         self.spin_box_clearance.setEnabled(val)
         self.label_clearance.setEnabled(val)

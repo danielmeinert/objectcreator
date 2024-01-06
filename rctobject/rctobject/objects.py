@@ -49,7 +49,6 @@ class RCTObject:
 
         self.rotation = 0
 
-        self.size = (0, 0, 0)  # to be set in subclass
         self.current_first_remap = 'NoColor'
         self.current_second_remap = 'NoColor'
         self.current_third_remap = 'NoColor'
@@ -189,11 +188,15 @@ class RCTObject:
                 move(f'{temp}/images', filename)
                 move(f'{temp}/object.json', filename)
 
+    def size(self):
+        'to be defined in subclass'
+        pass
+    
     def spriteBoundingBox(self, view: int = None):
         if view is None:
             view = self.rotation
 
-        x, y, z = self.size
+        x, y, z = self.size()
 
         height = int(-1 + x*16 + y*16 + z*8)
         width = int(x*32 + y*32)
@@ -242,28 +245,20 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.GARDENS
             else:
                 self.subtype = self.Subtype.SIMPLE
-
+            
             shape = data['properties'].get('shape', False)
             if shape == '2/4':
                 self.shape = self.Shape.HALF
-                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '3/4+D':
                 self.shape = self.Shape.THREEQ
-                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '4/4':
                 self.shape = self.Shape.FULL
-                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '4/4+D':
                 self.shape = self.Shape.FULLD
-                self.size = (1, 1, int(self.data['properties']['height']/8))
             elif shape == '1/4+D':
                 self.shape = self.Shape.QUARTERD
-                self.size = (0.5, 0.5, int(
-                    self.data['properties']['height']/8))
             else:
                 self.shape = self.Shape.QUARTER
-                self.size = (0.5, 0.5, int(
-                    self.data['properties']['height']/8))
 
             # Adjust sprite offsets from flags
             if self.shape == self.Shape.FULL or self.shape == self.Shape.FULLD or self.shape == self.Shape.THREEQ:
@@ -282,6 +277,23 @@ class SmallScenery(RCTObject):
                 for _, sprite in self.sprites.items():
                     sprite.overwriteOffsets(
                         int(sprite.x), int(sprite.y) - offset)
+                    
+    def size(self):
+        if self.shape == self.Shape.HALF:
+            size = (1, 1, int(self.data['properties']['height']/8))
+        elif self.shape == self.Shape.THREEQ:
+            size = (1, 1, int(self.data['properties']['height']/8))
+        elif self.shape == self.Shape.FULL:
+            size = (1, 1, int(self.data['properties']['height']/8))
+        elif self.shape == self.Shape.FULLD:
+            size = (1, 1, int(self.data['properties']['height']/8))
+        elif self.shape == self.Shape.QUARTERD:
+            size = (0.5, 0.5, int(
+                self.data['properties']['height']/8))
+        else:
+            size = (0.5, 0.5, int(self.data['properties']['height']/8))
+            
+        return size
 
     def updateImageOffsets(self):
         """Override method from base class."""
@@ -441,7 +453,6 @@ class LargeScenery(RCTObject):
 
             self.object_type = cts.Type.LARGE
 
-            self.size = self.setSize()
             self.num_tiles = len(self.data['properties']['tiles'])
 
             if data['properties'].get('3dFont', False):
@@ -462,7 +473,7 @@ class LargeScenery(RCTObject):
             np.array([[0, -1], [1, 0]])   # R^3
         ]
 
-    def setSize(self):
+    def size(self):
         max_x = 0
         max_y = 0
         max_z = 0
@@ -478,7 +489,7 @@ class LargeScenery(RCTObject):
         return (int(x), int(y), int(z))
 
     def show(self):
-        x_size, y_size, z_size = self.size
+        x_size, y_size, z_size = self.size()
         canvas = Image.new('RGBA', self.spriteBoundingBox())
 
         tiles = self.data['properties']['tiles']

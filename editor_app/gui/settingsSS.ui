@@ -338,6 +338,9 @@ QTabBar::tab:selected {
           <property name="toolTip">
            <string notr="true">Object height</string>
           </property>
+          <property name="maximum">
+           <number>31</number>
+          </property>
           <property name="value">
            <number>1</number>
           </property>

@@ -124,6 +124,9 @@
             <property name="toolTip">
              <string notr="true">Object height</string>
             </property>
+            <property name="maximum">
+             <number>31</number>
+            </property>
             <property name="value">
              <number>1</number>
             </property>
@@ -133,7 +136,7 @@
              <rect>
               <x>101</x>
               <y>21</y>
-              <width>64</width>
+              <width>48</width>
               <height>20</height>
              </rect>
             </property>
@@ -150,7 +153,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Half Tile</string>
+              <string>1/2</string>
              </property>
             </item>
             <item>
@@ -160,17 +163,17 @@
             </item>
             <item>
              <property name="text">
-              <string>Full Tile</string>
+              <string>4/4</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Full+D</string>
+              <string>4/4D</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>1/4+D</string>
+              <string>1/4D</string>
              </property>
             </item>
            </widget>
@@ -232,6 +235,40 @@
             </property>
             <property name="text">
              <string>Clear.</string>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_rotate">
+            <property name="geometry">
+             <rect>
+              <x>154</x>
+              <y>20</y>
+              <width>25</width>
+              <height>22</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Mirror Horizontally</string>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string>R</string>
+            </property>
+            <property name="arrowType">
+             <enum>Qt::NoArrow</enum>
             </property>
            </widget>
           </widget>
