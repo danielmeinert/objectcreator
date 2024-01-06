@@ -518,10 +518,7 @@ class SpritesTab(QWidget):
                               self.object_tab.locked_sprite_tab.base_y)
             self.object_tab.locked_sprite_tab.updateLayersModel()
 
-        for rot in range(4):
-            self.updatePreview(rot)
-
-        self.updateMainView()
+        self.updateAllViews()
 
     def previewClicked(self, rot):
         old_rot = self.o.rotation
@@ -577,15 +574,26 @@ class SpritesTab(QWidget):
 
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
-        rot = 0
-        for im in self.o.data['images']:
-            sprite = self.o.sprites[im['path']]
-            layer = wdg.SpriteLayer(
-                sprite, self.main_window, base_x, base_y)
-            self.layers[rot].append(layer)
+        
+        if self.o.subtype == obj.SmallScenery.Subtype.GLASS:
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation = rot)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name = f'Structure View {rot+1}')
+                self.layers[rot].append(layer)
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation = rot, glass = True)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name = f'Glass View {rot+1}')
+                self.layers[rot].append(layer)
 
-            rot = (rot+1) % 4
-
+        else:    
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation = rot)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name = f'View {rot+1}')
+                self.layers[rot].append(layer)
+                
     def giveCurrentMainViewLayers(self, base_x, base_y):
         return self.layers[self.o.rotation]
 
@@ -632,29 +640,40 @@ class SpritesTab(QWidget):
             self.o.setSprite(layers[1].sprite, wither=1)
             self.o.setSprite(layers[2].sprite, wither=2)
             return
-
-    # def giveMainView(self, canvas_size, add_auxiliaries):
-    #     im, x, y = self.o.show()
-
-    #     canvas = Image.new('RGBA', (canvas_size, canvas_size))
-
-    #     if add_auxiliaries and self.button_bounding_box.isChecked():
-    #         backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-    #             self.o)
-    #         canvas.paste(backbox, (int(
-    #             canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
-
-    #     coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
-
-    #     canvas.paste(im, coords, im)
-
-    #     if add_auxiliaries and self.button_symm_axes.isChecked():
-    #         symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-    #             self.o)
-    #         canvas.paste(symm_axis, (int(
-    #             canvas_size/2)+coords_symm_axis[0], int(canvas_size*2/3)+coords_symm_axis[1]), symm_axis)
-
-    #     return canvas
+        
+    def addSpriteToHistoryAllViews(self, index):        
+        for rot in range(4):
+            self.layers[rot][index].addSpriteToHistory()
+            
+    def colorRemapToAll(self, index, color_remap, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+                
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.remapColor(color, color_remap)
+                
+        self.updateAllViews()
+    
+    def colorChangeBrightnessAll(self, index, step, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+                
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.changeBrightnessColor(step, color)
+                
+        self.updateAllViews()
+    
+    def colorRemoveAll(self, index, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+                
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.removeColor(color)
+                
+        self.updateAllViews()
 
     def updatePreview(self, rot):
         im, x, y = self.o.show(rotation=rot)

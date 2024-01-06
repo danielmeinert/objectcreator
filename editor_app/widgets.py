@@ -136,6 +136,9 @@ class ObjectTab(QWidget):
 
     def updateCurrentMainView(self, emit_signal=True):
         self.sprites_tab.updateMainView(emit_signal)
+        
+    def addSpriteToHistoryAllViews(self):
+        self.sprites_tab.addSpriteToHistoryAllViews()
 
     def setCurrentSprite(self, sprite):
         self.o.setSprite(sprite)
@@ -147,35 +150,17 @@ class ObjectTab(QWidget):
     def setCurrentLayers(self, layers):
         self.sprites_tab.setCurrentLayers(layers)
 
-    def colorRemapToAll(self, color_remap, selected_colors):
+    def colorRemapToAll(self, index, color_remap, selected_colors):
         if self.locked:
-            self.locked_sprite_tab.addSpriteToHistoryAllViews()
+            self.sprites_tab.colorRemapToAll(index, color_remap, selected_colors)
 
-        for _, sprite in self.o.sprites.items():
-            for color in selected_colors:
-                sprite.remapColor(color, color_remap)
-
-        self.sprites_tab.updateAllViews()
-
-    def colorChangeBrightnessAll(self, step, selected_colors):
+    def colorChangeBrightnessAll(self, index, step, selected_colors):
         if self.locked:
-            self.locked_sprite_tab.addSpriteToHistoryAllViews()
+            self.sprites_tab.colorChangeBrightnessAll(index, step, selected_colors)
 
-        for _, sprite in self.o.sprites.items():
-            for color in selected_colors:
-                sprite.changeBrightnessColor(step, color)
-
-        self.sprites_tab.updateAllViews()
-
-    def colorRemoveAll(self, selected_colors):
+    def colorRemoveAll(self, index, selected_colors):
         if self.locked:
-            self.locked_sprite_tab.addSpriteToHistoryAllViews()
-
-        for _, sprite in self.o.sprites.items():
-            for color in selected_colors:
-                sprite.removeColor(color)
-
-        self.sprites_tab.updateAllViews()
+            self.sprites_tab.colorRemoveAll(index, selected_colors)
 
 
 # Sprites Tab
@@ -629,7 +614,7 @@ class SpriteTab(QWidget):
             return
 
         for index in range(self.layers.rowCount()):
-            layer = self.layers.takeRow(index)[0]
+            layer = self.layers.takeRow(0)[0]
             self.view.scene.removeItem(layer.item)
 
         for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
@@ -645,8 +630,13 @@ class SpriteTab(QWidget):
 
             item.setZValue(self.layers.rowCount()-index)
 
-    def addLayer(self, layer, pos=0):
-        
+    def addLayer(self, layer, pos=None):
+        if pos is None:
+            pos = self.main_window.layer_widget.layers_list.currentIndex().row()
+            
+        if pos == -1:
+            pos = 0
+                    
         self.layers.insertRow(pos, layer)
         item = layer.giveItem()
         self.view.addLayerItem(item)
@@ -671,11 +661,13 @@ class SpriteTab(QWidget):
 
         self.layersChanged.emit()
 
-    def newLayer(self, pos=0):
+    def newLayer(self, pos=None):
         if self.locked:
             return
 
-        layer = SpriteLayer(spr.Sprite(None), self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+        layer = SpriteLayer(spr.Sprite(None, palette= self.main_window.current_palette, 
+                                               use_transparency=True, transparent_color=self.main_window.current_import_color),
+                            self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
         self.layercount += 1
 
         self.addLayer(layer, pos)
@@ -764,13 +756,26 @@ class SpriteTab(QWidget):
         if self.locked:
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
-            pass
+            image = ImageGrab.grabclipboard()
+
+            if image:
+                layer = SpriteLayer(spr.Sprite(image, palette= self.main_window.current_palette, 
+                                               use_transparency=True, transparent_color=self.main_window.current_import_color),
+                                    self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+                self.layercount += 1
+
+                self.addLayer(layer)
+                self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+                self.active_layer = layer                   
 
     def copy(self):
         if self.locked:
             self.object_tab.sprites_tab.copySpriteToClipboard()
-        else:
-            pass
+        else:            
+            image = ImageQt(self.active_layer.sprite.image)
+            pixmap = QtGui.QPixmap.fromImage(image)
+
+            QApplication.clipboard().setPixmap(pixmap)
 
 
 class SpriteViewWidget(QGraphicsView):
@@ -1273,6 +1278,11 @@ class LayersWidget(QWidget):
             QToolButton, "toolButton_symmAxes")
         self.button_rotate = self.findChild(
             QToolButton, "toolButton_rotate")
+        
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Rotate.png")))
+        self.button_rotate.setIcon(icon)
+        
 
         self.button_bounding_box.clicked.connect(self.clickBoundingBox)
         self.button_symm_axes.clicked.connect(self.clickSymmAxes)
@@ -1540,8 +1550,9 @@ class ToolWidgetSprite(QWidget):
 
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
-
-            widget.colorRemapToAll(color_remap, selected_colors)
+            
+            index = self.main_window.layer_widget.layers_list.model().rowCount() - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
+            widget.colorRemapToAll(index, color_remap, selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
@@ -1554,7 +1565,8 @@ class ToolWidgetSprite(QWidget):
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
 
-            widget.colorChangeBrightnessAll(step, selected_colors)
+            index = self.main_window.layer_widget.layers_list.model().rowCount() - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
+            widget.colorChangeBrightnessAll(index, step, selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
@@ -1567,7 +1579,8 @@ class ToolWidgetSprite(QWidget):
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
 
-            widget.colorRemoveAll(selected_colors)
+            index = self.main_window.layer_widget.layers_list.model().rowCount() - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
+            widget.colorRemoveAll(index, selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()

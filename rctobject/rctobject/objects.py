@@ -241,6 +241,9 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.ANIMATED
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
+                for rot in range(4):
+                    sprite = self.giveSprite(rotation=rot, glass=True)
+                    sprite.remapColor('2nd Remap', '1st Remap')
             elif data['properties'].get('canWither', False):
                 self.subtype = self.Subtype.GARDENS
             else:
@@ -346,7 +349,7 @@ class SmallScenery(RCTObject):
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
         elif self.subtype == self.Subtype.GLASS:
-            sprite_index = rotation+4*int(not glass)
+            sprite_index = rotation+4*int(glass)
         else:
             sprite_index = rotation
 
@@ -381,7 +384,9 @@ class SmallScenery(RCTObject):
         else:
             sprite_index = rotation
 
-        self.sprites[self.data['images'][sprite_index]['path']] = sprite
+        self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
+        self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
+        self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
 
     def rotateObject(self, rot=None):
         if not isinstance(rot, int):
