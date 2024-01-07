@@ -330,7 +330,7 @@ class SmallScenery(RCTObject):
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
         elif self.subtype == self.Subtype.GLASS:
-            sprite_index = rotation+4*int(not glass)
+            sprite_index = rotation+4*int(glass)
         else:
             sprite_index = rotation
 
@@ -387,6 +387,15 @@ class SmallScenery(RCTObject):
         self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
         self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
         self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
+        
+    def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
+        """Still need to implement all possible animation cases and glass objects."""
+        sprite = copy.deepcopy(sprite_in)
+
+        self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
+        self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
+        self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
+
 
     def rotateObject(self, rot=None):
         if not isinstance(rot, int):

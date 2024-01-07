@@ -554,24 +554,6 @@ class SpritesTab(QWidget):
 
         self.updateAllViews()
 
-    def updateMainView(self, emit_signal=True):
-        im, x, y = self.o.show()
-        
-        height = -y + 90 if -y > 178 else 268
-        self.sprite_view_main_scene.setSceneRect(0,0,151,height)
-        
-        coords = (76+x, height-70+y)
-
-        image = ImageQt(im)
-        pixmap = QtGui.QPixmap.fromImage(image)
-        self.sprite_view_main_item.setOffset(coords[0],coords[1])
-        
-        self.sprite_view_main_item.setPixmap(pixmap)
-
-        self.updatePreview(self.o.rotation)
-        if emit_signal:
-            self.object_tab.mainViewUpdated.emit()
-
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
         
@@ -608,7 +590,7 @@ class SpritesTab(QWidget):
             return 3
 
     def setCurrentLayers(self, layers):
-        if self.requestNumberOfLayers() != len(layers):
+        if self.requestNumberOfLayers() != layers.rowCount():
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Information)
             msg.setWindowTitle("Layers number does not match!")
@@ -622,24 +604,25 @@ class SpritesTab(QWidget):
             reply = msg.exec_()
 
             if reply == QMessageBox.Yes:
-                pass
+                layer_top = layers.item(0,0)
+                for i in range(layers.rowCount()-1):
+                    layer_bottom = layers.item(i+1,0)
+                    layer_bottom.merge(layer_top)
+                    layer_top = layer_bottom
+                    
+                self.layers[self.o.rotation][0] = wdg.SpriteLayer.fromLayer(layer_bottom)
             else:
                 return
-
-        if self.o.subtype == self.o.Subtype.SIMPLE:
-            self.o.setSprite(layers[0].sprite)
-            return
-        elif self.o.subtype == self.o.Subtype.ANIMATED:
-            raise NotImplementedError("Subtype missing")
-        elif self.o.subtype == self.o.Subtype.GLASS:
-            self.o.setSprite(layers[0].sprite, glass=False)
-            self.o.setSprite(layers[1].sprite, glass=True)
-            return
-        elif self.o.subtype == self.o.Subtype.GARDENS:
-            self.o.setSprite(layers[0].sprite, wither=0)
-            self.o.setSprite(layers[1].sprite, wither=1)
-            self.o.setSprite(layers[2].sprite, wither=2)
-            return
+        else:
+            for i in range(layers.rowCount()):                
+                self.o.setSpriteFromIndex(layers.item(i,0).sprite, i*4+self.o.rotation)
+                
+        if self.object_tab.locked:
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
+                              self.object_tab.locked_sprite_tab.base_y)
+            self.object_tab.locked_sprite_tab.updateLayersModel()
+            
+        self.updateMainView()
         
     def addSpriteToHistoryAllViews(self, index):        
         for rot in range(4):
@@ -674,6 +657,24 @@ class SpritesTab(QWidget):
                 sprite.removeColor(color)
                 
         self.updateAllViews()
+        
+    def updateMainView(self, emit_signal=True):
+        im, x, y = self.o.show()
+        
+        height = -y + 90 if -y > 178 else 268
+        self.sprite_view_main_scene.setSceneRect(0,0,151,height)
+        
+        coords = (76+x, height-70+y)
+
+        image = ImageQt(im)
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.sprite_view_main_item.setOffset(coords[0],coords[1])
+        
+        self.sprite_view_main_item.setPixmap(pixmap)
+
+        self.updatePreview(self.o.rotation)
+        if emit_signal:
+            self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
         im, x, y = self.o.show(rotation=rot)

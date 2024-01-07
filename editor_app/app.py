@@ -465,7 +465,6 @@ class MainWindowUi(QMainWindow):
 
             self.pushSprite()
 
-            current_object_tab.lockWithSpriteTab(current_sprite_tab)
             current_sprite_tab.lockWithObjectTab(current_object_tab)
 
             self.sprite_tabs.setTabText(
@@ -487,8 +486,12 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
+            index = self.layer_widget.layers_list.currentIndex()
             object_tab.setCurrentLayers(sprite_tab.layers)
-
+            
+            self.layer_widget.layers_list.setCurrentIndex(index)
+            
+        
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
