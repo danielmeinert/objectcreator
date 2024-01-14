@@ -9,7 +9,7 @@
 """
 
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QGridLayout, \
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, \
     QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
     QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
@@ -33,6 +33,8 @@ from json import load as jload
 from json import dump as jdump
 from enum import Enum
 import requests
+from copy import copy
+
 
 import customwidgets as cwdg
 import widgets as wdg
@@ -68,6 +70,8 @@ class MainWindowUi(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+
         self.app_data_path = app_data_path
         self.loadSettings()
         self.bounding_boxes = aux.BoundingBoxes()
@@ -88,12 +92,18 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.removeTab(0)
 
         # Tab actions
-        self.object_tabs.tabCloseRequested.connect(self.closeObject)
+        self.object_tabs.tabCloseRequested.connect(self.objectClose)
         self.object_tabs.currentChanged.connect(self.changeObjectTab)
         self.sprite_tabs.currentChanged.connect(self.changeSpriteTab)
 
         self.button_lock = self.findChild(QToolButton, "toolButton_lock")
         self.button_lock.clicked.connect(self.lockClicked)
+        
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Unlock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button_lock.setIcon(icon)
+        
         self.button_push_sprite = self.findChild(
             QToolButton, "toolButton_pushSprite")
         self.button_push_sprite.clicked.connect(self.pushSprite)
@@ -103,8 +113,8 @@ class MainWindowUi(QMainWindow):
 
         # Menubar
         self.actionSmallScenery.triggered.connect(
-            lambda x: self.newObject(cts.Type.SMALL))
-        self.actionOpenFile.triggered.connect(self.openObjectFile)
+            lambda x: self.objectNew(cts.Type.SMALL))
+        self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
 
@@ -147,6 +157,11 @@ class MainWindowUi(QMainWindow):
         self.tool_widget = wdg.ToolWidgetSprite(self)
         container.addWidget(self.tool_widget)
 
+        self.layer_widget = wdg.LayersWidget(self)
+        container.addWidget(self.layer_widget)
+
+        self.sprite_tabs.currentChanged.connect(self.layer_widget.updateList)
+
         # function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
         self.giveBrush = self.tool_widget.toolbox.giveBrush
@@ -158,7 +173,7 @@ class MainWindowUi(QMainWindow):
         # Load empty object if not started with objects
 
         if not opening_objects:
-            self.newObject(cts.Type.SMALL)
+            self.objectNew()
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
@@ -338,14 +353,13 @@ class MainWindowUi(QMainWindow):
             self.tool_widget.toolbox.toolChanged.emit(self.tool_widget.toolbox)
             for index in range(self.sprite_tabs.count()):
                 tab = self.sprite_tabs.widget(index)
-                tab.view.setStyleSheet("QLabel{"
-                                       f"background-color :  rgb{self.current_background_color};"
-                                       "}")
+                tab.view.updateBackgroundColor()
 
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
-                tab.sprites_tab.sprite_view_main.setStyleSheet(
-                    "QLabel{" f"background-color :  rgb{self.current_background_color};" "}")
+                tab.sprites_tab.sprite_view_main.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.current_background_color[0],
+                                          self.current_background_color[1],
+                                          self.current_background_color[2])))
                 for _, preview in enumerate(tab.sprites_tab.sprite_preview):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"
@@ -384,6 +398,8 @@ class MainWindowUi(QMainWindow):
         object_tab = wdg.ObjectTab(o, self, filepath, author_id=author_id)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.object_tabs.addTab(object_tab, name)
         self.object_tabs.setCurrentWidget(object_tab)
@@ -412,6 +428,8 @@ class MainWindowUi(QMainWindow):
 
         if sprite_tab:
             sprite_tab.updateView()
+            self.layer_widget.setDummyControls()
+
             if sprite_tab.locked:
                 self.object_tabs.setCurrentIndex(
                     self.object_tabs.indexOf(sprite_tab.object_tab))
@@ -419,18 +437,22 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setEnabled(True)
+                self.layer_widget.setEnabledSpriteControls(False)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
+                self.layer_widget.setEnabledSpriteControls(True)
 
-    def lockClicked(self):
+
+    def lockClicked(self, event):
         current_object_tab = self.object_tabs.currentWidget()
         current_sprite_tab = self.sprite_tabs.currentWidget()
 
         if current_object_tab is None or current_sprite_tab is None:
+            self.sender().setChecked(False)
             return
 
         if self.button_lock.isChecked():
@@ -445,18 +467,11 @@ class MainWindowUi(QMainWindow):
 
             self.pushSprite()
 
-            current_object_tab.lockWithSpriteTab(current_sprite_tab)
             current_sprite_tab.lockWithObjectTab(current_object_tab)
 
             self.sprite_tabs.setTabText(
                 self.sprite_tabs.currentIndex(), f"{name} (locked)")
-
-            self.button_pull_sprite.setEnabled(False)
-            self.button_push_sprite.setEnabled(False)
-            self.tool_widget.checkbox_all_views.setEnabled(True)
-
         else:
-
             name = f'Sprite {self.new_sprite_count}'
             self.new_sprite_count += 1
 
@@ -466,28 +481,36 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.setTabText(
                 self.sprite_tabs.currentIndex(), f"{name}")
 
-            self.button_pull_sprite.setEnabled(True)
-            self.button_push_sprite.setEnabled(True)
-            self.tool_widget.checkbox_all_views.setEnabled(False)
-            self.tool_widget.checkbox_all_views.setChecked(False)
+        self.changeSpriteTab(self.sprite_tabs.currentIndex())
 
     def pushSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        if object_tab:
-            object_tab.setCurrentSprite(sprite_tab.sprite)
-
+        if sprite_tab and object_tab:
+            index = self.layer_widget.layers_list.currentIndex()
+            object_tab.setCurrentLayers(sprite_tab.layers)
+            
+            self.layer_widget.layers_list.setCurrentIndex(index)
+            
+        
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
-        if sprite_tab:
-            sprite_tab.setSprite(object_tab.giveCurrentMainViewSprite()[0])
+        if sprite_tab and object_tab:
+            for layer in object_tab.giveCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y):
+                new_layer = wdg.SpriteLayer.fromLayer(layer)
+                new_layer.setVisible(layer.isVisible())
+                sprite_tab.addLayer(new_layer)
+
+            sprite_tab.active_layer = sprite_tab.layers.item(0)
+
+            sprite_tab.layersChanged.emit()
 
     # Menubar actions
 
-    def newObject(self, obj_type=cts.Type.SMALL):
+    def objectNew(self, obj_type=cts.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
@@ -498,6 +521,9 @@ class MainWindowUi(QMainWindow):
         object_tab = wdg.ObjectTab(
             o, self, author=self.settings['author'], author_id=self.settings['author_id'])
         sprite_tab = wdg.SpriteTab(self, object_tab)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+
 
         object_tab.lockWithSpriteTab(sprite_tab)
 
@@ -509,7 +535,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.addTab(sprite_tab, f"{name} (locked)")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-    def closeObject(self, index):
+    def objectClose(self, index):
         object_tab = self.object_tabs.widget(index)
         if object_tab.locked:
             self.sprite_tabs.removeTab(
@@ -517,7 +543,7 @@ class MainWindowUi(QMainWindow):
 
         self.object_tabs.removeTab(index)
 
-    def openObjectFile(self):
+    def objectOpenFile(self):
         folder = self.last_open_folder
         if not folder:
             folder = getcwd()
@@ -545,6 +571,8 @@ class MainWindowUi(QMainWindow):
         name = f'Sprite {self.new_sprite_count}'
         self.new_sprite_count += 1
         sprite_tab = wdg.SpriteTab(self)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
@@ -647,8 +675,10 @@ def excepthook(exc_type, exc_value, exc_tb):
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
 
-
 def versionCheck(version):
+    """Compares the inserted version with the version of this app. 
+       If the app's version number is lower then True is returned,
+       meaning that the program should be updated."""
 
     version = version[1:].split('.')
     version_this = VERSION[1:].split('.')
@@ -657,9 +687,10 @@ def versionCheck(version):
         version_this.append(0)
 
     for i, val in enumerate(version):
-
         if int(val) > int(version_this[i]):
             return True
+        elif int(val) < int(version_this[i]):
+            return False
 
     return False
 
@@ -667,10 +698,15 @@ def versionCheck(version):
 # from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
 
 class SingleApplicationWithMessaging(QApplication):
+    # from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
     messageAvailable = QtCore.pyqtSignal(object)
 
     def __init__(self, argv, key):
         super().__init__(argv)
+
+        # for disabling alt and space behaviour:
+        # self.setStyle(self.MenuStyle())
+
         # cleanup (only needed for unix)
         QtCore.QSharedMemory(key).attach()
         self._memory = QtCore.QSharedMemory(self)
@@ -717,6 +753,17 @@ class SingleApplicationWithMessaging(QApplication):
             socket.disconnectFromServer()
             return True
         return False
+
+    """ class MenuStyle(QProxyStyle):
+
+        def styleHint(self, stylehint, opt=None, widget=None, returnData=None):
+            if stylehint == QStyle.SH_MenuBar_AltKeyNavigation:
+                return 0
+            
+            if stylehint == QStyle.SH_Menu_SpaceActivatesItem:
+                return 0
+
+            return QProxyStyle.styleHint(stylehint, opt, widget, returnData) """
 
 
 def main():

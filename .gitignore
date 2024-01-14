@@ -136,3 +136,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .pylint.d/widgets1.stats
+.vscode/settings.json

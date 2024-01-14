@@ -8,10 +8,10 @@
  *****************************************************************************
 """
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
-    QListWidget, QFileDialog
+    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -26,6 +26,7 @@ from pkgutil import get_data
 import auxiliaries as aux
 
 import customwidgets as cwdg
+import widgets as wdg
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -67,9 +68,9 @@ class SettingsTab(QWidget):
         self.shape_box.currentIndexChanged.connect(self.shapeChanged)
         self.diagonal_box.stateChanged.connect(self.shapeChanged)
 
-        # Clearence Spinbox
-        self.clearence_box = self.findChild(QSpinBox, "spinBox_clearence")
-        self.clearence_box.valueChanged.connect(self.clearenceChanged)
+        # clearance Spinbox
+        self.clearance_box = self.findChild(QSpinBox, "spinBox_clearance")
+        self.clearance_box.valueChanged.connect(self.clearanceChanged)
 
         # Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
@@ -148,6 +149,13 @@ class SettingsTab(QWidget):
 
     # bother with when other subtypes are introduced
 
+    def giveDummy(self):
+        dummy_o = obj.newEmpty(cts.Type.SMALL)
+        dummy_o.changeShape(self.o.shape)
+        dummy_o['properties']['height'] = int(self.o['properties']['height'])
+
+        return dummy_o
+
     def subtypeChanged(self, value):
         pass
 
@@ -178,10 +186,22 @@ class SettingsTab(QWidget):
                 shape = obj.SmallScenery.Shape.FULL
 
         self.o.changeShape(shape)
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+        self.object_tab.symmAxesChanged.emit(
+            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
         self.sprites_tab.updateMainView()
 
-    def clearenceChanged(self, value):
+    def clearanceChanged(self, value):
         self.o['properties']['height'] = value*8
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
+
         self.sprites_tab.updateMainView()
 
     def authorChanged(self, value):
@@ -256,7 +276,7 @@ class SettingsTab(QWidget):
         else:
             self.shape_box.setCurrentIndex(shape.value)
 
-        self.clearence_box.setValue(int(self.o['properties']['height']/8))
+        self.clearance_box.setValue(int(self.o['properties']['height']/8))
 
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)
@@ -344,52 +364,6 @@ class SpritesTab(QWidget):
         self.button_reset_image.clicked.connect(self.resetImage)
         self.button_reset_offsets.clicked.connect(self.resetOffsets)
 
-        # Buttons auxiliary
-        self.button_bounding_box = self.findChild(
-            QToolButton, "toolButton_boundingBox")
-        self.button_symm_axes = self.findChild(
-            QToolButton, "toolButton_symmAxes")
-
-        self.button_bounding_box.clicked.connect(self.updateMainView)
-        self.button_symm_axes.clicked.connect(self.updateMainView)
-
-        # Sprite control buttons
-        self.button_sprite_left = self.findChild(
-            QToolButton, "toolButton_left")
-        self.button_sprite_down = self.findChild(
-            QToolButton, "toolButton_down")
-        self.button_sprite_right = self.findChild(
-            QToolButton, "toolButton_right")
-        self.button_sprite_up = self.findChild(
-            QToolButton, "toolButton_up")
-        self.button_sprite_left_right = self.findChild(
-            QToolButton, "toolButton_leftright")
-        self.button_sprite_up_down = self.findChild(
-            QToolButton, "toolButton_updown")
-
-        self.button_sprite_left.clicked.connect(
-            lambda x: self.clickSpriteControl('left'))
-        self.button_sprite_down.clicked.connect(
-            lambda x: self.clickSpriteControl('down'))
-        self.button_sprite_right.clicked.connect(
-            lambda x: self.clickSpriteControl('right'))
-        self.button_sprite_up.clicked.connect(
-            lambda x: self.clickSpriteControl('up'))
-        self.button_sprite_left_right.clicked.connect(
-            lambda x: self.clickSpriteControl('leftright'))
-        self.button_sprite_up_down.clicked.connect(
-            lambda x: self.clickSpriteControl('updown'))
-
-        icon = QtGui.QPixmap()
-        icon.loadFromData(
-            get_data("customwidgets", 'res/icon_reflectionLR.png'), 'png')
-        self.button_sprite_left_right.setIcon(QtGui.QIcon(icon))
-
-        icon = QtGui.QPixmap()
-        icon.loadFromData(
-            get_data("customwidgets", 'res/icon_reflectionUD.png'), 'png')
-        self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
-
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
 
@@ -398,11 +372,19 @@ class SpritesTab(QWidget):
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(
             self.showSpriteMenu)
-        self.sprite_view_main.setStyleSheet(
-            f"background-color :  rgb{self.main_window.current_background_color};")
+        self.sprite_view_main.setBackgroundBrush(
+            QtGui.QBrush(
+                QtGui.QColor(
+                    self.main_window.current_background_color[0],
+                    self.main_window.current_background_color[1],
+                    self.main_window.current_background_color[2])))
 
-        self.offset = 16 if (self.o.shape == obj.SmallScenery.Shape.QUARTER or self.o.shape ==
-                             obj.SmallScenery.Shape.QUARTERD) else 32
+        self.sprite_view_main_item = QGraphicsPixmapItem()
+        self.sprite_view_main_scene = QGraphicsScene()
+        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
+        self.sprite_view_main_scene.setSceneRect(0, 0, 151, 268)
+        self.sprite_view_main.setScene(self.sprite_view_main_scene)
+
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
                                self.sprite_view_preview2, self.sprite_view_preview3]
         for rot, widget in enumerate(self.sprite_preview):
@@ -541,10 +523,13 @@ class SpritesTab(QWidget):
 
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
-        for rot in range(4):
-            self.updatePreview(rot)
 
-        self.updateMainView()
+        if self.object_tab.locked:
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
+                              self.object_tab.locked_sprite_tab.base_y)
+            self.object_tab.locked_sprite_tab.updateLayersModel()
+
+        self.updateAllViews()
 
     def previewClicked(self, rot):
         old_rot = self.o.rotation
@@ -555,25 +540,13 @@ class SpritesTab(QWidget):
 
         self.o.rotateObject(rot)
 
-        self.updateMainView()
-
-    def clickSpriteControl(self, direction: str):
-        sprite = self.o.giveSprite()
-
-        if direction == 'left':
-            sprite.x -= 1
-        elif direction == 'right':
-            sprite.x += 1
-        elif direction == 'up':
-            sprite.y -= 1
-        elif direction == 'down':
-            sprite.y += 1
-        elif direction == 'leftright':
-            sprite.image = sprite.image.transpose(
-                Image.FLIP_LEFT_RIGHT)
-        elif direction == 'updown':
-            sprite.image = sprite.image.transpose(
-                Image.FLIP_TOP_BOTTOM)
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        self.object_tab.boundingBoxChanged.emit(
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+        self.object_tab.symmAxesChanged.emit(
+            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
+        self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
 
@@ -592,58 +565,124 @@ class SpritesTab(QWidget):
 
         self.updateAllViews()
 
-    def updateMainView(self):
-        im, x, y = self.o.show()
+    def createLayers(self, base_x, base_y):
+        self.layers = [[], [], [], []]
 
-        coords = (76+x, 200+y)
+        if self.o.subtype == obj.SmallScenery.Subtype.GLASS:
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation=rot)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name=f'Structure View {rot+1}')
+                self.layers[rot].append(layer)
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation=rot, glass=True)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name=f'Glass View {rot+1}')
+                self.layers[rot].append(layer)
 
-        canvas = Image.new('RGBA', (152, 271))
+        else:
+            for rot in range(4):
+                sprite = self.o.giveSprite(rotation=rot)
+                layer = wdg.SpriteLayer(
+                    sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
+                self.layers[rot].append(layer)
 
-        if self.button_bounding_box.isChecked():
-            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-                self.o)
-            canvas.paste(
-                backbox, (76+coords_backbox[0], 200+coords_backbox[1]), backbox)
+    def giveCurrentMainViewLayers(self, base_x, base_y):
+        return self.layers[self.o.rotation]
 
-        canvas.paste(im, coords, im)
+    def requestNumberOfLayers(self):
+        if self.o.subtype == self.o.Subtype.SIMPLE:
+            return 1
+        elif self.o.subtype == self.o.Subtype.ANIMATED:
+            raise NotImplementedError("Subtype missing")
+        elif self.o.subtype == self.o.Subtype.GLASS:
+            return 2
+        elif self.o.subtype == self.o.Subtype.GARDENS:
+            return 3
 
-        if self.button_symm_axes.isChecked():
-            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-                self.o)
-            canvas.paste(
-                symm_axis, (76+coords_symm_axis[0], 200+coords_symm_axis[1]), symm_axis)
+    def setCurrentLayers(self, layers):
+        if self.requestNumberOfLayers() != layers.rowCount():
+            dialog = SpriteImportUi(layers, self.layers[self.o.rotation])
 
-        image = ImageQt(canvas)
-        pixmap = QtGui.QPixmap.fromImage(image)
-        self.sprite_view_main.setPixmap(pixmap)
+            if dialog.exec():
+                target_index = dialog.selected_index
+                layers_incoming = dialog.selected_incoming
+
+                if len(layers_incoming) == 0:
+                    return
+
+                layer_top = layers_incoming[0]
+                for i in range(len(layers_incoming)-1):
+                    layer_bottom = layers_incoming[i+1]
+                    layer_bottom.merge(layer_top)
+                    layer_top = layer_bottom
+
+                self.o.setSpriteFromIndex(layer_top.sprite, self.o.rotation)
+            else:
+                return
+        else:
+            for i in range(layers.rowCount()):
+                index = layers.rowCount() - i - 1
+                self.o.setSpriteFromIndex(layers.item(index, 0).sprite, i*4+self.o.rotation)
 
         if self.object_tab.locked:
-            self.object_tab.locked_sprite_tab.updateView(skip_locked=True)
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
+                              self.object_tab.locked_sprite_tab.base_y)
+            self.object_tab.locked_sprite_tab.updateLayersModel()
 
-        self.updatePreview(self.o.rotation)
+        self.updateMainView()
 
-    def giveMainView(self, canvas_size, add_auxiliaries):
+    def addSpriteToHistoryAllViews(self, index):
+        for rot in range(4):
+            self.layers[rot][index].addSpriteToHistory()
+
+    def colorRemapToAll(self, index, color_remap, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.remapColor(color, color_remap)
+
+        self.updateAllViews()
+
+    def colorChangeBrightnessAll(self, index, step, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.changeBrightnessColor(step, color)
+
+        self.updateAllViews()
+
+    def colorRemoveAll(self, index, selected_colors):
+        self.addSpriteToHistoryAllViews(index)
+
+        for rot in range(4):
+            sprite = self.layers[rot][index].sprite
+            for color in selected_colors:
+                sprite.removeColor(color)
+
+        self.updateAllViews()
+
+    def updateMainView(self, emit_signal=True):
         im, x, y = self.o.show()
 
-        canvas = Image.new('RGBA', (canvas_size, canvas_size))
+        height = -y + 90 if -y > 178 else 268
+        self.sprite_view_main_scene.setSceneRect(0, 0, 151, height)
 
-        if add_auxiliaries and self.button_bounding_box.isChecked():
-            backbox, coords_backbox = self.main_window.bounding_boxes.giveBackbox(
-                self.o)
-            canvas.paste(backbox, (int(
-                canvas_size/2)+coords_backbox[0], int(canvas_size*2/3)+coords_backbox[1]), backbox)
+        coords = (76+x, height-70+y)
 
-        coords = (int(canvas_size/2)+x, int(canvas_size*2/3)+y)
+        image = ImageQt(im)
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.sprite_view_main_item.setOffset(coords[0], coords[1])
 
-        canvas.paste(im, coords, im)
+        self.sprite_view_main_item.setPixmap(pixmap)
 
-        if add_auxiliaries and self.button_symm_axes.isChecked():
-            symm_axis, coords_symm_axis = self.main_window.symm_axes.giveSymmAxes(
-                self.o)
-            canvas.paste(symm_axis, (int(
-                canvas_size/2)+coords_symm_axis[0], int(canvas_size*2/3)+coords_symm_axis[1]), symm_axis)
-
-        return canvas
+        self.updatePreview(self.o.rotation)
+        if emit_signal:
+            self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
         im, x, y = self.o.show(rotation=rot)
@@ -661,3 +700,35 @@ class SpritesTab(QWidget):
         self.updateMainView()
         for rot in range(4):
             self.updatePreview(rot)
+
+
+class SpriteImportUi(QDialog):
+    def __init__(self, layers_incoming, layers_object):
+        super().__init__()
+        uic.loadUi(aux.resource_path('gui/sprite_import.ui'), self)
+
+        self.setFixedSize(self.size())
+        self.layers_incoming = layers_incoming
+        self.layers_object = layers_object
+
+        for i in range(layers_incoming.rowCount()):
+            index = layers_incoming.rowCount() - i - 1
+            layer = layers_incoming.item(index, 0)
+            self.list_layers_incoming.insertItem(0, layer.text())
+
+        for layer in layers_object:
+            self.list_layers_object.insertItem(0, layer.text())
+
+            self.list_layers_object.setCurrentRow(0)
+
+    def accept(self):
+
+        self.selected_incoming = []
+        for item in self.list_layers_incoming.selectedItems():
+            index = self.list_layers_incoming.row(item)
+
+            self.selected_incoming.append(self.layers_incoming.item(index, 0))
+
+        self.selected_index = self.list_layers_object.count() - self.list_layers_object.currentRow()
+
+        super().accept()

@@ -13,7 +13,8 @@ import rctobject.palette as pal
 
 
 class Sprite:
-    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True, transparent_color: tuple = None):
+    def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
+                 use_transparency: bool = False, transparent_color: tuple = None):
 
         if image:
             image = pal.addPalette(image, palette, dither, transparent_color)
@@ -39,11 +40,12 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = None):
+                 use_transparency: bool = False, transparent_color: tuple = None):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
-            image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color)
+            image=image, coords=coords, palette=palette, dither=dither, use_transparency=use_transparency,
+            transparent_color=transparent_color)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -104,11 +106,39 @@ class Sprite:
             self.image, color_name_old, color_name_new,  self.palette)
 
     def crop(self):
+        # this doesn't make a lot of sense
         bbox = self.image.getbbox()
 
-        self.image = self.image.crop(bbox)
-        self.x = self.x + bbox[0]
-        self.y = self.y + bbox[1]
+        if bbox:
+            self.image = self.image.crop(bbox)
+            self.x = self.x + bbox[0]
+            self.y = self.y + bbox[1]
+
+    def merge(self, sprite, offset_x, offset_y):
+        s1 = self
+        s2 = sprite
+        s2.x += offset_x
+        s2.y += offset_y
+
+        canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x), abs(s2.x), abs(s2.image.width+s2.x))
+        canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y), abs(s2.y), abs(s2.image.height+s2.y))
+        canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+
+        canvas.paste(s1.image, (s1.x+canvas_size_x, s1.y+canvas_size_y))
+        canvas.paste(s2.image, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+
+        bbox = canvas.getbbox()
+
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -canvas_size_x + bbox[0]
+            y_offset = -canvas_size_y + bbox[1]
+
+            self.image = canvas
+            self.x = x_offset
+            self.y = y_offset
+
+        self.crop()
 
     def giveShade(self, coords):
         if coords[0] < 0 or coords[1] < 0:
@@ -208,7 +238,7 @@ def colorRemaps(image: Image.Image, first_remap: str, second_remap: str, third_r
     data_in = np.array(image)
     data_out = np.array(data_in)
 
-    for color_names in [['1st Remap', first_remap], ['Pink', second_remap], ['Yellow', third_remap]]:
+    for color_names in [['1st Remap', first_remap], ['2nd Remap', second_remap], ['3rd Remap', third_remap]]:
         if color_names[1] == 'NoColor':
             continue
 
@@ -255,7 +285,7 @@ def colorSecondRemap(image: Image.Image, color_name: str,  palette: pal.Palette 
     if color_name == 'NoColor':
         return image
 
-    color_old = palette.getColor('Pink')
+    color_old = palette.getColor('2nd Remap')
     color_new = palette.getRemapColor(color_name)
 
     for i in range(12):
@@ -276,7 +306,7 @@ def colorThirdRemap(image: Image.Image, color_name: str,  palette: pal.Palette =
     if color_name == 'NoColor':
         return image
 
-    color_old = palette.getColor('Yellow')
+    color_old = palette.getColor('3rd Remap')
     color_new = palette.getRemapColor(color_name)
 
     for i in range(12):

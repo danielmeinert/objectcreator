@@ -49,6 +49,8 @@ class ToolBoxWidget(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+
         outer_container = QHBoxLayout()
         outer_container.setContentsMargins(0, 0, 0, 0)
 
@@ -74,6 +76,8 @@ class ToolBoxWidget(QWidget):
             btn = QToolButton()
             btn.setCheckable(True)
             btn.setToolTip(tool.fullname)
+            btn.setFocusPolicy(QtCore.Qt.NoFocus)
+
             icon = QtGui.QPixmap()
             icon.loadFromData(
                 get_data("customwidgets", f'res/icon_{tool.fullname}.png'), 'png')
@@ -180,6 +184,7 @@ class ToolBoxWidget(QWidget):
 
     def restoreTool(self):
         self.selectTool(self.last_tool)
+        self.toolChanged.emit(self)
 
     def selectBrush(self, brush):
         if brush == self.brush:
@@ -475,6 +480,7 @@ class RemapColorSelectButton(QPushButton):
             self.active_color_button = None
             self.active_color = 'NoColor'
             self.setStyleSheet("")
+            color_name = 'NoColor'
         else:
             if self.active_color_button:
                 self.active_color_button.setChecked(False)
@@ -498,6 +504,7 @@ class RemapColorSelectButton(QPushButton):
                 self.hide()
         else:
             self.buttons[color_name].clicked.emit()
+            self.buttons[color_name].setChecked(True)
 
     def currentColor(self):
         return self.active_color

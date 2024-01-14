@@ -202,7 +202,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tab_object">
       <attribute name="title">
        <string>Object</string>
       </attribute>
