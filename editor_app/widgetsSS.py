@@ -614,7 +614,8 @@ class SpritesTab(QWidget):
                 return
         else:
             for i in range(layers.rowCount()):
-                self.o.setSpriteFromIndex(layers.item(i, 0).sprite, i*4+self.o.rotation)
+                index = layers.rowCount() - i - 1
+                self.o.setSpriteFromIndex(layers.item(index, 0).sprite, i*4+self.o.rotation)
 
         if self.object_tab.locked:
             self.createLayers(self.object_tab.locked_sprite_tab.base_x,
@@ -703,7 +704,8 @@ class SpriteImportUi(QDialog):
         self.layers_object = layers_object
 
         for i in range(layers_incoming.rowCount()):
-            layer = layers_incoming.item(i, 0)
+            index = layers_incoming.rowCount() - i - 1
+            layer = layers_incoming.item(index, 0)
             self.list_layers_incoming.insertItem(0, layer.text())
 
         for layer in layers_object:
