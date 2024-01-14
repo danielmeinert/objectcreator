@@ -17,10 +17,7 @@ class Sprite:
                  use_transparency: bool = False, transparent_color: tuple = None):
 
         if image:
-            if use_transparency:
-                image = pal.removeColorWhenImport(image, transparent_color)
-
-            image = pal.addPalette(image, palette, dither)
+            image = pal.addPalette(image, palette, dither, transparent_color)
 
             bbox = image.getbbox()
             image = image.crop(bbox)
@@ -75,9 +72,6 @@ class Sprite:
         self.y = y
         self.x_base = x
         self.y_base = y
-
-    def removeBlackPixels(self):
-        self.image = pal.removeBlackPixels(self.image)
 
     def checkPrimaryColor(self):
         return checkPrimaryColor(self.image, self.palette)
@@ -178,7 +172,6 @@ def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
 
 def mergeSprites(image1: Image.Image, image2: Image.Image, palette: pal.Palette = pal.orct):
     im = Image.alpha_composite(image2, image1)
-    im = im.convert('RGB')
     im = pal.addPalette(im, palette, dither=True)
     return im
 

@@ -9,7 +9,9 @@
 """
 
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, \
+    QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
+    QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -50,7 +52,7 @@ from rctobject import palette as pal
 
 VERSION = 'v0.1.3'
 
-
+myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string
 
 try:
@@ -302,7 +304,7 @@ class MainWindowUi(QMainWindow):
             self.actionBlackImport.setChecked(False)
             self.actionWhiteImport.setChecked(False)
             self.actionUpperLeftPixelImport.setChecked(True)
-            self.actionCustomColor.setChecked(False)
+            self.actionCustomColorImport.setChecked(False)
         elif mode == 3:
             self.current_import_color = self.settings.get(
                 'import_color', (0, 0, 0))
@@ -673,7 +675,6 @@ def excepthook(exc_type, exc_value, exc_tb):
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
 
-
 def versionCheck(version):
     """Compares the inserted version with the version of this app. 
        If the app's version number is lower then True is returned,
@@ -693,6 +694,8 @@ def versionCheck(version):
 
     return False
 
+
+# from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
 
 class SingleApplicationWithMessaging(QApplication):
     # from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
@@ -776,7 +779,11 @@ def main():
         app.sendMessage(' '.join(sys.argv[1:]))
         sys.exit(1)
 
-    app_data_path = join(os.environ['APPDATA'], 'Object Creator')
+    app.setApplicationName(myappname)
+
+    app_data_path = QtCore.QStandardPaths.writableLocation(
+        QtCore.QStandardPaths.AppDataLocation)
+
     if not exists(app_data_path):
         os.makedirs(app_data_path)
 

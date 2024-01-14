@@ -8,7 +8,10 @@
  *****************************************************************************
 """
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
+    QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
+    QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
+    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -437,7 +440,7 @@ class SpritesTab(QWidget):
 
         if filepath:
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         use_transparency=True, transparent_color=self.main_window.current_import_color)
+                                         transparent_color=self.main_window.current_import_color)
             self.o.setSprite(sprite)
 
         self.updateMainView()
@@ -477,10 +480,15 @@ class SpritesTab(QWidget):
 
     def pasteSpriteFromClipboard(self):
         image = ImageGrab.grabclipboard()
+        if type(image) == list:
+            try:
+                image = Image.open(image[0])
+            except:
+                return
 
         if image:
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                use_transparency=True, transparent_color=self.main_window.current_import_color)
+                                transparent_color=self.main_window.current_import_color)
             self.o.setSprite(sprite)
 
         self.updateMainView()

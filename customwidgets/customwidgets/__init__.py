@@ -7,7 +7,9 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
-from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
+from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, \
+    QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel,\
+    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
@@ -31,8 +33,8 @@ class ToolCursors(QtGui.QCursor):
             size = int(brushsize*zoom_factor)+2
             im = Image.new('RGBA', (size, size))
             draw = ImageDraw.Draw(im)
-            draw.line([(0, 0), (size-1, 0), (size-1, size-1), (0, size-1),
-                      (0, 0)], fill=(color[0], color[1], color[2], 255), width=1)
+            draw.line([(0, 0), (size-1, 0), (size-1, size-1), (0, size-1), (0, 0)],
+                      fill=(color[0], color[1], color[2], 255), width=1)
 
             im_qt = ImageQt(im)
 
