@@ -115,9 +115,10 @@ class Sprite:
         # this doesn't make a lot of sense
         bbox = self.image.getbbox()
 
-        self.image = self.image.crop(bbox)
-        self.x = self.x + bbox[0]
-        self.y = self.y + bbox[1]
+        if bbox:
+            self.image = self.image.crop(bbox)
+            self.x = self.x + bbox[0]
+            self.y = self.y + bbox[1]
 
     def merge(self, sprite, offset_x, offset_y):
         s1 = self
@@ -134,13 +135,15 @@ class Sprite:
 
         bbox = canvas.getbbox()
 
-        canvas = canvas.crop(bbox)
-        x_offset = -canvas_size_x + bbox[0]
-        y_offset = -canvas_size_y + bbox[1]
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -canvas_size_x + bbox[0]
+            y_offset = -canvas_size_y + bbox[1]
 
-        self.image = canvas
-        self.x = x_offset
-        self.y = y_offset
+            self.image = canvas
+            self.x = x_offset
+            self.y = y_offset
+
         self.crop()
 
     def giveShade(self, coords):
