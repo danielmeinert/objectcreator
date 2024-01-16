@@ -443,6 +443,7 @@ class SpritesTab(QWidget):
                                          transparent_color=self.main_window.current_import_color)
             self.o.setSprite(sprite)
 
+        self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
     def resetImage(self):
@@ -491,6 +492,7 @@ class SpritesTab(QWidget):
                                 transparent_color=self.main_window.current_import_color)
             self.o.setSprite(sprite)
 
+        self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
     def copySpriteToClipboard(self):
@@ -504,6 +506,7 @@ class SpritesTab(QWidget):
     def copySpriteToView(self, view):
         self.o.setSprite(self.o.giveSprite(), rotation=view)
 
+        self.updateLockedSpriteLayersModel()
         self.updatePreview(view)
 
     def copySpriteToAllViews(self):
@@ -513,22 +516,20 @@ class SpritesTab(QWidget):
             self.o.setSprite(self.o.giveSprite(),
                              rotation=(rot + view + 1) % 4)
 
+        self.updateLockedSpriteLayersModel()
         self.updateAllViews()
 
     def deleteSprite(self):
         sprite = spr.Sprite(None, palette=self.main_window.current_palette)
         self.o.setSprite(sprite)
 
+        self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
 
-        if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
-                              self.object_tab.locked_sprite_tab.base_y)
-            self.object_tab.locked_sprite_tab.updateLayersModel()
-
+        self.updateLockedSpriteLayersModel()
         self.updateAllViews()
 
     def previewClicked(self, rot):
@@ -587,6 +588,12 @@ class SpritesTab(QWidget):
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
 
+    def updateLockedSpriteLayersModel(self):
+        if self.object_tab.locked:
+            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
+                              self.object_tab.locked_sprite_tab.base_y)
+            self.object_tab.locked_sprite_tab.updateLayersModel()
+
     def giveCurrentMainViewLayers(self, base_x, base_y):
         return self.layers[self.o.rotation]
 
@@ -623,7 +630,8 @@ class SpritesTab(QWidget):
         else:
             for i in range(layers.rowCount()):
                 index = layers.rowCount() - i - 1
-                self.o.setSpriteFromIndex(layers.item(index, 0).sprite, i*4+self.o.rotation)
+                self.o.setSpriteFromIndex(layers.item(
+                    index, 0).sprite, i*4+self.o.rotation)
 
         if self.object_tab.locked:
             self.createLayers(self.object_tab.locked_sprite_tab.base_x,
@@ -729,6 +737,7 @@ class SpriteImportUi(QDialog):
 
             self.selected_incoming.append(self.layers_incoming.item(index, 0))
 
-        self.selected_index = self.list_layers_object.count() - self.list_layers_object.currentRow()
+        self.selected_index = self.list_layers_object.count(
+        ) - self.list_layers_object.currentRow()
 
         super().accept()

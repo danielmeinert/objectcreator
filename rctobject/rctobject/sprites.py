@@ -32,7 +32,7 @@ class Sprite:
             self.x_base, self.y_base = coords
         else:
             self.x = -int(image.size[0]/2)
-            self.y = -int(image.size[1]/2)
+            self.y = -int(image.size[1])
             self.x_base = int(self.x)
             self.y_base = int(self.y)
 
@@ -120,12 +120,15 @@ class Sprite:
         s2.x += offset_x
         s2.y += offset_y
 
-        canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x), abs(s2.x), abs(s2.image.width+s2.x))
-        canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y), abs(s2.y), abs(s2.image.height+s2.y))
+        canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
+                            abs(s2.x), abs(s2.image.width+s2.x))
+        canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
+                            abs(s2.y), abs(s2.image.height+s2.y))
         canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
 
         canvas.paste(s1.image, (s1.x+canvas_size_x, s1.y+canvas_size_y))
-        canvas.paste(s2.image, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+        canvas.paste(s2.image, (s2.x+canvas_size_x,
+                     s2.y+canvas_size_y), mask=s2.image)
 
         bbox = canvas.getbbox()
 

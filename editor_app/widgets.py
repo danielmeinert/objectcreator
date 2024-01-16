@@ -156,11 +156,13 @@ class ObjectTab(QWidget):
 
     def colorRemapToAll(self, index, color_remap, selected_colors):
         if self.locked:
-            self.sprites_tab.colorRemapToAll(index, color_remap, selected_colors)
+            self.sprites_tab.colorRemapToAll(
+                index, color_remap, selected_colors)
 
     def colorChangeBrightnessAll(self, index, step, selected_colors):
         if self.locked:
-            self.sprites_tab.colorChangeBrightnessAll(index, step, selected_colors)
+            self.sprites_tab.colorChangeBrightnessAll(
+                index, step, selected_colors)
 
     def colorRemoveAll(self, index, selected_colors):
         if self.locked:
@@ -191,8 +193,10 @@ class SpriteTab(QWidget):
         self.spinbox_width.setValue(self.canvas_width)
         self.spinbox_height.setValue(self.canvas_height)
 
-        self.spinbox_width.valueChanged.connect(lambda x: self.canvasSizeChanged(width=x))
-        self.spinbox_height.valueChanged.connect(lambda x: self.canvasSizeChanged(height=x))
+        self.spinbox_width.valueChanged.connect(
+            lambda x: self.canvasSizeChanged(width=x))
+        self.spinbox_height.valueChanged.connect(
+            lambda x: self.canvasSizeChanged(height=x))
 
         self.dummy_o = obj.newEmpty(cts.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
@@ -324,7 +328,8 @@ class SpriteTab(QWidget):
             layer = self.layers.item(index, 0)
             layer.setBaseOffset(self.base_x, self.base_y)
 
-        _, coords = self.main_window.bounding_boxes.giveBackbox(self.giveDummy())
+        _, coords = self.main_window.bounding_boxes.giveBackbox(
+            self.giveDummy())
         self.view.layer_boundingbox.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
 
@@ -357,7 +362,8 @@ class SpriteTab(QWidget):
             coords[0]+self.base_x, coords[1]+self.base_y)
 
         if -coords[1] - self.base_y > -20:
-            self.canvasSizeChanged(height=-coords[1] + self.canvas_height - self.base_y+20)
+            self.canvasSizeChanged(
+                height=-coords[1] + self.canvas_height - self.base_y+20)
 
         self.dummyChanged.emit()
 
@@ -649,10 +655,10 @@ class SpriteTab(QWidget):
         width, height = layer.sprite.image.size
 
         if -layer.sprite.x > self.canvas_width/2 - 20:
-            self.canvasSizeChanged(width=-layer.sprite.x + 20)
+            self.canvasSizeChanged(width=-layer.sprite.x*2 + 40)
 
         if width + layer.sprite.x > self.canvas_width/2 - 20:
-            self.canvasSizeChanged(width=width + self.base_x + layer.sprite.x + 20)
+            self.canvasSizeChanged(width=2*(width + layer.sprite.x + 20))
 
         if -layer.sprite.y + 70 > self.canvas_height - 20:
             self.canvasSizeChanged(height=-layer.sprite.y + 90)
@@ -672,7 +678,8 @@ class SpriteTab(QWidget):
         self.layercount += 1
 
         self.addLayer(layer, pos)
-        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+        self.main_window.layer_widget.layers_list.setCurrentIndex(
+            self.layers.indexFromItem(layer))
         self.active_layer = layer
 
     def deleteLayer(self, index):
@@ -713,7 +720,8 @@ class SpriteTab(QWidget):
         elif direction == 'down':
             self.layers.insertRow(index.row()+1, layer)
 
-        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+        self.main_window.layer_widget.layers_list.setCurrentIndex(
+            self.layers.indexFromItem(layer))
         self.active_layer = layer
 
         self.updateLayersZValues()
@@ -768,7 +776,8 @@ class SpriteTab(QWidget):
                 self.layercount += 1
 
                 self.addLayer(layer)
-                self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(layer))
+                self.main_window.layer_widget.layers_list.setCurrentIndex(
+                    self.layers.indexFromItem(layer))
                 self.active_layer = layer
 
     def copy(self):
@@ -836,11 +845,13 @@ class SpriteViewWidget(QGraphicsView):
         self.base_x = self.tab.base_x
         self.base_y = self.tab.base_y
 
-        self.scene.setSceneRect(0, 0, self.tab.canvas_width, self.tab.canvas_height)
+        self.scene.setSceneRect(
+            0, 0, self.tab.canvas_width, self.tab.canvas_height)
 
         self.scene.removeItem(self.background)
 
-        self.background = QGraphicsRectItem(0, 0, self.tab.canvas_width, self.tab.canvas_height)
+        self.background = QGraphicsRectItem(
+            0, 0, self.tab.canvas_width, self.tab.canvas_height)
         self.background.setZValue(-2)
         brush = QtGui.QBrush(QtGui.QColor(self.tab.main_window.current_background_color[0],
                                           self.tab.main_window.current_background_color[1],
@@ -1245,7 +1256,8 @@ class SpriteLayerListView(QtWidgets.QListView):
     class Delegate(QtWidgets.QStyledItemDelegate):
         def editorEvent(self, event, model, option, index):
             checked = index.data(QtCore.Qt.CheckStateRole)
-            ret = QtWidgets.QStyledItemDelegate.editorEvent(self, event, model, option, index)
+            ret = QtWidgets.QStyledItemDelegate.editorEvent(
+                self, event, model, option, index)
             if checked != index.data(QtCore.Qt.CheckStateRole):
                 self.parent().checked.emit(index, bool(checked))
             return ret
@@ -1334,7 +1346,8 @@ class LayersWidget(QWidget):
             self.layers_list.setModel(model)
 
             self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
-            self.layers_list.setCurrentIndex(model.indexFromItem(widget.active_layer))
+            self.layers_list.setCurrentIndex(
+                model.indexFromItem(widget.active_layer))
 
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1394,15 +1407,19 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.giveDummy())
-            widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+            backbox, coords = self.main_window.bounding_boxes.giveBackbox(
+                widget.giveDummy())
+            widget.boundingBoxesChanged(
+                self.button_bounding_box.isChecked(), backbox, coords)
 
     def clickSymmAxes(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.giveDummy())
-            widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
+            symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(
+                widget.giveDummy())
+            widget.symmAxesChanged(
+                self.button_symm_axes.isChecked(), symm_axis, coords)
 
     def clickRotate(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1410,10 +1427,14 @@ class LayersWidget(QWidget):
             if not widget.locked:
                 widget.dummy_o.rotateObject()
 
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
-                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
-                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(
+                    widget.dummy_o)
+                widget.boundingBoxesChanged(
+                    self.button_bounding_box.isChecked(), backbox, coords)
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(
+                    widget.dummy_o)
+                widget.symmAxesChanged(
+                    self.button_symm_axes.isChecked(), symm_axis, coords)
 
     def clearanceChanged(self, value):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1421,8 +1442,10 @@ class LayersWidget(QWidget):
             if not widget.locked:
                 widget.dummy_o['properties']['height'] = value*8
 
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(
+                    widget.dummy_o)
+                widget.boundingBoxesChanged(
+                    self.button_bounding_box.isChecked(), backbox, coords)
 
     def shapeChanged(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1444,16 +1467,21 @@ class LayersWidget(QWidget):
 
                 widget.dummy_o.changeShape(shape)
 
-                backbox, coords = self.main_window.bounding_boxes.giveBackbox(widget.dummy_o)
-                widget.boundingBoxesChanged(self.button_bounding_box.isChecked(), backbox, coords)
-                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(widget.dummy_o)
-                widget.symmAxesChanged(self.button_symm_axes.isChecked(), symm_axis, coords)
+                backbox, coords = self.main_window.bounding_boxes.giveBackbox(
+                    widget.dummy_o)
+                widget.boundingBoxesChanged(
+                    self.button_bounding_box.isChecked(), backbox, coords)
+                symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(
+                    widget.dummy_o)
+                widget.symmAxesChanged(
+                    self.button_symm_axes.isChecked(), symm_axis, coords)
 
     def setDummyControls(self):
         widget = self.main_window.sprite_tabs.currentWidget()
         if widget:
             dummy_o = widget.giveDummy()
-            self.spin_box_clearance.setValue(int(dummy_o['properties']['height']/8))
+            self.spin_box_clearance.setValue(
+                int(dummy_o['properties']['height']/8))
             self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)
 
     def setEnabledSpriteControls(self, val):
