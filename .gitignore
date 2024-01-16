@@ -4,6 +4,8 @@
 config.json
 output/
 test/
+auto-py-to-exe_editor.json
+auto-py-to-exe_editor_updater.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -137,3 +139,4 @@ dmypy.json
 .pyre/
 .pylint.d/widgets1.stats
 .vscode/settings.json
+build_files/auto-py-to-exe_editor.json
