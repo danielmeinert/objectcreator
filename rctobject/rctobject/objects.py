@@ -390,11 +390,10 @@ class SmallScenery(RCTObject):
         
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
         """Still need to implement all possible animation cases and glass objects."""
-        sprite = copy.deepcopy(sprite_in)
 
-        self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
-        self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
-        self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
+        self.sprites[self.data['images'][sprite_index]['path']].image = copy.copy(sprite_in.image)
+        self.sprites[self.data['images'][sprite_index]['path']].x = int(sprite_in.x)
+        self.sprites[self.data['images'][sprite_index]['path']].y = int(sprite_in.y)
 
 
     def rotateObject(self, rot=None):

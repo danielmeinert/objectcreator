@@ -50,7 +50,7 @@ from rctobject import palette as pal
 # pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.4'
+VERSION = 'v0.1.5'
 
 myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string
@@ -103,6 +103,14 @@ class MainWindowUi(QMainWindow):
         icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
         icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Unlock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_lock.setIcon(icon)
+        
+        self.button_pull_new_sprite = self.findChild(
+            QToolButton, "toolButton_pull_new")
+        self.button_pull_new_sprite.clicked.connect(self.pushNewSprite)
+        
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_PullNew.png")))
+        self.button_pull_new_sprite.setIcon(icon)
         
         self.button_push_sprite = self.findChild(
             QToolButton, "toolButton_pushSprite")
@@ -418,10 +426,23 @@ class MainWindowUi(QMainWindow):
                 self.button_lock.setChecked(True)
                 self.button_pull_sprite.setEnabled(False)
                 self.button_push_sprite.setEnabled(False)
+                self.button_pull_new_sprite.setEnabled(False)
             else:
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
+                self.button_pull_new_sprite.setEnabled(True)
+                
+        sprite_tab = self.sprite_tabs.currentWidget()
+        if sprite_tab:
+            if sprite_tab.locked:
+                self.button_pull_sprite.setEnabled(False)
+            else:
+                self.button_pull_sprite.setEnabled(True)
+        else:
+            self.button_pull_sprite.setEnabled(False)
+                
+
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
@@ -442,9 +463,24 @@ class MainWindowUi(QMainWindow):
                 self.button_lock.setChecked(False)
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
+                self.button_pull_new_sprite.setEnabled(True)
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
                 self.layer_widget.setEnabledSpriteControls(True)
+        
+        object_tab = self.object_tabs.currentWidget()
+        
+        if object_tab:
+            if object_tab.locked:
+                self.button_pull_new_sprite.setEnabled(False)
+            else:
+                self.button_pull_new_sprite.setEnabled(True)
+        else:
+            self.button_pull_new_sprite.setEnabled(False)
+
+    
+
+                
 
 
     def lockClicked(self, event):
@@ -491,8 +527,19 @@ class MainWindowUi(QMainWindow):
             index = self.layer_widget.layers_list.currentIndex()
             object_tab.setCurrentLayers(sprite_tab.layers)
             
-            self.layer_widget.layers_list.setCurrentIndex(index)
-            
+    def pushNewSprite(self):
+        
+        object_tab = self.object_tabs.currentWidget()
+        
+        if object_tab:
+
+            sprite_tab = wdg.SpriteTab(self, object_tab)
+            sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+            sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+
+            self.sprite_tabs.addTab(sprite_tab,  f"{self.object_tabs.tabText(self.object_tabs.currentIndex())} (locked)")
+            self.sprite_tabs.setCurrentWidget(sprite_tab)                        
+        
         
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
