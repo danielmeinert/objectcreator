@@ -6,6 +6,8 @@
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
  *****************************************************************************
+
+ This part of the code is adapted from a file 'objload.php' by X7123M3-256.
 """
 
 from struct import unpack
