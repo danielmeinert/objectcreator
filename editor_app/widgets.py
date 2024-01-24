@@ -673,7 +673,7 @@ class SpriteTab(QWidget):
             return
 
         layer = SpriteLayer(spr.Sprite(None, palette=self.main_window.current_palette,
-                                       use_transparency=True, transparent_color=self.main_window.current_import_color),
+                                       transparent_color=self.main_window.current_import_color),
                             self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
         self.layercount += 1
 
@@ -770,8 +770,7 @@ class SpriteTab(QWidget):
             if image:
                 layer = SpriteLayer(
                     spr.Sprite(
-                        image, palette=self.main_window.current_palette, use_transparency=True,
-                        transparent_color=self.main_window.current_import_color),
+                        image, palette=self.main_window.current_palette, transparent_color=self.main_window.current_import_color),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
 
