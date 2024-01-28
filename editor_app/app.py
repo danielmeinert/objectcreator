@@ -175,6 +175,8 @@ class MainWindowUi(QMainWindow):
         self.giveBrush = self.tool_widget.toolbox.giveBrush
         self.giveBrushsize = self.tool_widget.toolbox.giveBrushsize
         self.giveAirbrushStrength = self.tool_widget.toolbox.giveAirbrushStrength
+        self.giveBrushshape = self.tool_widget.toolbox.giveBrushshape
+
 
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 

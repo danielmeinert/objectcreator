@@ -9,7 +9,7 @@
 """
 from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, \
     QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel,\
-    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial
+    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial, QSpinBox
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
@@ -26,14 +26,20 @@ class ToolCursors(QtGui.QCursor):
     def __init__(self, toolbox, zoom_factor, color=[0, 0, 0]):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
+        shape = toolbox.giveBrushshape() 
 
         if tool == Tools.EYEDROPPER or tool == Tools.FILL:
             super().__init__(QtCore.Qt.CrossCursor)
         else:
-            size = int(brushsize*zoom_factor)+2
-            im = Image.new('RGBA', (size, size))
+            size_x = int(brushsize*zoom_factor)+2
+            if shape == BrushShapes.TILE:
+                size_y = int((2*int((brushsize-1)/4)+1)*zoom_factor)+2
+            else:
+                size_y = size_x
+                
+            im = Image.new('RGBA', (size_x, size_y))
             draw = ImageDraw.Draw(im)
-            draw.line([(0, 0), (size-1, 0), (size-1, size-1), (0, size-1), (0, 0)],
+            draw.line([(0, 0), (size_x-1, 0), (size_x-1, size_y-1), (0, size_y-1), (0, 0)],
                       fill=(color[0], color[1], color[2], 255), width=1)
 
             im_qt = ImageQt(im)
@@ -97,44 +103,47 @@ class ToolBoxWidget(QWidget):
         container_lr.setContentsMargins(0, 0, 0, 0)
         brush_widget.setLayout(container_lr)
 
-        container_btn = QVBoxLayout()
-        container_dial_brushsize = QVBoxLayout()
-        container_dial_airbrush_strength = QVBoxLayout()
+        container_btn = QGridLayout()
+        container_spinboxes = QVBoxLayout()
 
         container_btn.setContentsMargins(0, 3, 0, 3)
-        container_dial_brushsize.setContentsMargins(0, 3, 0, 3)
-        container_dial_brushsize.setSpacing(2)
-        container_dial_airbrush_strength.setContentsMargins(0, 3, 0, 3)
-        container_dial_airbrush_strength.setSpacing(2)
+        container_spinboxes.setContentsMargins(0, 3, 0, 3)
+        container_spinboxes.setSpacing(2)
+        
 
         brush_buttons = QWidget()
-        dial_brushsize_widget = QWidget()
-        dial_airbrush_strength_widget = QWidget()
+        spinboxes_widget = QWidget()
 
         brush_buttons.setLayout(container_btn)
-        dial_brushsize_widget.setLayout(container_dial_brushsize)
-        dial_airbrush_strength_widget.setLayout(
-            container_dial_airbrush_strength)
-
-        container_lr.addWidget(dial_brushsize_widget)
+        spinboxes_widget.setLayout(container_spinboxes)
+        
+        container_lr.addWidget(spinboxes_widget)
         container_lr.addWidget(brush_buttons)
-        container_lr.addWidget(dial_airbrush_strength_widget)
 
-        self.dial_brushsize = QDial()
-        self.dial_brushsize.setFixedSize(55, 55)
-        self.dial_brushsize.setMaximum(10)
-        self.dial_brushsize.setMinimum(1)
-        self.dial_brushsize.setSingleStep(1)
-        self.dial_brushsize.setPageStep(1)
-        self.dial_brushsize.setTracking(False)
-        self.dial_brushsize.setNotchesVisible(True)
+        self.spinbox_brushsize = QSpinBox()
+        self.spinbox_brushsize.setMaximum(32)
+        self.spinbox_brushsize.setMinimum(1)
+        self.spinbox_brushsize.setSingleStep(1)
+        self.spinbox_brushsize.setToolTip("Brush Size")
 
-        self.dial_brushsize.valueChanged.connect(self.setBrushsize)
+        self.spinbox_brushsize.valueChanged.connect(self.setBrushsize)
 
         label = QLabel('Size')
-        container_dial_brushsize.addWidget(label)
-        container_dial_brushsize.addWidget(self.dial_brushsize)
-        container_dial_brushsize.addStretch()
+        container_spinboxes.addWidget(label)
+        container_spinboxes.addWidget(self.spinbox_brushsize)
+        
+        self.spinbox_airbrush_strength = QSpinBox()
+        self.spinbox_airbrush_strength.setMaximum(6)
+        self.spinbox_airbrush_strength.setMinimum(1)
+        self.spinbox_airbrush_strength.setSingleStep(1)
+        self.spinbox_airbrush_strength.setToolTip("Airbrush Strength")
+        
+
+        label = QLabel('Strength')
+        container_spinboxes.addWidget(label)
+        container_spinboxes.addWidget(self.spinbox_airbrush_strength)
+        
+        container_spinboxes.addStretch()
 
         self.brush_buttons = {}
 
@@ -149,24 +158,28 @@ class ToolBoxWidget(QWidget):
             btn.setFixedSize(32, 32)
             btn.clicked.connect(lambda x, brush=brush: self.selectBrush(brush))
             self.brush_buttons[brush] = btn
-            container_btn.addWidget(btn)
-
-        self.dial_airbrush_strength = QDial()
-        self.dial_airbrush_strength.setFixedSize(55, 55)
-        self.dial_airbrush_strength.setMaximum(6)
-        self.dial_airbrush_strength.setMinimum(1)
-        self.dial_airbrush_strength.setSingleStep(1)
-        self.dial_airbrush_strength.setPageStep(1)
-        self.dial_airbrush_strength.setTracking(False)
-        self.dial_airbrush_strength.setNotchesVisible(True)
-
-        label = QLabel('Strength')
-        container_dial_airbrush_strength.addWidget(label)
-        container_dial_airbrush_strength.addWidget(self.dial_airbrush_strength)
-        container_dial_airbrush_strength.addStretch()
+            container_btn.addWidget(btn, 0, brush.value)
 
         self.brush = Brushes.SOLID
         self.brush_buttons[Brushes.SOLID].setChecked(True)
+        
+        self.shape_buttons = {}
+        
+        for shape in BrushShapes:
+            btn = QToolButton()
+            btn.setCheckable(True)
+            btn.setToolTip(shape.fullname)
+            icon = QtGui.QPixmap()
+            icon.loadFromData(
+                get_data("customwidgets", f'res/icon_{shape.fullname}.png'), 'png')
+            btn.setIcon(QtGui.QIcon(icon))
+            btn.setFixedSize(32, 32)
+            btn.clicked.connect(lambda x, shape=shape: self.selectBrushshape(shape))
+            self.shape_buttons[shape] = btn
+            container_btn.addWidget(btn, 1, shape.value)
+
+        self.shape = BrushShapes.SQUARE
+        self.shape_buttons[BrushShapes.SQUARE].setChecked(True)
 
         self.brushsize = 1
 
@@ -193,6 +206,20 @@ class ToolBoxWidget(QWidget):
 
         self.brush_buttons[self.brush].setChecked(False)
         self.brush = brush
+        
+        self.toolChanged.emit(self)
+
+        
+    def selectBrushshape(self, shape):
+        if shape == self.shape:
+            self.sender().setChecked(True)
+            return
+
+        self.shape_buttons[self.shape].setChecked(False)
+        self.shape = shape
+        
+        self.toolChanged.emit(self)
+
 
     def setBrushsize(self, val):
         self.brushsize = val
@@ -209,7 +236,10 @@ class ToolBoxWidget(QWidget):
         return self.brushsize
 
     def giveAirbrushStrength(self):
-        return self.dial_airbrush_strength.value()**2*0.01
+        return self.spinbox_airbrush_strength.value()**2*0.01
+    
+    def giveBrushshape(self):
+        return self.shape
 
 
 class Tools(Enum):
@@ -233,6 +263,20 @@ class Tools(Enum):
 class Brushes(Enum):
     SOLID = 0, 'Solid'
     AIRBRUSH = 1, 'Airbrush'
+
+    def __new__(cls, value, name):
+        member = object.__new__(cls)
+        member._value_ = value
+        member.fullname = name
+        return member
+
+    def __int__(self):
+        return self.value
+    
+class BrushShapes(Enum):
+    SQUARE = 0, 'Square'
+    ROUND = 1, 'Round'
+    TILE = 2, 'Tile'
 
     def __new__(cls, value, name):
         member = object.__new__(cls)
