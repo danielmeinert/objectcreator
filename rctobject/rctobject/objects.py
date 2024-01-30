@@ -30,6 +30,7 @@ import numpy as np
 from enum import Enum
 
 import rctobject.sprites as spr
+import rctobject.palette as pal
 import rctobject.datloader as dat
 import rctobject.constants as cts
 
@@ -191,7 +192,7 @@ class RCTObject:
     def size(self):
         'to be defined in subclass'
         pass
-    
+
     def spriteBoundingBox(self, view: int = None):
         if view is None:
             view = self.rotation
@@ -248,7 +249,7 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.GARDENS
             else:
                 self.subtype = self.Subtype.SIMPLE
-            
+
             shape = data['properties'].get('shape', False)
             if shape == '2/4':
                 self.shape = self.Shape.HALF
@@ -280,7 +281,7 @@ class SmallScenery(RCTObject):
                 for _, sprite in self.sprites.items():
                     sprite.overwriteOffsets(
                         int(sprite.x), int(sprite.y) - offset)
-                    
+
     def size(self):
         if self.shape == self.Shape.HALF:
             size = (1, 1, int(self.data['properties']['height']/8))
@@ -295,7 +296,7 @@ class SmallScenery(RCTObject):
                 self.data['properties']['height']/8))
         else:
             size = (0.5, 0.5, int(self.data['properties']['height']/8))
-            
+
         return size
 
     def updateImageOffsets(self):
@@ -319,7 +320,7 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
+    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = True):
         """Still need to implement all possible animation cases and glass objects."""
 
         if isinstance(rotation, int):
@@ -329,8 +330,49 @@ class SmallScenery(RCTObject):
 
         if self.subtype == self.Subtype.GARDENS:
             sprite_index = rotation+4*wither
-        elif self.subtype == self.Subtype.GLASS:
-            sprite_index = rotation+4*int(glass)
+        elif self.subtype == self.Subtype.GLASS and glass:
+            sprite_index = rotation
+            mask_index = rotation+4
+            sprite = self.sprites[self.data['images'][sprite_index]['path']]
+            mask = self.sprites[self.data['images'][mask_index]['path']]
+
+            color_remap = self.current_first_remap
+            image_paste = spr.colorAllInRemap(sprite.image, color_remap, sprite.palette)
+
+            s1 = mask
+            s2 = sprite
+
+            canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
+                                abs(s2.x), abs(s2.image.width+s2.x))
+            canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
+                                abs(s2.y), abs(s2.image.height+s2.y))
+
+            canvas_bottom = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+            canvas_top = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+            canvas_mask = Image.new('1', (canvas_size_x*2, canvas_size_y*2), color=0)
+
+            color = [int(c) for c in sprite.palette.getRemapColor(color_remap)[0]]
+            canvas_bottom.paste(tuple(color), (s1.x + canvas_size_x, s1.y + canvas_size_y),
+                                mask=s1.image)
+            canvas_mask.paste(0, (s1.x + canvas_size_x, s1.y + canvas_size_y),
+                              mask=s1.image)
+
+            canvas_top.paste(image_paste, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=image_paste)
+            canvas_top.paste(canvas_top, mask=canvas_mask)
+
+            canvas_bottom.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
+                                (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+            canvas = Image.alpha_composite(canvas_bottom, canvas_top)
+
+            bbox = canvas.getbbox()
+
+            if bbox:
+                canvas = canvas.crop(bbox)
+                x = -canvas_size_x + bbox[0]
+                y = -canvas_size_y + bbox[1]
+
+            return canvas, x, y
+
         else:
             sprite_index = rotation
 
@@ -370,7 +412,8 @@ class SmallScenery(RCTObject):
 
         return sprite_index
 
-    def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
+    def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0,
+                  glass: bool = False):
         """Still need to implement all possible animation cases and glass objects."""
         sprite = copy.deepcopy(sprite_in)
 
@@ -387,14 +430,13 @@ class SmallScenery(RCTObject):
         self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
         self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
         self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
-        
+
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
         """Still need to implement all possible animation cases and glass objects."""
 
         self.sprites[self.data['images'][sprite_index]['path']].image = copy.copy(sprite_in.image)
         self.sprites[self.data['images'][sprite_index]['path']].x = int(sprite_in.x)
         self.sprites[self.data['images'][sprite_index]['path']].y = int(sprite_in.y)
-
 
     def rotateObject(self, rot=None):
         if not isinstance(rot, int):

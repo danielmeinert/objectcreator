@@ -14,7 +14,7 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0,0,0)):
+                 transparent_color: tuple = (0, 0, 0)):
 
         if image:
             image = pal.addPalette(image, palette, dither, transparent_color)
@@ -40,7 +40,7 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0,0,0)):
+                 transparent_color: tuple = (0, 0, 0)):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
@@ -103,6 +103,9 @@ class Sprite:
     def remapColor(self, color_name_old: str, color_name_new: str):
         self.image = remapColor(
             self.image, color_name_old, color_name_new,  self.palette)
+
+    def colorAllInRemap(self, color_name: str):
+        self.image = colorAllInRemap(self.image, color_name,  self.palette)
 
     def crop(self):
         # this doesn't make a lot of sense
@@ -225,6 +228,9 @@ def remapColor(image: Image.Image, color_name_old: str, color_name_new: str,  pa
     color_old = palette.getColor(color_name_old)
     color_new = palette.getColor(color_name_new)
 
+    # if color_new == 'NoColor':
+    #     return image
+
     for i in range(12):
 
         r1, g1, b1 = color_old[i]  # Original value
@@ -318,6 +324,29 @@ def colorThirdRemap(image: Image.Image, color_name: str,  palette: pal.Palette =
         red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
         mask = (red == r1) & (green == g1) & (blue == b1)
         data_out[:, :, :3][mask] = [r2, g2, b2]
+
+    return Image.fromarray(data_out)
+
+
+def colorAllInRemap(image: Image.Image, color_name: str,  palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+
+    if color_name == 'NoColor':
+        return image
+
+    for color_old in pal.allColors():
+
+        color_old = palette.getColor(color_old)
+        color_new = palette.getRemapColor(color_name)
+
+        for i in range(12):
+
+            r1, g1, b1 = color_old[i]  # Original value
+            r2, g2, b2 = color_new[i]  # Value that we want to replace it with
+            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = (red == r1) & (green == g1) & (blue == b1)
+            data_out[:, :, :3][mask] = [r2, g2, b2]
 
     return Image.fromarray(data_out)
 
