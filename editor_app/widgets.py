@@ -454,17 +454,18 @@ class SpriteTab(QWidget):
             elif brushshape == cwdg.BrushShapes.ROUND:
                 draw.ellipse(
                     [(x, y), (x+brushsize-1, y+brushsize-1)],  fill=shade)
-            elif brushshape == cwdg.BrushShapes.TILE:       
+            elif brushshape == cwdg.BrushShapes.TILE:
                 x_mod = brushsize % 2
                 y_mod = brushsize % 2
-                
+
                 for i in range(brushsize):
                     if i < int(brushsize/2):
-                        draw.line([(x+i,  y-1+int(brushsize/2)- int((brushsize+1)/4)+y_mod - int(i/2)),(x+i,  y-1+int(brushsize/2)- int((brushsize+1)/4)+y_mod + int(i/2))] , fill=shade, width=1)
+                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int(i/2)), (x+i,
+                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int(i/2))], fill=shade, width=1)
                     else:
-                        draw.line([(x+i,  y-1+int(brushsize/2)- int((brushsize+1)/4)+y_mod - int((brushsize-i-1)/2)),(x+i,  y-1+int(brushsize/2)- int((brushsize+1)/4)+y_mod + int((brushsize-i-1)/2))] , fill=shade, width=1)
-                    
-                
+                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int((brushsize-i-1)/2)), (x+i,
+                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int((brushsize-i-1)/2))], fill=shade, width=1)
+
         else:
             draw.point((x, y), shade)
 
@@ -476,9 +477,9 @@ class SpriteTab(QWidget):
             else:
                 x_mod = 0
                 y_mod = 0
-                
-            if brushshape == cwdg.BrushShapes.TILE: 
-                brushsize = int(brushsize/2)                
+
+            if brushshape == cwdg.BrushShapes.TILE:
+                brushsize = int(brushsize/2)
 
             draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(
                 x+brushsize/2)+x_mod, int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
@@ -538,11 +539,31 @@ class SpriteTab(QWidget):
 
         brushsize = self.main_window.giveBrushsize()
 
+        brushshape = self.main_window.giveBrushshape()
+
         draw = ImageDraw.Draw(canvas_mask)
+        shade = 0
         if brushsize != 1:
-            draw.rectangle([(x, y), (x+brushsize-1, y+brushsize-1)],  fill=0)
+            if brushshape == cwdg.BrushShapes.SQUARE:
+                draw.rectangle(
+                    [(x, y), (x+brushsize-1, y+brushsize-1)],  fill=shade)
+            elif brushshape == cwdg.BrushShapes.ROUND:
+                draw.ellipse(
+                    [(x, y), (x+brushsize-1, y+brushsize-1)],  fill=shade)
+            elif brushshape == cwdg.BrushShapes.TILE:
+                x_mod = brushsize % 2
+                y_mod = brushsize % 2
+
+                for i in range(brushsize):
+                    if i < int(brushsize/2):
+                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int(i/2)), (x+i,
+                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int(i/2))], fill=shade, width=1)
+                    else:
+                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int((brushsize-i-1)/2)), (x+i,
+                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int((brushsize-i-1)/2))], fill=shade, width=1)
+
         else:
-            draw.point((x, y), 0)
+            draw.point((x, y), shade)
 
         if self.lastpos != (x, y):
             x0, y0 = self.lastpos
@@ -553,8 +574,11 @@ class SpriteTab(QWidget):
                 x_mod = 0
                 y_mod = 0
 
-            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod),
-                      (int(x+brushsize/2)+x_mod, int(y+brushsize/2)+y_mod)], fill=0, width=brushsize)
+            if brushshape == cwdg.BrushShapes.TILE:
+                brushsize = int(brushsize/2)
+
+            draw.line([(int(x0+brushsize/2)+x_mod, int(y0+brushsize/2)+y_mod), (int(
+                x+brushsize/2)+x_mod, int(y+brushsize/2)+y_mod)], fill=shade, width=brushsize)
 
             self.lastpos = (x, y)
 
