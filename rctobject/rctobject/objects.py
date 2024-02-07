@@ -337,7 +337,9 @@ class SmallScenery(RCTObject):
             mask = self.sprites[self.data['images'][mask_index]['path']]
 
             color_remap = self.current_first_remap
-            image_paste = spr.colorAllInRemap(sprite.image, color_remap, sprite.palette)
+            image_paste = spr.colorAllInRemap(
+                sprite.show('NoColor', self.current_second_remap, self.current_third_remap),
+                color_remap, sprite.palette)
 
             s1 = mask
             s2 = sprite
@@ -347,23 +349,23 @@ class SmallScenery(RCTObject):
             canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
                                 abs(s2.y), abs(s2.image.height+s2.y))
 
-            canvas_bottom = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+            canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
             canvas_top = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+            canvas_top2 = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
             canvas_mask = Image.new('1', (canvas_size_x*2, canvas_size_y*2), color=0)
 
-            color = [int(c) for c in sprite.palette.getRemapColor(color_remap)[0]]
-            canvas_bottom.paste(tuple(color), (s1.x + canvas_size_x, s1.y + canvas_size_y),
-                                mask=s1.image)
-            canvas_mask.paste(0, (s1.x + canvas_size_x, s1.y + canvas_size_y),
+            color = sprite.palette.getRemapColor(color_remap)[0]
+            canvas_mask.paste(1, (s1.x + canvas_size_x, s1.y + canvas_size_y),
                               mask=s1.image)
-
             canvas_top.paste(image_paste, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=image_paste)
-            canvas_top.paste(canvas_top, mask=canvas_mask)
 
-            canvas_bottom.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
-                                (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
-            canvas = Image.alpha_composite(canvas_bottom, canvas_top)
+            canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
+                         (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+            canvas.paste(tuple(color), (s1.x + canvas_size_x, s1.y + canvas_size_y),
+                         mask=s1.image)
+            canvas_top2.paste(canvas_top, mask=canvas_mask)
 
+            canvas = Image.alpha_composite(canvas, canvas_top2)
             bbox = canvas.getbbox()
 
             if bbox:

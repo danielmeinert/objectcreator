@@ -62,7 +62,7 @@ class Palette(np.ndarray):
         return None
 
     def getRemapColor(self, color_name: str):
-        color = np.zeros((12, 3))
+        color = np.zeros((12, 3), dtype='uint8')
 
         lookup = remap_lookup[remapColors()[color_name]]
 
@@ -164,7 +164,7 @@ def remapColors():
 
 
 remap_lookup = np.load(
-    BytesIO(get_data("rctobject", "data/remap_mapping.npy")))
+    BytesIO(get_data("rctobject", "data/remap_mapping.npy"))).astype('uint8')
 
 data = np.load(BytesIO(get_data("rctobject", "data/green_remap_pal.npy")))
 green_remap = Palette(data, allColors(), 'green_remap', has_sparkles=True)
