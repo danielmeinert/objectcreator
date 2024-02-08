@@ -90,8 +90,8 @@ class RCTObject:
 
     @classmethod
     def fromJson(cls, filepath: str, openpath: str = OPENRCTPATH):
-        """Instantiates a new object from a .json file. Sprite exporting is done
-        by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
+        """Instantiates a new object from a .json file. openpath has to be according to the system's 
+           openrct2 folder location if sprite refers to a dat-file."""
         data = jload(fp=open(filepath, encoding='utf8'))
         dat_id = data.get('originalId', None)
         # If an original Id was given we load the sprites from original DATs (aka "official" openRCT objects).
@@ -114,17 +114,11 @@ class RCTObject:
         return cls(data=data, sprites=sprites, old_id=dat_id)
 
     @classmethod
-    def fromDat(cls, filepath: str, openpath: str = OPENRCTPATH):
-        """Instantiates a new object from a .DAT file. Sprite exporting is done
-        by openRCT, hence openpath has to be according to the system's openrct2 folder location."""
+    def fromDat(cls, filepath: str):
+        """Instantiates a new object from a .DAT file."""
 
-        if not exists(f'{openpath}/bin/openrct2.exe'):
-            raise RuntimeError(
-                'Could not find openrct.exe in specified OpenRCT2 path.')
-
-        data = dat.read_dat_info(filepath)
+        data, sprites = dat.loadDatObject(filepath)
         dat_id = data['originalId'].split('|')[1].replace(' ', '')
-        data['images'], sprites = dat.import_sprites(dat_id, openpath)
 
         return cls(data=data, sprites=sprites, old_id=dat_id)
 
@@ -338,7 +332,8 @@ class SmallScenery(RCTObject):
 
             color_remap = self.current_first_remap
             image_paste = spr.colorAllInRemap(
-                sprite.show('NoColor', self.current_second_remap, self.current_third_remap),
+                sprite.show('NoColor', self.current_second_remap,
+                            self.current_third_remap),
                 color_remap, sprite.palette)
 
             s1 = mask
@@ -352,12 +347,14 @@ class SmallScenery(RCTObject):
             canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
             canvas_top = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
             canvas_top2 = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
-            canvas_mask = Image.new('1', (canvas_size_x*2, canvas_size_y*2), color=0)
+            canvas_mask = Image.new(
+                '1', (canvas_size_x*2, canvas_size_y*2), color=0)
 
             color = sprite.palette.getRemapColor(color_remap)[0]
             canvas_mask.paste(1, (s1.x + canvas_size_x, s1.y + canvas_size_y),
                               mask=s1.image)
-            canvas_top.paste(image_paste, (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=image_paste)
+            canvas_top.paste(image_paste, (s2.x+canvas_size_x,
+                             s2.y+canvas_size_y), mask=image_paste)
 
             canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
@@ -429,16 +426,20 @@ class SmallScenery(RCTObject):
         else:
             sprite_index = rotation
 
-        self.sprites[self.data['images'][sprite_index]['path']].image = sprite.image
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].image = sprite.image
         self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
         self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
 
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
         """Still need to implement all possible animation cases and glass objects."""
 
-        self.sprites[self.data['images'][sprite_index]['path']].image = copy.copy(sprite_in.image)
-        self.sprites[self.data['images'][sprite_index]['path']].x = int(sprite_in.x)
-        self.sprites[self.data['images'][sprite_index]['path']].y = int(sprite_in.y)
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].image = copy.copy(sprite_in.image)
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].x = int(sprite_in.x)
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].y = int(sprite_in.y)
 
     def rotateObject(self, rot=None):
         if not isinstance(rot, int):
@@ -659,7 +660,7 @@ def load(filepath: str, openpath=OPENRCTPATH):
     if extension == '.parkobj':
         obj = RCTObject.fromParkobj(filepath, openpath)
     elif extension == '.dat':
-        obj = RCTObject.fromDat(filepath, openpath)
+        obj = RCTObject.fromDat(filepath)
     elif extension == '.json':
         obj = RCTObject.fromJson(filepath, openpath)
     else:
@@ -675,8 +676,23 @@ def load(filepath: str, openpath=OPENRCTPATH):
             f"Object type {obj_type} unsupported by now.")
 
 
-def loadFromId(identifier: str):
-    pass
+def loadFromId(identifier: str, openpath=OPENRCTPATH):
+    filepath = f'{openpath}/object/{identifier}.DAT'
+
+    if not exists(filepath):
+        raise RuntimeError(f'Could not find DAT-object in specified OpenRCT2 path: \n \
+                           "{filepath}"')
+
+    obj = RCTObject.fromDat(filepath)
+
+    obj_type = obj.data.get("objectType", False)
+    if obj_type == 'scenery_small':
+        return SmallScenery(obj.data, obj.sprites, obj.old_id)
+   # elif obj_type == 'scenery_large':
+   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
+    else:
+        raise NotImplementedError(
+            f"Object type {obj_type} unsupported by now.")
 
 
 def new(data, sprites):
