@@ -16,9 +16,11 @@ from os.path import splitext, exists
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
 from subprocess import run
+from PIL import Image
 
 import rctobject.constants as const
 import rctobject.sprites as spr
+import rctobject.palette as pal
 
 
 def rle_decode(string: bytes):
@@ -250,7 +252,7 @@ def read_string_table(data, pos):
     return string_table, pos
 
 
-def read_dat_info(filename: str):
+def loadDatObject(filename: str):
     result = {}
     tags = {}
 
@@ -287,7 +289,7 @@ def read_dat_info(filename: str):
             pos += 16
             tag_small_scenery_scan_optional(chunk, tags, pos)
 
-            # result["image"] = small_scenery_get_preview(chunk, pos)
+            result['images'], sprites = read_image_table(chunk, pos)
             # if(result["image"] == =FALSE)return FALSE
 
         elif object_type == 'scenery_large':
@@ -317,7 +319,7 @@ def read_dat_info(filename: str):
 
         result['properties'] = tags
 
-        return result
+        return result, sprites
 
     # 	if object_type == 2:
     # 		if(tag_large_scenery_header(chunk, tags) ===FALSE)return FALSE
@@ -388,33 +390,90 @@ def read_dat_info(filename: str):
     # 		if(result["image"] == =FALSE)return FALSE
 
 
-def import_sprites(dat_id, openpath):
-    if not exists(f'{openpath}/bin/openrct2.exe'):
-        raise RuntimeError(f'Could not find openrct2.exe in specified OpenRCT2 path: \n \
-                           "{openpath}/bin/openrct2.exe"')
+def read_image_table(data, graphic_base):
 
-    with TemporaryDirectory() as temp:
-        temp = temp.replace('\\', '/')
-        result = run([f'{openpath}/bin/openrct2', 'sprite',
-                     'exportalldat', dat_id, f'{temp}/images'], stdout=-1, stderr=-1, encoding='utf-8')
+    length = len(data)
+    if graphic_base >= length-3:
+        return False
 
-        if result.returncode:
-            raise RuntimeError(f'OpenRCT2 export error: {result.stderr}. \n \
-                               For .DAT-import the object has to lie in the /object folder of your OpenRCT2 directory.')
+    num_images = int.from_bytes(data[graphic_base:graphic_base+4], 'little')
 
-        string = result.stdout
-        string = string[string.find('{'):].replace(f'{temp}/', '')
+    bitmap_base = 8+graphic_base+16*num_images
+    if bitmap_base >= length:
+        return False
 
-        i = -1
-        while string[i] != ',':
-            i -= 1
+    # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
+    images = []
+    sprites = {}
 
-        # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
-        images = loads(f'[{string[:i]}]')
-        sprites = {im['path']: spr.Sprite.fromFile(
-            f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
+    for index in range(num_images):
+        im = {}
+
+        im['path'] = f'images/{index}.png'
+
+        base_pos = 8+graphic_base+16*index
+        offset = unpack('L', data[base_pos:base_pos+4])[0]
+        width, height, im['x'], im['y'] = unpack(
+            '4h', data[base_pos+4:base_pos+12])
+
+        flag = unpack('H', data[base_pos+12:base_pos+14])[0]
+
+        image = Image.new('RGBA', (width, height))
+
+        if flag & 0x4:
+            image_base = bitmap_base+offset
+            if image_base+2*height >= length:
+                return False
+            for row in range(height):
+                row_data = image_base + \
+                    unpack('H', data[image_base+row*2:image_base+row*2+2])[0]
+
+                last = 0
+                while True:
+                    if row_data >= length:
+                        return False
+
+                    seg_length = data[row_data] & 0x7F
+                    last = data[row_data] & 0x80
+                    row_data += 1
+                    if row_data >= length:
+                        return False
+
+                    x_offset = data[row_data]
+                    row_data += 1
+                    for x in range(seg_length):
+                        if row_data >= length:
+                            return False
+                        image.putpixel(
+                            (x+x_offset, row), tuple(pal.complete_palette_array[data[row_data]]))
+                        row_data += 1
+
+                    if last == 0x80:
+                        break
+        else:
+            pixel = bitmap_base + offset
+            if pixel+width*height >= length:
+                return False
+            for y in range(height):
+                for x in range(width):
+                    image.putpixel(
+                        (x, y), tuple(pal.complete_palette_array[data[pixel]]))
+                    pixel += 1
+
+        images.append(im)
+        sprites[im['path']] = spr.Sprite(image, (im['x'], im['y']))
 
     return images, sprites
+
+
+def import_sprites(dat_id, openpath):
+    if not exists(f'{openpath}/object/{dat_id}.DAT'):
+        raise RuntimeError(f'Could not find DAT-object in specified OpenRCT2 path: \n \
+                           "{openpath}/object/{dat_id}.DAT"')
+
+    data, sprites = loadDatObject(f'{openpath}/object/{dat_id}.DAT')
+
+    return data['images'], sprites
 
 
 def findKnowAuthor(dat_id):
