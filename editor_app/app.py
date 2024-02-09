@@ -604,13 +604,7 @@ class MainWindowUi(QMainWindow):
         if ok and dat_id:
             try:
                 o = obj.loadFromId(dat_id, openpath=self.openpath)
-                name = o.data.get('id', '').split('.', 2)[-1]
-                if not name:
-                    if o.old_id:
-                        name = o.old_id
-                    else:
-                        name = f'Object {self.new_object_count}'
-                        self.new_object_count += 1
+                name = dat_id
             except Exception as e:
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Critical)
