@@ -461,7 +461,7 @@ border: 1px solid darkgrey;}
   </action>
   <action name="actionDATIdentifier">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>DAT Identifier...</string>
