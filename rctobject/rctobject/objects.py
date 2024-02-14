@@ -359,7 +359,7 @@ class SmallScenery(RCTObject):
             canvas_mask = Image.new(
                 '1', (canvas_size_x*2, canvas_size_y*2), color=0)
 
-            color = sprite.palette.getRemapColor(color_remap)[0]
+            color = sprite.palette.getRemapColor(color_remap)[5]
             canvas_mask.paste(1, (s1.x + canvas_size_x, s1.y + canvas_size_y),
                               mask=s1.image)
             canvas_top.paste(image_paste, (s2.x+canvas_size_x,
@@ -367,7 +367,7 @@ class SmallScenery(RCTObject):
 
             canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
-            canvas.paste(tuple(color), (s1.x + canvas_size_x, s1.y + canvas_size_y),
+            canvas.paste((color[0],color[1],color[2],124), (s1.x + canvas_size_x, s1.y + canvas_size_y),
                          mask=s1.image)
             canvas_top2.paste(canvas_top, mask=canvas_mask)
 

@@ -466,14 +466,33 @@ def read_image_table(data, graphic_base):
     return images, sprites
 
 
+
 def import_sprites(dat_id, openpath):
-    if not exists(f'{openpath}/object/{dat_id}.DAT'):
-        raise RuntimeError(f'Could not find DAT-object in specified OpenRCT2 path: \n \
-                           "{openpath}/object/{dat_id}.DAT"')
+    if not exists(f'{openpath}/bin/openrct2.exe'):
+        raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
 
-    data, sprites = loadDatObject(f'{openpath}/object/{dat_id}.DAT')
+    with TemporaryDirectory() as temp:
+        temp = temp.replace('\\', '/')
+        result = run([f'{openpath}/bin/openrct2', 'sprite',
+                     'exportalldat', dat_id, f'{temp}/images'], stdout=-1, stderr=-1, encoding='utf-8')
 
-    return data['images'], sprites
+        if result.returncode:
+            raise RuntimeError(f'OpenRCT2 export error: {result.stderr}. \n \
+                               For .DAT-import the object has to lie in the /object folder of your OpenRCT2 directory.')
+
+        string = result.stdout
+        string = string[string.find('{'):].replace(f'{temp}/', '')
+
+        i = -1
+        while string[i] != ',':
+            i -= 1
+
+        # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
+        images = loads(f'[{string[:i]}]')
+        sprites = {im['path']: spr.Sprite.fromFile(
+            f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
+
+    return images, sprites
 
 
 def findKnowAuthor(dat_id):
