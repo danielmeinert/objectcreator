@@ -50,6 +50,7 @@ class RCTObject:
 
         self.rotation = 0
 
+        self.palette = pal.orct
         self.current_first_remap = 'NoColor'
         self.current_second_remap = 'NoColor'
         self.current_third_remap = 'NoColor'
@@ -199,6 +200,7 @@ class RCTObject:
         return (width, height)
 
     def switchPalette(self, palette):
+        self.palette = palette
         for _, sprite in self.sprites.items():
             sprite.switchPalette(palette)
 
@@ -327,12 +329,17 @@ class SmallScenery(RCTObject):
         """Still need to implement all possible animation cases and glass objects."""
 
         if self.subtype == self.Subtype.GLASS and glass:
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+
             sprite_index = rotation
             mask_index = rotation+4
             sprite = self.sprites[self.data['images'][sprite_index]['path']]
             mask = self.sprites[self.data['images'][mask_index]['path']]
 
-            color_remap = self.current_first_remap
+            color_remap = self.current_first_remap if self.current_first_remap != 'NoColor' else '1st Remap'
             image_paste = spr.colorAllInRemap(
                 sprite.show('NoColor', self.current_second_remap,
                             self.current_third_remap),
@@ -371,6 +378,8 @@ class SmallScenery(RCTObject):
                 canvas = canvas.crop(bbox)
                 x = -canvas_size_x + bbox[0]
                 y = -canvas_size_y + bbox[1]
+            else:
+                x, y = 0, 0
 
             return canvas, x, y
 
@@ -443,8 +452,16 @@ class SmallScenery(RCTObject):
                 'Animated objects are not yet implemented/supported.')
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images']) > 4:
-                for i in range(4):
-                    pass
+                for rot in range(4):
+                    sprite = self.giveSprite(rotation=rot, glass=True)
+                    sprite.image = pal.colorAllVisiblePixels(
+                        sprite.image, sprite.palette.getColor('1st Remap')[5])
+            else:
+                for rot in range(4):
+                    path = f'images/{rot+4}.png'
+                    im = {'path': path, 'x': 0, 'y': 0}
+                    self.data['images'].append(im)
+                    self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
 
         # data['properties'].get('isAnimated', False):
         #         self.subtype = self.Subtype.ANIMATED

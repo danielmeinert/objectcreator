@@ -57,7 +57,7 @@ class SettingsTab(QWidget):
 
         self.subtype_box.currentIndexChanged.connect(self.subtypeChanged)
 
-        for i in [1, 2, 3]:
+        for i in [1]:
             self.subtype_box.model().item(i).setEnabled(False)
 
         # Shape combobox
@@ -157,7 +157,14 @@ class SettingsTab(QWidget):
         return dummy_o
 
     def subtypeChanged(self, value):
-        pass
+        value = self.subtype_box.currentIndex()
+
+        subtype = list(obj.SmallScenery.Subtype)[value]
+
+        self.o.changeSubtype(subtype)
+
+        self.sprites_tab.updateLockedSpriteLayersModel()
+        self.sprites_tab.updateMainView()
 
     def shapeChanged(self):
         value = self.shape_box.currentIndex()

@@ -142,7 +142,7 @@
        <string>All Views</string>
       </property>
      </widget>
-     <widget class="QSlider" name="horizontalSlider_animationFrame">
+     <widget class="QSlider" name="horizontalSlider_spriteIndex">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -288,22 +288,6 @@
       </property>
       <property name="pixmap">
        <pixmap>:/images/res/frame.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_animate">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>506</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Animate</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_cycleRotation">

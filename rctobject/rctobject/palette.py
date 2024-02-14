@@ -62,6 +62,9 @@ class Palette(np.ndarray):
         return None
 
     def getRemapColor(self, color_name: str):
+        if color_name == '1st Remap':
+            return self.getColor(color_name)
+
         color = np.zeros((12, 3), dtype='uint8')
 
         lookup = remap_lookup[remapColors()[color_name]]
