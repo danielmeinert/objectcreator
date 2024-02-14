@@ -11,7 +11,7 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
-    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene
+    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -163,8 +163,18 @@ class SettingsTab(QWidget):
 
         self.o.changeSubtype(subtype)
 
+        self.sprites_tab.slider_sprite_index.setEnabled(
+            subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
+
+        if subtype == obj.SmallScenery.Subtype.GARDENS:
+            self.sprites_tab.slider_sprite_index.setMaximum(2)
+        elif subtype == obj.SmallScenery.Subtype.ANIMATED:
+            self.sprites_tab.slider_sprite_index.setMaximum(self.o.num_frames)
+        else:
+            self.sprites_tab.slider_sprite_index.setMaximum(0)
+
         self.sprites_tab.updateLockedSpriteLayersModel()
-        self.sprites_tab.updateMainView()
+        self.sprites_tab.updateAllViews()
 
     def shapeChanged(self):
         value = self.shape_box.currentIndex()
@@ -400,7 +410,9 @@ class SpritesTab(QWidget):
             self.sprite_preview[rot].setStyleSheet(
                 f"background-color :  rgb{self.main_window.current_background_color};")
 
-            self.updatePreview(rot)
+        self.slider_sprite_index = self.findChild(
+            QSlider, "horizontalSlider_spriteIndex")
+        self.slider_sprite_index.valueChanged.connect(self.updateAllViews)
 
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
@@ -440,6 +452,7 @@ class SpritesTab(QWidget):
             self.button_first_remap.hidePanel)
 
         self.previewClicked(0)
+        self.updateAllViews()
 
     def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
@@ -682,7 +695,12 @@ class SpritesTab(QWidget):
         self.updateAllViews()
 
     def updateMainView(self, emit_signal=True):
-        im, x, y = self.o.show()
+        if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
+            im, x, y = self.o.show(wither=self.slider_sprite_index.value())
+        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
+            im, x, y = self.o.show(animation_frame=self.slider_sprite_index.value())
+        else:
+            im, x, y = self.o.show()
 
         height = -y + 90 if -y > 178 else 268
         self.sprite_view_main_scene.setSceneRect(0, 0, 151, height)
@@ -700,7 +718,13 @@ class SpritesTab(QWidget):
             self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
-        im, x, y = self.o.show(rotation=rot)
+        if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
+            im, x, y = self.o.show(rotation=rot, wither=self.slider_sprite_index.value())
+        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
+            im, x, y = self.o.show(rotation=rot, animation_frame=self.slider_sprite_index.value())
+        else:
+            im, x, y = self.o.show(rotation=rot)
+
         im = copy(im)
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(34-im.size[0]/2), int(36-im.size[1]/2))

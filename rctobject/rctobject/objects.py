@@ -367,7 +367,7 @@ class SmallScenery(RCTObject):
 
             canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
-            canvas.paste((color[0],color[1],color[2],124), (s1.x + canvas_size_x, s1.y + canvas_size_y),
+            canvas.paste((color[0], color[1], color[2], 124), (s1.x + canvas_size_x, s1.y + canvas_size_y),
                          mask=s1.image)
             canvas_top2.paste(canvas_top, mask=canvas_mask)
 
@@ -384,7 +384,7 @@ class SmallScenery(RCTObject):
             return canvas, x, y
 
         else:
-            sprite = self.giveSprite(self, rotation, animation_frame, wither)
+            sprite = self.giveSprite(rotation, animation_frame, wither)
             return sprite.show(
                 self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
 
