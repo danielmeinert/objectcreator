@@ -278,6 +278,16 @@ def alphaToColor(image: Image.Image, color=(0, 0, 0)):
     return Image.fromarray(x, 'RGBA')
 
 
+def colorAllVisiblePixels(image: Image.Image, color):
+    x = np.array(image)
+    r, g, b, a = np.rollaxis(x, axis=-1)
+    r[a != 0] = color[0]
+    g[a != 0] = color[1]
+    b[a != 0] = color[2]
+    x = np.dstack([r, g, b, a])
+    return Image.fromarray(x, 'RGBA')
+
+
 def alphaMask(image: Image.Image, color=(0, 0, 0)):
     data_in = np.array(image)
     r1, g1, b1 = color

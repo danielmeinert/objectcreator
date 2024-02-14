@@ -184,7 +184,7 @@ class RCTObject:
                 move(f'{temp}/object.json', filename)
 
     def size(self):
-        'to be defined in subclass'
+        'gives size in game coordinates; to be defined in subclass'
         pass
 
     def spriteBoundingBox(self, view: int = None):
@@ -219,6 +219,14 @@ class RCTObject:
     def updateSpritesList(self):
         pass
 
+    def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].image = copy.copy(sprite_in.image)
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].x = int(sprite_in.x)
+        self.sprites[self.data['images'][sprite_index]
+                     ['path']].y = int(sprite_in.y)
+
 
 ###### Small scenery subclass ######
 
@@ -238,7 +246,8 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.GLASS
                 for rot in range(4):
                     sprite = self.giveSprite(rotation=rot, glass=True)
-                    sprite.remapColor('2nd Remap', '1st Remap')
+                    sprite.image = pal.colorAllVisiblePixels(
+                        sprite.image, sprite.palette.getColor('1st Remap')[5])
             elif data['properties'].get('canWither', False):
                 self.subtype = self.Subtype.GARDENS
             else:
@@ -317,14 +326,7 @@ class SmallScenery(RCTObject):
     def show(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = True):
         """Still need to implement all possible animation cases and glass objects."""
 
-        if isinstance(rotation, int):
-            rotation = rotation % 4
-        else:
-            rotation = self.rotation
-
-        if self.subtype == self.Subtype.GARDENS:
-            sprite_index = rotation+4*wither
-        elif self.subtype == self.Subtype.GLASS and glass:
+        if self.subtype == self.Subtype.GLASS and glass:
             sprite_index = rotation
             mask_index = rotation+4
             sprite = self.sprites[self.data['images'][sprite_index]['path']]
@@ -373,28 +375,9 @@ class SmallScenery(RCTObject):
             return canvas, x, y
 
         else:
-            sprite_index = rotation
-
-        sprite = self.sprites[self.data['images'][sprite_index]['path']]
-        return sprite.show(
-            self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
-
-    def giveSprite(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
-        """Still need to implement all possible animation cases and glass objects."""
-
-        if isinstance(rotation, int):
-            rotation = rotation % 4
-        else:
-            rotation = self.rotation
-
-        if self.subtype == self.Subtype.GARDENS:
-            sprite_index = rotation+4*wither
-        elif self.subtype == self.Subtype.GLASS:
-            sprite_index = rotation+4*int(glass)
-        else:
-            sprite_index = rotation
-
-        return self.sprites[self.data['images'][sprite_index]['path']]
+            sprite = self.giveSprite(self, rotation, animation_frame, wither)
+            return sprite.show(
+                self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
 
     def giveIndex(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
         if isinstance(rotation, int):
@@ -403,43 +386,30 @@ class SmallScenery(RCTObject):
             rotation = self.rotation
 
         if self.subtype == self.Subtype.GARDENS:
+            if wither > 2:
+                raise RuntimeError("Wither cannot be larger than 2.")
             sprite_index = rotation+4*wither
         elif self.subtype == self.Subtype.GLASS:
-            sprite_index = rotation+4*int(not glass)
+            sprite_index = rotation+4*int(glass)
         else:
             sprite_index = rotation
 
         return sprite_index
 
+    def giveSprite(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
+        """Still need to implement all possible animation cases and glass objects."""
+
+        sprite_index = self.giveIndex(rotation, animation_frame, wither, glass)
+
+        return self.sprites[self.data['images'][sprite_index]['path']]
+
     def setSprite(self, sprite_in: spr.Sprite, rotation: int = None, animation_frame: int = -1, wither: int = 0,
                   glass: bool = False):
         """Still need to implement all possible animation cases and glass objects."""
-        sprite = copy.deepcopy(sprite_in)
 
-        if isinstance(rotation, int):
-            rotation = rotation % 4
-        else:
-            rotation = self.rotation
+        sprite_index = self.giveIndex(rotation, animation_frame, wither, glass)
 
-        if self.subtype == self.Subtype.GARDENS:
-            sprite_index = rotation+4*wither
-        else:
-            sprite_index = rotation
-
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].image = sprite.image
-        self.sprites[self.data['images'][sprite_index]['path']].x = sprite.x
-        self.sprites[self.data['images'][sprite_index]['path']].y = sprite.y
-
-    def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
-        """Still need to implement all possible animation cases and glass objects."""
-
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].image = copy.copy(sprite_in.image)
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].x = int(sprite_in.x)
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].y = int(sprite_in.y)
+        self.setSpriteFromIndex(sprite_in, sprite_index)
 
     def rotateObject(self, rot=None):
         if not isinstance(rot, int):
@@ -458,6 +428,35 @@ class SmallScenery(RCTObject):
     def changeSubtype(self, subtype):
         if subtype == self.subtype:
             return
+
+        self.subtype = subtype
+
+        self.data['properties']['isAnimated'] = (
+            self.subtype == self.Subtype.ANIMATED)
+        self.data['properties']['hasGlass'] = (
+            self.subtype == self.Subtype.GLASS)
+        self.data['properties']['canWither'] = (
+            self.subtype == self.Subtype.GARDENS)
+
+        if subtype == self.Subtype.ANIMATED:
+            raise NotImplementedError(
+                'Animated objects are not yet implemented/supported.')
+        elif subtype == self.Subtype.GLASS:
+            if len(self.data['images']) > 4:
+                for i in range(4):
+                    pass
+
+        # data['properties'].get('isAnimated', False):
+        #         self.subtype = self.Subtype.ANIMATED
+        #     elif data['properties'].get('hasGlass', False):
+        #         self.subtype = self.Subtype.GLASS
+        #         for rot in range(4):
+        #             sprite = self.giveSprite(rotation=rot, glass=True)
+        #             sprite.remapColor('2nd Remap', '1st Remap')
+        #     elif data['properties'].get('canWither', False):
+        #         self.subtype = self.Subtype.GARDENS
+        #     else:
+        #         self.subtype = self.Subtype.SIMPLE
 
     def changeShape(self, shape):
         self.shape = shape
