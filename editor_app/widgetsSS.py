@@ -706,7 +706,7 @@ class SpritesTab(QWidget):
         coords = (int(34-im.size[0]/2), int(36-im.size[1]/2))
 
         canvas = Image.new('RGBA', (72, 72))
-        canvas.paste(im, coords, im)
+        canvas.paste(im, coords)
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
