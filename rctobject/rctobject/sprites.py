@@ -9,6 +9,7 @@
 """
 import numpy as np
 from PIL import Image
+from copy import copy
 import rctobject.palette as pal
 
 
@@ -61,6 +62,17 @@ class Sprite:
     def resetSprite(self):
         self.image = self.image_base
         self.resetOffsets()
+
+    def clearSprite(self):
+        self.image = Image.new('RGBA', (1, 1))
+        self.x, self.y, self.x_base, self.y_base = 0, 0, 0, 0
+
+    def setFromSprite(self, sprite_in):
+        self.image = copy(sprite_in.image)
+        self.x = int(sprite_in.x)
+        self.y = int(sprite_in.y)
+        self.x_base = int(self.x)
+        self.y_base = int(self.y)
 
     def resetOffsets(self):
         self.x = int(self.x_base)

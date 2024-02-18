@@ -223,11 +223,7 @@ class RCTObject:
 
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
         self.sprites[self.data['images'][sprite_index]
-                     ['path']].image = copy.copy(sprite_in.image)
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].x = int(sprite_in.x)
-        self.sprites[self.data['images'][sprite_index]
-                     ['path']].y = int(sprite_in.y)
+                     ['path']].setFromSprite(sprite_in.image)
 
 
 ###### Small scenery subclass ######
@@ -427,8 +423,10 @@ class SmallScenery(RCTObject):
             self.rotation = rot % 4
 
     def cycleSpritesRotation(self, step: int = 1):
-        image_list = self.data['images']
-        self.data['images'] = image_list[-step:] + image_list[:-step]
+        for i in range(int(len(self.data['images'])/4)):
+            image_list = self.data['images'][4*i:4*i+4]
+            self.data['images'][4*i:4*i+4] = image_list[-step:] + \
+                image_list[:-step]
 
     def changeFlag(self, flag, value):
         self.data['properties'][flag] = value

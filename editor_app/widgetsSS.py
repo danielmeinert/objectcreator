@@ -461,20 +461,25 @@ class SpritesTab(QWidget):
         if filepath:
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color)
-            self.o.setSprite(sprite)
+            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
+
+            layers = QtGui.QStandardItemModel()
+            layers.insertRow(0, layer)
+
+            self.setCurrentLayers(layers)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
     def resetImage(self):
-        sprite = self.o.giveSprite()
-        sprite.resetSprite()
+        for layer in self.giveCurrentMainViewLayers():
+            layer.sprite.resetSprite()
 
         self.updateMainView()
 
     def resetOffsets(self):
-        sprite = self.o.giveSprite()
-        sprite.resetOffsets()
+        for layer in self.giveCurrentMainViewLayers():
+            layer.sprite.resetOffsets()
 
         self.updateMainView()
 
@@ -510,21 +515,28 @@ class SpritesTab(QWidget):
         if image:
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color)
-            self.o.setSprite(sprite)
+            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
+
+            layers = QtGui.QStandardItemModel()
+            layers.insertRow(0, layer)
+
+            self.setCurrentLayers(layers)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
     def copySpriteToClipboard(self):
-        sprite = self.o.giveSprite()
-
-        image = ImageQt(sprite.image)
-        pixmap = QtGui.QPixmap.fromImage(image)
+        pixmap = self.sprite_view_main_item.pixmap()
 
         QApplication.clipboard().setPixmap(pixmap)
 
     def copySpriteToView(self, view):
-        self.o.setSprite(self.o.giveSprite(), rotation=view)
+        layers = QtGui.QStandardItemModel()
+
+        for i, layer in enumerate(self.giveCurrentMainViewLayers()):
+            layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
+
+        self.setCurrentLayers(layers, view=view)
 
         self.updateLockedSpriteLayersModel()
         self.updatePreview(view)
@@ -533,15 +545,11 @@ class SpritesTab(QWidget):
         rot = self.o.rotation
 
         for view in range(3):
-            self.o.setSprite(self.o.giveSprite(),
-                             rotation=(rot + view + 1) % 4)
-
-        self.updateLockedSpriteLayersModel()
-        self.updateAllViews()
+            self.copySpriteToView(view=(view+rot + 1) % 4)
 
     def deleteSprite(self):
-        sprite = spr.Sprite(None, palette=self.main_window.current_palette)
-        self.o.setSprite(sprite)
+        for layer in self.giveCurrentMainViewLayers():
+            layer.sprite.clearSprite()
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
@@ -614,7 +622,7 @@ class SpritesTab(QWidget):
                               self.object_tab.locked_sprite_tab.base_y)
             self.object_tab.locked_sprite_tab.updateLayersModel()
 
-    def giveCurrentMainViewLayers(self, base_x, base_y):
+    def giveCurrentMainViewLayers(self):
         return self.layers[self.o.rotation]
 
     def requestNumberOfLayers(self):
@@ -627,9 +635,12 @@ class SpritesTab(QWidget):
         elif self.o.subtype == self.o.Subtype.GARDENS:
             return 3
 
-    def setCurrentLayers(self, layers):
+    def setCurrentLayers(self, layers, view=None):
+        if view == None:
+            view = self.o.rotation
+
         if self.requestNumberOfLayers() != layers.rowCount():
-            dialog = SpriteImportUi(layers, self.layers[self.o.rotation])
+            dialog = SpriteImportUi(layers, self.layers[view])
 
             if dialog.exec():
                 target_index = dialog.selected_index
@@ -644,14 +655,17 @@ class SpritesTab(QWidget):
                     layer_bottom.merge(layer_top)
                     layer_top = layer_bottom
 
-                self.o.setSpriteFromIndex(layer_top.sprite, self.o.rotation)
+                target_layer = self.layers[view][target_index]
+                target_layer.sprite.setFromSprite(layer_top.sprite)
+
             else:
                 return
         else:
             for i in range(layers.rowCount()):
                 index = layers.rowCount() - i - 1
-                self.o.setSpriteFromIndex(layers.item(
-                    index, 0).sprite, i*4+self.o.rotation)
+                target_layer = self.layers[view][i]
+                target_layer.sprite.setFromSprite(layers.item(
+                    index, 0).sprite)
 
         if self.object_tab.locked:
             self.createLayers(self.object_tab.locked_sprite_tab.base_x,
@@ -698,7 +712,8 @@ class SpritesTab(QWidget):
         if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
             im, x, y = self.o.show(wither=self.slider_sprite_index.value())
         elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
-            im, x, y = self.o.show(animation_frame=self.slider_sprite_index.value())
+            im, x, y = self.o.show(
+                animation_frame=self.slider_sprite_index.value())
         else:
             im, x, y = self.o.show()
 
@@ -719,9 +734,11 @@ class SpritesTab(QWidget):
 
     def updatePreview(self, rot):
         if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
-            im, x, y = self.o.show(rotation=rot, wither=self.slider_sprite_index.value())
+            im, x, y = self.o.show(
+                rotation=rot, wither=self.slider_sprite_index.value())
         elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
-            im, x, y = self.o.show(rotation=rot, animation_frame=self.slider_sprite_index.value())
+            im, x, y = self.o.show(
+                rotation=rot, animation_frame=self.slider_sprite_index.value())
         else:
             im, x, y = self.o.show(rotation=rot)
 
@@ -758,17 +775,19 @@ class SpriteImportUi(QDialog):
         for layer in layers_object:
             self.list_layers_object.insertItem(0, layer.text())
 
-            self.list_layers_object.setCurrentRow(0)
+        self.list_layers_incoming.setCurrentRow(0)
+        self.list_layers_object.setCurrentRow(0)
 
     def accept(self):
 
         self.selected_incoming = []
+
         for item in self.list_layers_incoming.selectedItems():
             index = self.list_layers_incoming.row(item)
 
             self.selected_incoming.append(self.layers_incoming.item(index, 0))
 
         self.selected_index = self.list_layers_object.count(
-        ) - self.list_layers_object.currentRow()
+        ) - self.list_layers_object.currentRow() - 1
 
         super().accept()

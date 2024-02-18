@@ -132,8 +132,8 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.disconnect()
         self.locked_sprite_tab = None
 
-    def giveCurrentMainViewLayers(self, base_x, base_y):
-        return self.sprites_tab.giveCurrentMainViewLayers(base_x, base_y)
+    def giveCurrentMainViewLayers(self):
+        return self.sprites_tab.giveCurrentMainViewLayers()
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
@@ -251,7 +251,7 @@ class SpriteTab(QWidget):
 
             self.clearView()
 
-            for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+            for layer in object_tab.giveCurrentMainViewLayers():
                 self.addLayer(layer)
 
             self.dummyChanged.emit()
@@ -266,7 +266,7 @@ class SpriteTab(QWidget):
         if self.locked:
             self.clearView()
 
-            for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+            for layer in self.object_tab.giveCurrentMainViewLayers():
                 new_layer = SpriteLayer.fromLayer(layer)
                 new_layer.setVisible(layer.isVisible())
                 self.addLayer(new_layer)
@@ -681,7 +681,7 @@ class SpriteTab(QWidget):
 
         self.clearView()
 
-        for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+        for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
         else:
             self.active_layer = layer
