@@ -159,7 +159,8 @@ def tag_small_scenery_determine_shape(data):
 def tag_small_scenery_scan_optional(data, tags, pos):
     length = len(data)
 
-    if tags.get('isAnimated', False):
+    # SMALL_SCENERY_FLAG_HAS_FRAME_OFFSETS
+    if ((data[7] & 0x80) == 0x80):
         frames = []
         if pos >= length:
             raise RuntimeError("Error while scanning optional")
@@ -464,7 +465,6 @@ def read_image_table(data, graphic_base):
         sprites[im['path']] = spr.Sprite(image, (im['x'], im['y']))
 
     return images, sprites
-
 
 
 def import_sprites(dat_id, openpath):

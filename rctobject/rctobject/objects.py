@@ -240,6 +240,25 @@ class SmallScenery(RCTObject):
 
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
+                if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
+                    self.animation_type = self.AnimationType.FOUNTAIN1
+                    self.num_frames = 5
+                if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'):
+                    self.animation_type = self.AnimationType.FOUNTAIN4
+                    self.num_frames = 10
+                if data['properties'].get('isClock'):
+                    self.animation_type = self.AnimationType.CLOCK
+                    self.num_frames = 112
+                if data['properties'].get('SMALL_SCENERY_FLAG_SWAMP_GOO'):
+                    self.animation_type = self.AnimationType.SINGLEVIEW
+                    self.num_frames = 16
+                else:
+                    self.num_frames = data['properties'].get('numFrames')
+                    if data['properties'].get('hasOverlayImage'):
+                        print('lol')
+
+                    self.num_frames += 4 if data['properties']['hasOverlayImage'] else 0
+
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
                 for rot in range(4):
@@ -384,7 +403,7 @@ class SmallScenery(RCTObject):
             return sprite.show(
                 self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
 
-    def giveIndex(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = False):
+    def giveIndex(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = False):
         if isinstance(rotation, int):
             rotation = rotation % 4
         else:
@@ -396,6 +415,12 @@ class SmallScenery(RCTObject):
             sprite_index = rotation+4*wither
         elif self.subtype == self.Subtype.GLASS:
             sprite_index = rotation+4*int(glass)
+        elif self.subtype == self.Subtype.ANIMATED:
+            if animation_frame > 0 and (
+                    self.animation_type == self.AnimationType.CLOCK or self.animation_type == self.AnimationType.SINGLEVIEW):
+                rotation = 0
+
+            sprite_index = rotation+4*animation_frame
         else:
             sprite_index = rotation
 
@@ -462,9 +487,9 @@ class SmallScenery(RCTObject):
                     self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
         elif subtype == self.Subtype.GARDENS:
             if len(self.data['images'])/4 < 3:
-                num_spr =  3 - int(len(self.data['images'])/4)
+                num_spr = 3 - int(len(self.data['images'])/4)
                 start_index = len(self.data["images"])
-                for wither in range(num_spr):  
+                for wither in range(num_spr):
                     for rot in range(4):
                         path = f'images/{wither*4+rot+start_index}.png'
                         im = {'path': path, 'x': 0, 'y': 0}
@@ -513,6 +538,22 @@ class SmallScenery(RCTObject):
         ANIMATED = 1, 'Animated'
         GLASS = 2, 'Glass'
         GARDENS = 3, 'Gardens'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value
+
+    class AnimationType(Enum):
+        REGUKAR = 0, 'Regular'
+        FOUNTAIN1 = 1, 'Fountain 1'
+        FOUNTAIN4 = 2, 'Fountain 4'
+        CLOCK = 3, 'Clock'
+        SINGLEVIEW = 4, 'Single View'
 
         def __new__(cls, value, name):
             member = object.__new__(cls)

@@ -147,8 +147,6 @@ class SettingsTab(QWidget):
             self.object_name_lang_field.setText(
                 self.o['strings']['name']['en-GB'])
 
-    # bother with when other subtypes are introduced
-
     def giveDummy(self):
         dummy_o = obj.newEmpty(cts.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
@@ -169,7 +167,7 @@ class SettingsTab(QWidget):
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
-            self.sprites_tab.slider_sprite_index.setMaximum(self.o.num_frames)
+            self.sprites_tab.slider_sprite_index.setMaximum(self.o['properties']['numFrames'])
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
 
