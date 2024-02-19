@@ -451,7 +451,7 @@ class SmallScenery(RCTObject):
             raise NotImplementedError(
                 'Animated objects are not yet implemented/supported.')
         elif subtype == self.Subtype.GLASS:
-            if len(self.data['images']) > 4:
+            if len(self.data['images'])/4 > 1:
                 for rot in range(4):
                     sprite = self.giveSprite(rotation=rot, glass=True)
                     sprite.image = pal.colorAllVisiblePixels(
@@ -462,6 +462,16 @@ class SmallScenery(RCTObject):
                     im = {'path': path, 'x': 0, 'y': 0}
                     self.data['images'].append(im)
                     self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+        elif subtype == self.Subtype.GARDENS:
+            if len(self.data['images'])/4 < 3:
+                num_spr =  3 - int(len(self.data['images'])/4)
+                start_index = len(self.data["images"])
+                for wither in range(num_spr):  
+                    for rot in range(4):
+                        path = f'images/{wither*4+rot+start_index}.png'
+                        im = {'path': path, 'x': 0, 'y': 0}
+                        self.data['images'].append(im)
+                        self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
 
         # data['properties'].get('isAnimated', False):
         #         self.subtype = self.Subtype.ANIMATED
