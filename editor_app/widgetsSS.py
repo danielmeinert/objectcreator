@@ -412,7 +412,7 @@ class SpritesTab(QWidget):
 
         self.slider_sprite_index = self.findChild(
             QSlider, "horizontalSlider_spriteIndex")
-        self.slider_sprite_index.valueChanged.connect(self.updateAllViews)
+        self.slider_sprite_index.valueChanged.connect(self.updateLockedSpriteLayersModel)
 
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
@@ -608,6 +608,25 @@ class SpritesTab(QWidget):
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'Glass View {rot+1}')
                 self.layers[rot].append(layer)
+        elif self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
+            if self.slider_sprite_index.value() == 0:
+                for rot in range(4):
+                    sprite = self.o.giveSprite(rotation=rot, wither=0)
+                    layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Watered View {rot+1}')
+                    self.layers[rot].append(layer)
+            elif self.slider_sprite_index.value() == 1:
+                for rot in range(4):
+                    sprite = self.o.giveSprite(rotation=rot, wither=1)
+                    layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Wither 1 View {rot+1}')
+                    self.layers[rot].append(layer)
+            elif self.slider_sprite_index.value() == 2:
+                for rot in range(4):
+                    sprite = self.o.giveSprite(rotation=rot, wither=2)
+                    layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Wither 2 View {rot+1}')
+                    self.layers[rot].append(layer)
 
         else:
             for rot in range(4):
@@ -621,6 +640,7 @@ class SpritesTab(QWidget):
             self.createLayers(self.object_tab.locked_sprite_tab.base_x,
                               self.object_tab.locked_sprite_tab.base_y)
             self.object_tab.locked_sprite_tab.updateLayersModel()
+            self.updateAllViews()
 
     def giveCurrentMainViewLayers(self):
         return self.layers[self.o.rotation]
