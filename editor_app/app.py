@@ -98,20 +98,23 @@ class MainWindowUi(QMainWindow):
 
         self.button_lock = self.findChild(QToolButton, "toolButton_lock")
         self.button_lock.clicked.connect(self.lockClicked)
-        
+
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_Unlock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path(
+            "gui/icon_Lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(aux.resource_path(
+            "gui/icon_Unlock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_lock.setIcon(icon)
-        
+
         self.button_pull_new_sprite = self.findChild(
             QToolButton, "toolButton_pull_new")
         self.button_pull_new_sprite.clicked.connect(self.pushNewSprite)
-        
+
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(aux.resource_path("gui/icon_PullNew.png")))
+        icon.addPixmap(QtGui.QPixmap(
+            aux.resource_path("gui/icon_PullNew.png")))
         self.button_pull_new_sprite.setIcon(icon)
-        
+
         self.button_push_sprite = self.findChild(
             QToolButton, "toolButton_pushSprite")
         self.button_push_sprite.clicked.connect(self.pushSprite)
@@ -123,7 +126,8 @@ class MainWindowUi(QMainWindow):
         self.actionSmallScenery.triggered.connect(
             lambda x: self.objectNew(cts.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.objectOpenFile)
-        self.actionDATIdentifier.triggered.connect(self.objectOpenFileFromIdentifier)
+        self.actionDATIdentifier.triggered.connect(
+            self.objectOpenFileFromIdentifier)
         self.actionSave.triggered.connect(self.saveObject)
         self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
 
@@ -177,7 +181,6 @@ class MainWindowUi(QMainWindow):
         self.giveBrushsize = self.tool_widget.toolbox.giveBrushsize
         self.giveAirbrushStrength = self.tool_widget.toolbox.giveAirbrushStrength
         self.giveBrushshape = self.tool_widget.toolbox.giveBrushshape
-
 
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 
@@ -369,8 +372,8 @@ class MainWindowUi(QMainWindow):
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.sprites_tab.sprite_view_main.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.current_background_color[0],
-                                          self.current_background_color[1],
-                                          self.current_background_color[2])))
+                                                                                              self.current_background_color[1],
+                                                                                              self.current_background_color[2])))
                 for _, preview in enumerate(tab.sprites_tab.sprite_preview):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"
@@ -435,7 +438,7 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
                 self.button_pull_new_sprite.setEnabled(True)
-                
+
         sprite_tab = self.sprite_tabs.currentWidget()
         if sprite_tab:
             if sprite_tab.locked:
@@ -468,9 +471,9 @@ class MainWindowUi(QMainWindow):
                 self.tool_widget.checkbox_all_views.setEnabled(False)
                 self.tool_widget.checkbox_all_views.setChecked(False)
                 self.layer_widget.setEnabledSpriteControls(True)
-        
+
         object_tab = self.object_tabs.currentWidget()
-        
+
         if object_tab:
             if object_tab.locked:
                 self.button_pull_new_sprite.setEnabled(False)
@@ -522,27 +525,27 @@ class MainWindowUi(QMainWindow):
         if sprite_tab and object_tab:
             index = self.layer_widget.layers_list.currentIndex()
             object_tab.setCurrentLayers(sprite_tab.layers)
-            
+
     def pushNewSprite(self):
-        
+
         object_tab = self.object_tabs.currentWidget()
-        
+
         if object_tab:
 
             sprite_tab = wdg.SpriteTab(self, object_tab)
             sprite_tab.layersChanged.connect(self.layer_widget.updateList)
             sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
-            self.sprite_tabs.addTab(sprite_tab,  f"{self.object_tabs.tabText(self.object_tabs.currentIndex())} (locked)")
-            self.sprite_tabs.setCurrentWidget(sprite_tab)                        
-        
-        
+            self.sprite_tabs.addTab(
+                sprite_tab,  f"{self.object_tabs.tabText(self.object_tabs.currentIndex())} (locked)")
+            self.sprite_tabs.setCurrentWidget(sprite_tab)
+
     def pullSprite(self):
         object_tab = self.object_tabs.currentWidget()
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            for layer in object_tab.giveCurrentMainViewLayers(sprite_tab.base_x, sprite_tab.base_y):
+            for layer in object_tab.giveCurrentMainViewLayers():
                 new_layer = wdg.SpriteLayer.fromLayer(layer)
                 new_layer.setVisible(layer.isVisible())
                 sprite_tab.addLayer(new_layer)
@@ -566,7 +569,6 @@ class MainWindowUi(QMainWindow):
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
         sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
-
 
         object_tab.lockWithSpriteTab(sprite_tab)
 
@@ -597,10 +599,10 @@ class MainWindowUi(QMainWindow):
         if filepaths:
             for filepath in filepaths:
                 self.loadObjectFromPath(filepath)
-                
+
     def objectOpenFileFromIdentifier(self):
         dat_id, ok = QInputDialog().getText(self, "DAT Identifier Import",
-                                     "Input DAT Identifier of object to load.")
+                                            "Input DAT Identifier of object to load.")
         if ok and dat_id:
             try:
                 o = obj.loadFromId(dat_id, openpath=self.openpath)
@@ -613,7 +615,6 @@ class MainWindowUi(QMainWindow):
                 msg.setInformativeText(str(traceback.format_exc()))
                 msg.show()
                 return
-
 
             if not self.current_palette == pal.orct:
                 o.switchPalette(self.current_palette)
@@ -629,8 +630,6 @@ class MainWindowUi(QMainWindow):
             self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
             self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-            
-    
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
 
@@ -750,6 +749,7 @@ def excepthook(exc_type, exc_value, exc_tb):
 
 sys._excepthook = sys.excepthook
 sys.excepthook = excepthook
+
 
 def versionCheck(version):
     """Compares the inserted version with the version of this app. 

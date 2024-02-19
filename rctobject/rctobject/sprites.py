@@ -9,6 +9,7 @@
 """
 import numpy as np
 from PIL import Image
+from copy import copy
 import rctobject.palette as pal
 
 
@@ -62,6 +63,17 @@ class Sprite:
         self.image = self.image_base
         self.resetOffsets()
 
+    def clearSprite(self):
+        self.image = Image.new('RGBA', (1, 1))
+        self.x, self.y, self.x_base, self.y_base = 0, 0, 0, 0
+
+    def setFromSprite(self, sprite_in):
+        self.image = copy(sprite_in.image)
+        self.x = int(sprite_in.x)
+        self.y = int(sprite_in.y)
+        self.x_base = int(self.x)
+        self.y_base = int(self.y)
+
     def resetOffsets(self):
         self.x = int(self.x_base)
         self.y = int(self.y_base)
@@ -99,6 +111,7 @@ class Sprite:
 
     def removeColor(self, color: str or list):
         self.image = removeColor(self.image, color, self.palette)
+        self.crop()
 
     def remapColor(self, color_name_old: str, color_name_new: str):
         self.image = remapColor(
@@ -108,13 +121,15 @@ class Sprite:
         self.image = colorAllInRemap(self.image, color_name,  self.palette)
 
     def crop(self):
-        # this doesn't make a lot of sense
         bbox = self.image.getbbox()
 
         if bbox:
             self.image = self.image.crop(bbox)
             self.x = self.x + bbox[0]
             self.y = self.y + bbox[1]
+        else:
+            self.x = 0
+            self.y = 0
 
     def merge(self, sprite, offset_x, offset_y):
         s1 = self
@@ -344,7 +359,8 @@ def colorAllInRemap(image: Image.Image, color_name: str,  palette: pal.Palette =
 
             r1, g1, b1 = color_old[i]  # Original value
             r2, g2, b2 = color_new[i]  # Value that we want to replace it with
-            red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
+            red, green, blue = data_in[:, :,
+                                       0], data_in[:, :, 1], data_in[:, :, 2]
             mask = (red == r1) & (green == g1) & (blue == b1)
             data_out[:, :, :3][mask] = [r2, g2, b2]
 

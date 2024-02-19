@@ -48,7 +48,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of layers of current sprite does not match the required number of layers for this object type. &lt;br/&gt;Pick which layers should be merged and replace which layer of the object.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of incoming layers does not match the required number of layers for this object type. &lt;br/&gt;Pick which layers should be merged and replace which layer of the object.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="textFormat">
     <enum>Qt::RichText</enum>

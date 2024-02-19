@@ -132,8 +132,8 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.disconnect()
         self.locked_sprite_tab = None
 
-    def giveCurrentMainViewLayers(self, base_x, base_y):
-        return self.sprites_tab.giveCurrentMainViewLayers(base_x, base_y)
+    def giveCurrentMainViewLayers(self):
+        return self.sprites_tab.giveCurrentMainViewLayers()
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
@@ -251,7 +251,7 @@ class SpriteTab(QWidget):
 
             self.clearView()
 
-            for layer in object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+            for layer in object_tab.giveCurrentMainViewLayers():
                 self.addLayer(layer)
 
             self.dummyChanged.emit()
@@ -266,7 +266,7 @@ class SpriteTab(QWidget):
         if self.locked:
             self.clearView()
 
-            for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+            for layer in self.object_tab.giveCurrentMainViewLayers():
                 new_layer = SpriteLayer.fromLayer(layer)
                 new_layer.setVisible(layer.isVisible())
                 self.addLayer(new_layer)
@@ -296,7 +296,15 @@ class SpriteTab(QWidget):
 
             _, sprite_height = dummy_o.spriteBoundingBox()
 
-            if height < sprite_height + self.canvas_height - self.base_y:
+            max_height = sprite_height + self.canvas_height - self.base_y
+
+            for index in range(self.layers.rowCount()):
+                layer = self.layers.item(index, 0)
+                layer_height = -layer.sprite.y - layer.base_y + self.canvas_height
+
+                max_height = max(max_height, layer_height)
+
+            if height < max_height:
                 self.spinbox_width.setValue(self.canvas_width)
                 self.spinbox_height.setValue(self.canvas_height)
                 return
@@ -306,7 +314,17 @@ class SpriteTab(QWidget):
 
             sprite_width, _ = dummy_o.spriteBoundingBox()
 
-            if width < sprite_width + self.canvas_width - self.base_x:
+            max_width = sprite_width + self.canvas_width - self.base_x
+
+            for index in range(self.layers.rowCount()):
+                layer = self.layers.item(index, 0)
+                layer_width_left = -layer.sprite.x - layer.base_x + self.canvas_width
+                layer_width_right = layer.sprite.image.size[0] + \
+                    layer.sprite.x - layer.base_x + self.canvas_width
+
+                max_width = max(max_width, layer_width_left, layer_width_right)
+
+            if width < max_width:
                 self.spinbox_width.setValue(self.canvas_width)
                 self.spinbox_height.setValue(self.canvas_height)
                 return
@@ -663,7 +681,7 @@ class SpriteTab(QWidget):
 
         self.clearView()
 
-        for layer in self.object_tab.giveCurrentMainViewLayers(self.base_x, self.base_y):
+        for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
         else:
             self.active_layer = layer
