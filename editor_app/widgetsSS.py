@@ -128,31 +128,27 @@ class SettingsTab(QWidget):
             lambda value, name='removalPrice': self.spinBoxChanged(value, name))
         self.spinbox_version.valueChanged.connect(
             lambda value, name='version': self.spinBoxChanged(value, name))
-        
+
         # Animation
         self.animation_widget = self.findChild(QGroupBox, 'groupBox_animOptions')
-        
+
         # Animationsubtype combobox
         self.anim_subtype_box = self.findChild(
             QComboBox, "comboBox_animSubtype")
 
         self.subtype_box.currentIndexChanged.connect(self.animationSubtypeChanged)
-        
-        # Spinboxes
-        self.spinbox_num_frames = self.findChild(
-            QDoubleSpinBox, "doubleSpinBox_numFrames")
-        self.spinbox_frame_delay = self.findChild(
-            QDoubleSpinBox, "doubleSpinBox_frameDelay")
-        self.spinbox_anim_delay = self.findChild(
-            QDoubleSpinBox, "doubleSpinBox_animDelay")
 
-        self.spinbox_num_frames.valueChanged.connect(self.numFramesChanged)
+        # Spinboxes
+        self.spinbox_frame_delay = self.findChild(
+            QSpinBox, "spinBox_frameDelay")
+        self.spinbox_anim_delay = self.findChild(
+            QSpinBox, "spinBox_animDelay")
+
         self.spinbox_frame_delay.valueChanged.connect(
             lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
         self.spinbox_anim_delay.valueChanged.connect(self.animationDelayChanged)
-        
-        
-        #Remap check
+
+        # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
 
@@ -297,6 +293,14 @@ class SettingsTab(QWidget):
         self.hasSecondaryColour.setEnabled(not bool(value))
         self.hasTertiaryColour.setEnabled(not bool(value))
 
+    def animationSubtypeChanged(self, value):
+        pass
+
+    def animationDelayChanged(self, value):
+        num_frames = self.o['properties'].get('numFrames')
+
+        self.o['properties']['animationMask'] = num_frames * 2**value - 1
+
     def loadObjectSettings(self, author=None, author_id=None):
 
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
@@ -358,10 +362,22 @@ class SettingsTab(QWidget):
         self.spinbox_removal_price.setValue(
             self.o['properties'].get('removalPrice', 1))
         self.spinbox_version.setValue(float(self.o.data.get('version', 1.0)))
-        
-        if self.o['properties'].get('iaAnimated'):
-            self.
-        
+
+        if self.o['properties'].get('isAnimated'):
+            self.animation_widget.setEnabled(True)
+
+            self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
+
+            self.container_anim.setEnabled(self.o.animation_type == self.o.AnimationType.REGULAR)
+
+            if self.o.animation_type == self.o.AnimationType.REGULAR:
+                self.spinbox_frame_delay.setValue(self.o['properties'].get('animationDelay', 0))
+                length = self.o['properties'].get('animationMask')
+                num_frames = self.o['properties'].get('numFrames')
+
+                delay = int(np.log2((length+1)/num_frames))
+
+                self.spinbox_anim_delay.setValue(delay)
 
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
