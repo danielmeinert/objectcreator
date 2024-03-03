@@ -242,22 +242,19 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.ANIMATED
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
                     self.animation_type = self.AnimationType.FOUNTAIN1
-                    self.num_frames = 5
-                if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'):
+                    self.num_image_sets = 5
+                elif data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'):
                     self.animation_type = self.AnimationType.FOUNTAIN4
-                    self.num_frames = 10
-                if data['properties'].get('isClock'):
+                    self.num_image_sets = 10
+                elif data['properties'].get('isClock'):
                     self.animation_type = self.AnimationType.CLOCK
-                    self.num_frames = 112
-                if data['properties'].get('SMALL_SCENERY_FLAG_SWAMP_GOO'):
+                    self.num_image_sets = 110
+                elif data['properties'].get('SMALL_SCENERY_FLAG_SWAMP_GOO'):
                     self.animation_type = self.AnimationType.SINGLEVIEW
-                    self.num_frames = 16
+                    self.num_image_sets = 16
                 else:
-                    self.num_frames = data['properties'].get('numFrames')
-                    if data['properties'].get('hasOverlayImage'):
-                        print('lol')
-
-                    self.num_frames += 4 if data['properties']['hasOverlayImage'] else 0
+                    self.animation_type = self.AnimationType.REGULAR
+                    self.num_image_sets = int(len(data['images'])/4)
 
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
@@ -416,11 +413,12 @@ class SmallScenery(RCTObject):
         elif self.subtype == self.Subtype.GLASS:
             sprite_index = rotation+4*int(glass)
         elif self.subtype == self.Subtype.ANIMATED:
-            if animation_frame > 0 and (
-                    self.animation_type == self.AnimationType.CLOCK or self.animation_type == self.AnimationType.SINGLEVIEW):
-                rotation = 0
-
-            sprite_index = rotation+4*animation_frame
+            if self.animation_type == self.AnimationType.CLOCK and animation_frame > 1:
+                sprite_index = 8+(animation_frame-2)
+            elif self.animation_type == self.AnimationType.SINGLEVIEW:
+                sprite_index = animation_frame
+            else:
+                sprite_index = rotation+4*animation_frame
         else:
             sprite_index = rotation
 
@@ -549,7 +547,7 @@ class SmallScenery(RCTObject):
             return self.value
 
     class AnimationType(Enum):
-        REGUKAR = 0, 'Regular'
+        REGULAR = 0, 'Regular'
         FOUNTAIN1 = 1, 'Fountain 1'
         FOUNTAIN4 = 2, 'Fountain 4'
         CLOCK = 3, 'Clock'

@@ -293,21 +293,21 @@ def loadDatObject(filename: str):
             result['images'], sprites = read_image_table(chunk, pos)
             # if(result["image"] == =FALSE)return FALSE
 
-        elif object_type == 'scenery_large':
-            tag_large_scenery_header(chunk, tags)
+        # elif object_type == 'scenery_large':
+        #     tag_large_scenery_header(chunk, tags)
 
-            pos += 0x1A
-            result['strings'], pos = read_string_table(chunk, pos)
+        #     pos += 0x1A
+        #     result['strings'], pos = read_string_table(chunk, pos)
 
-            if result['strings'].get('en-US', False):
-                result['strings'].pop('en-US')
+        #     if result['strings'].get('en-US', False):
+        #         result['strings'].pop('en-US')
 
-            # skip group info
-            scenery_group = chunk[pos+4:pos+12].decode('utf-8')
-            if scenery_group != '        ':
-                result['sceneryGroup'] = scenery_group
-            pos += 16
-            tags['tiles'] = large_scenery_scan_optional(chunk, pos)
+        #     # skip group info
+        #     scenery_group = chunk[pos+4:pos+12].decode('utf-8')
+        #     if scenery_group != '        ':
+        #         result['sceneryGroup'] = scenery_group
+        #     pos += 16
+        #     tags['tiles'] = large_scenery_scan_optional(chunk, pos)
 
             # if((ord(chunk[7]) & 0x4) != 0x4)
             # {

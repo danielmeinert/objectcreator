@@ -51,14 +51,11 @@ class SettingsTab(QWidget):
             QPushButton, "pushButton_applyDefaultSettings")
         self.button_set_defaults.clicked.connect(self.setDefaults)
 
-        # Subtype combobox, for now only simple available
+        # Subtype combobox
         self.subtype_box = self.findChild(
             QComboBox, "comboBox_subtype")
 
         self.subtype_box.currentIndexChanged.connect(self.subtypeChanged)
-
-        for i in [1]:
-            self.subtype_box.model().item(i).setEnabled(False)
 
         # Shape combobox
         self.shape_box = self.findChild(
@@ -131,7 +128,31 @@ class SettingsTab(QWidget):
             lambda value, name='removalPrice': self.spinBoxChanged(value, name))
         self.spinbox_version.valueChanged.connect(
             lambda value, name='version': self.spinBoxChanged(value, name))
+        
+        # Animation
+        self.animation_widget = self.findChild(QGroupBox, 'groupBox_animOptions')
+        
+        # Animationsubtype combobox
+        self.anim_subtype_box = self.findChild(
+            QComboBox, "comboBox_animSubtype")
 
+        self.subtype_box.currentIndexChanged.connect(self.animationSubtypeChanged)
+        
+        # Spinboxes
+        self.spinbox_num_frames = self.findChild(
+            QDoubleSpinBox, "doubleSpinBox_numFrames")
+        self.spinbox_frame_delay = self.findChild(
+            QDoubleSpinBox, "doubleSpinBox_frameDelay")
+        self.spinbox_anim_delay = self.findChild(
+            QDoubleSpinBox, "doubleSpinBox_animDelay")
+
+        self.spinbox_num_frames.valueChanged.connect(self.numFramesChanged)
+        self.spinbox_frame_delay.valueChanged.connect(
+            lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
+        self.spinbox_anim_delay.valueChanged.connect(self.animationDelayChanged)
+        
+        
+        #Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
 
@@ -167,7 +188,7 @@ class SettingsTab(QWidget):
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
-            self.sprites_tab.slider_sprite_index.setMaximum(self.o['properties']['numFrames'])
+            self.sprites_tab.slider_sprite_index.setMaximum(self.o.num_image_sets-1)
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
 
@@ -337,6 +358,10 @@ class SettingsTab(QWidget):
         self.spinbox_removal_price.setValue(
             self.o['properties'].get('removalPrice', 1))
         self.spinbox_version.setValue(float(self.o.data.get('version', 1.0)))
+        
+        if self.o['properties'].get('iaAnimated'):
+            self.
+        
 
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
