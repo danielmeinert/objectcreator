@@ -402,6 +402,8 @@ class SmallScenery(RCTObject):
             
             base_index = rotation
             foutain_index = rotation+4*(animation_frame+1)
+            foutain_index += 4 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
+            
             s1 = self.sprites[self.data['images'][base_index]['path']]
             s2 = self.sprites[self.data['images'][foutain_index]['path']]            
 
@@ -411,8 +413,8 @@ class SmallScenery(RCTObject):
                                 abs(s2.y), abs(s2.image.height+s2.y))
             
             if self.animation_type == self.AnimationType.FOUNTAIN4:
-                s3 = self.sprites[self.data['images'][base_index+20]['path']]
-                s4 = self.sprites[self.data['images'][foutain_index+20]['path']]            
+                s3 = self.sprites[self.data['images'][base_index+4]['path']]
+                s4 = self.sprites[self.data['images'][foutain_index+16]['path']]            
 
                 canvas_size_x = max(abs(s3.x), abs(s3.image.width+s3.x),
                                     abs(s4.x), abs(s4.image.width+s4.x), canvas_size_x)
@@ -428,11 +430,11 @@ class SmallScenery(RCTObject):
                         (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
             
             if self.animation_type == self.AnimationType.FOUNTAIN4:
-                canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                        (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
+                
                 canvas.paste(s3.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
                         (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
-                
+                canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                        (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
                 
 
             bbox = canvas.getbbox()
