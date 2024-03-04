@@ -242,10 +242,10 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.ANIMATED
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
                     self.animation_type = self.AnimationType.FOUNTAIN1
-                    self.num_image_sets = 5
+                    self.num_image_sets = 4
                 elif data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'):
                     self.animation_type = self.AnimationType.FOUNTAIN4
-                    self.num_image_sets = 10
+                    self.num_image_sets = 4
                 elif data['properties'].get('isClock'):
                     self.animation_type = self.AnimationType.CLOCK
                     self.num_image_sets = 110
@@ -337,7 +337,7 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-    def show(self, rotation=None, animation_frame: int = -1, wither: int = 0, glass: bool = True):
+    def show(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = True):
         """Still need to implement all possible animation cases and glass objects."""
 
         if self.subtype == self.Subtype.GLASS and glass:
@@ -384,6 +384,57 @@ class SmallScenery(RCTObject):
             canvas_top2.paste(canvas_top, mask=canvas_mask)
 
             canvas = Image.alpha_composite(canvas, canvas_top2)
+            bbox = canvas.getbbox()
+
+            if bbox:
+                canvas = canvas.crop(bbox)
+                x = -canvas_size_x + bbox[0]
+                y = -canvas_size_y + bbox[1]
+            else:
+                x, y = 0, 0
+
+            return canvas, x, y
+        elif self.subtype == self.Subtype.ANIMATED and self.animation_type in [self.AnimationType.FOUNTAIN1, self.AnimationType.FOUNTAIN4]:
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+            
+            base_index = rotation
+            foutain_index = rotation+4*(animation_frame+1)
+            s1 = self.sprites[self.data['images'][base_index]['path']]
+            s2 = self.sprites[self.data['images'][foutain_index]['path']]            
+
+            canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
+                                abs(s2.x), abs(s2.image.width+s2.x))
+            canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
+                                abs(s2.y), abs(s2.image.height+s2.y))
+            
+            if self.animation_type == self.AnimationType.FOUNTAIN4:
+                s3 = self.sprites[self.data['images'][base_index+20]['path']]
+                s4 = self.sprites[self.data['images'][foutain_index+20]['path']]            
+
+                canvas_size_x = max(abs(s3.x), abs(s3.image.width+s3.x),
+                                    abs(s4.x), abs(s4.image.width+s4.x), canvas_size_x)
+                canvas_size_y = max(abs(s3.y), abs(s3.image.height+s3.y),
+                                    abs(s4.y), abs(s4.image.height+s4.y), canvas_size_y)
+
+            canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+
+            
+            canvas.paste(s1.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                        (s1.x+canvas_size_x, s1.y+canvas_size_y), mask=s1.image)
+            canvas.paste(s2.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                        (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+            
+            if self.animation_type == self.AnimationType.FOUNTAIN4:
+                canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                        (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
+                canvas.paste(s3.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                        (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
+                
+                
+
             bbox = canvas.getbbox()
 
             if bbox:
@@ -494,17 +545,6 @@ class SmallScenery(RCTObject):
                         self.data['images'].append(im)
                         self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
 
-        # data['properties'].get('isAnimated', False):
-        #         self.subtype = self.Subtype.ANIMATED
-        #     elif data['properties'].get('hasGlass', False):
-        #         self.subtype = self.Subtype.GLASS
-        #         for rot in range(4):
-        #             sprite = self.giveSprite(rotation=rot, glass=True)
-        #             sprite.remapColor('2nd Remap', '1st Remap')
-        #     elif data['properties'].get('canWither', False):
-        #         self.subtype = self.Subtype.GARDENS
-        #     else:
-        #         self.subtype = self.Subtype.SIMPLE
 
     def changeShape(self, shape):
         self.shape = shape
