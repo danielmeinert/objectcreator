@@ -130,13 +130,20 @@ class SettingsTab(QWidget):
             lambda value, name='version': self.spinBoxChanged(value, name))
 
         # Animation
-        self.animation_widget = self.findChild(QGroupBox, 'groupBox_animOptions')
+        self.animation_widget = self.findChild(
+            QGroupBox, 'groupBox_animOptions')
+
+        self.button_animation_sequence = self.findChild(
+            QPushButton, 'pushButton_editAnimSequence')
+        self.button_animation_sequence.clicked.connect(
+            self.clickAnimationSequence)
 
         # Animationsubtype combobox
         self.anim_subtype_box = self.findChild(
             QComboBox, "comboBox_animSubtype")
 
-        self.subtype_box.currentIndexChanged.connect(self.animationSubtypeChanged)
+        self.subtype_box.currentIndexChanged.connect(
+            self.animationSubtypeChanged)
 
         # Spinboxes
         self.spinbox_frame_delay = self.findChild(
@@ -146,7 +153,8 @@ class SettingsTab(QWidget):
 
         self.spinbox_frame_delay.valueChanged.connect(
             lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
-        self.spinbox_anim_delay.valueChanged.connect(self.animationDelayChanged)
+        self.spinbox_anim_delay.valueChanged.connect(
+            self.animationDelayChanged)
 
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
@@ -184,7 +192,8 @@ class SettingsTab(QWidget):
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
-            self.sprites_tab.slider_sprite_index.setMaximum(self.o.num_image_sets-1)
+            self.sprites_tab.slider_sprite_index.setMaximum(
+                self.o.num_image_sets-1)
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
 
@@ -293,6 +302,12 @@ class SettingsTab(QWidget):
         self.hasSecondaryColour.setEnabled(not bool(value))
         self.hasTertiaryColour.setEnabled(not bool(value))
 
+    def clickAnimationSequence(self):
+        dialog = EditAnimationSequenceUI(self.o)
+
+        if dialog.exec():
+            pass
+
     def animationSubtypeChanged(self, value):
         pass
 
@@ -368,10 +383,12 @@ class SettingsTab(QWidget):
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
 
-            self.container_anim.setEnabled(self.o.animation_type == self.o.AnimationType.REGULAR)
+            self.container_anim.setEnabled(
+                self.o.animation_type == self.o.AnimationType.REGULAR)
 
             if self.o.animation_type == self.o.AnimationType.REGULAR:
-                self.spinbox_frame_delay.setValue(self.o['properties'].get('animationDelay', 0))
+                self.spinbox_frame_delay.setValue(
+                    self.o['properties'].get('animationDelay', 0))
                 length = self.o['properties'].get('animationMask')
                 num_frames = self.o['properties'].get('numFrames')
 
@@ -451,7 +468,8 @@ class SpritesTab(QWidget):
 
         self.slider_sprite_index = self.findChild(
             QSlider, "horizontalSlider_spriteIndex")
-        self.slider_sprite_index.valueChanged.connect(self.updateLockedSpriteLayersModel)
+        self.slider_sprite_index.valueChanged.connect(
+            self.updateLockedSpriteLayersModel)
 
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
@@ -850,3 +868,8 @@ class SpriteImportUi(QDialog):
         ) - self.list_layers_object.currentRow() - 1
 
         super().accept()
+
+
+class EditAnimationSequenceUI(QDialog):
+    def __init__(self, o):
+        super().__init__()
