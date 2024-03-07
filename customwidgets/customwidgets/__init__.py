@@ -8,7 +8,7 @@
  *****************************************************************************
 """
 from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, \
-    QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel,\
+    QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, \
     QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial, QSpinBox
 from PyQt5 import uic, QtGui, QtCore
 
@@ -26,7 +26,7 @@ class ToolCursors(QtGui.QCursor):
     def __init__(self, toolbox, zoom_factor, color=[0, 0, 0]):
         tool = toolbox.giveTool()
         brushsize = toolbox.giveBrushsize()
-        shape = toolbox.giveBrushshape() 
+        shape = toolbox.giveBrushshape()
 
         if tool == Tools.EYEDROPPER or tool == Tools.FILL:
             super().__init__(QtCore.Qt.CrossCursor)
@@ -36,7 +36,7 @@ class ToolCursors(QtGui.QCursor):
                 size_y = int((2*int((brushsize-1)/4)+1)*zoom_factor)+2
             else:
                 size_y = size_x
-                
+
             im = Image.new('RGBA', (size_x, size_y))
             draw = ImageDraw.Draw(im)
             draw.line([(0, 0), (size_x-1, 0), (size_x-1, size_y-1), (0, size_y-1), (0, 0)],
@@ -109,14 +109,13 @@ class ToolBoxWidget(QWidget):
         container_btn.setContentsMargins(0, 3, 0, 3)
         container_spinboxes.setContentsMargins(0, 3, 0, 3)
         container_spinboxes.setSpacing(2)
-        
 
         brush_buttons = QWidget()
         spinboxes_widget = QWidget()
 
         brush_buttons.setLayout(container_btn)
         spinboxes_widget.setLayout(container_spinboxes)
-        
+
         container_lr.addWidget(spinboxes_widget)
         container_lr.addWidget(brush_buttons)
 
@@ -131,18 +130,17 @@ class ToolBoxWidget(QWidget):
         label = QLabel('Size')
         container_spinboxes.addWidget(label)
         container_spinboxes.addWidget(self.spinbox_brushsize)
-        
+
         self.spinbox_airbrush_strength = QSpinBox()
         self.spinbox_airbrush_strength.setMaximum(6)
         self.spinbox_airbrush_strength.setMinimum(1)
         self.spinbox_airbrush_strength.setSingleStep(1)
         self.spinbox_airbrush_strength.setToolTip("Airbrush Strength")
-        
 
         label = QLabel('Strength')
         container_spinboxes.addWidget(label)
         container_spinboxes.addWidget(self.spinbox_airbrush_strength)
-        
+
         container_spinboxes.addStretch()
 
         self.brush_buttons = {}
@@ -162,9 +160,9 @@ class ToolBoxWidget(QWidget):
 
         self.brush = Brushes.SOLID
         self.brush_buttons[Brushes.SOLID].setChecked(True)
-        
+
         self.shape_buttons = {}
-        
+
         for shape in BrushShapes:
             btn = QToolButton()
             btn.setCheckable(True)
@@ -206,10 +204,9 @@ class ToolBoxWidget(QWidget):
 
         self.brush_buttons[self.brush].setChecked(False)
         self.brush = brush
-        
+
         self.toolChanged.emit(self)
 
-        
     def selectBrushshape(self, shape):
         if shape == self.shape:
             self.sender().setChecked(True)
@@ -217,9 +214,8 @@ class ToolBoxWidget(QWidget):
 
         self.shape_buttons[self.shape].setChecked(False)
         self.shape = shape
-        
-        self.toolChanged.emit(self)
 
+        self.toolChanged.emit(self)
 
     def setBrushsize(self, val):
         self.brushsize = val
@@ -237,7 +233,7 @@ class ToolBoxWidget(QWidget):
 
     def giveAirbrushStrength(self):
         return self.spinbox_airbrush_strength.value()**2*0.01
-    
+
     def giveBrushshape(self):
         return self.shape
 
@@ -272,7 +268,8 @@ class Brushes(Enum):
 
     def __int__(self):
         return self.value
-    
+
+
 class BrushShapes(Enum):
     SQUARE = 0, 'Square'
     ROUND = 1, 'Round'
@@ -556,3 +553,15 @@ class RemapColorSelectButton(QPushButton):
     def hidePanel(self):
         if self.select_panel.isVisible():
             self.select_panel.hide()
+
+
+class AnimationSpinBox(QSpinBox):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.lineEdit().setReadOnly(True)
+        self.lineEdit().setEnabled(False)
+        self.lineEdit().setStyleSheet('color: black; background-color: white;')
+        self.lineEdit().setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+    def stepBy(self, steps):
+        self.setValue(int(self.value()*2**steps))

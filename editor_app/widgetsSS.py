@@ -11,7 +11,7 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
-    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider
+    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider, QTableWidgetItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -873,3 +873,23 @@ class SpriteImportUi(QDialog):
 class EditAnimationSequenceUI(QDialog):
     def __init__(self, o):
         super().__init__()
+        uic.loadUi(aux.resource_path('gui/animation_edit.ui'), self)
+
+        self.table.cellClicked.connect(self.cellClicked)
+
+        self.spinbox_length.valueChanged.connect(self.lengthChanged)
+        self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
+
+    def cellClicked(self, row, column):
+        print(row, column)
+
+        item = QTableWidgetItem()
+        self.table.setItem(row, column, item)
+
+        item.setBackground(QtCore.Qt.green)
+
+    def lengthChanged(self, value):
+        self.table.setRowCount(value)
+
+    def numSpritesChanged(self, value):
+        self.table.setColumnCount(value)

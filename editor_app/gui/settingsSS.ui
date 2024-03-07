@@ -72,7 +72,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_mainSettings">
          <attribute name="title">
@@ -904,25 +904,12 @@ QTabBar::tab:selected {
              <rect>
               <x>10</x>
               <y>40</y>
-              <width>62</width>
+              <width>51</width>
               <height>22</height>
              </rect>
             </property>
             <property name="toolTip">
              <string notr="true">Delay of ticks between animation frames.</string>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="pushButton_editAnimSequence">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>81</width>
-              <height>23</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Edit Sequence</string>
             </property>
            </widget>
            <widget class="QCheckBox" name="SMALL_SCENERY_FLAG17">
@@ -946,7 +933,7 @@ QTabBar::tab:selected {
              <rect>
               <x>10</x>
               <y>70</y>
-              <width>62</width>
+              <width>51</width>
               <height>22</height>
              </rect>
             </property>
@@ -957,7 +944,7 @@ QTabBar::tab:selected {
            <widget class="QLabel" name="label_frameDelay">
             <property name="geometry">
              <rect>
-              <x>80</x>
+              <x>70</x>
               <y>40</y>
               <width>71</width>
               <height>16</height>
@@ -970,7 +957,7 @@ QTabBar::tab:selected {
            <widget class="QLabel" name="label_animDelay">
             <property name="geometry">
              <rect>
-              <x>80</x>
+              <x>70</x>
               <y>70</y>
               <width>81</width>
               <height>16</height>
@@ -978,6 +965,29 @@ QTabBar::tab:selected {
             </property>
             <property name="text">
              <string>Animation Delay</string>
+            </property>
+           </widget>
+           <widget class="QSpinBox" name="spinBox_numSprites">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>7</y>
+              <width>51</width>
+              <height>22</height>
+             </rect>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label">
+            <property name="geometry">
+             <rect>
+              <x>70</x>
+              <y>10</y>
+              <width>91</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Number of sprites</string>
             </property>
            </widget>
           </widget>
@@ -1071,6 +1081,19 @@ QTabBar::tab:selected {
           </property>
           <property name="text">
            <string>Supports in Remap</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_editAnimSequence">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>150</y>
+            <width>81</width>
+            <height>23</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Edit Sequence</string>
           </property>
          </widget>
         </widget>
