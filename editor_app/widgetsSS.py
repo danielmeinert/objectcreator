@@ -143,7 +143,7 @@ class SettingsTab(QWidget):
             QComboBox, "comboBox_animSubtype")
 
         self.subtype_box.currentIndexChanged.connect(
-            self.animationSubtypeChanged)
+            self.animationTypeChanged)
 
         # Spinboxes
         self.spinbox_frame_delay = self.findChild(
@@ -193,7 +193,10 @@ class SettingsTab(QWidget):
             self.sprites_tab.slider_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
             self.sprites_tab.slider_sprite_index.setMaximum(
-                self.o.num_image_sets-1)
+                self.o.num_image_sets-1+int(self.o.has_preview))
+            self.animation_widget.setEnabled(True)
+
+            self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
 
@@ -308,8 +311,25 @@ class SettingsTab(QWidget):
         if dialog.exec():
             pass
 
-    def animationSubtypeChanged(self, value):
-        pass
+    def animationTypeChanged(self, value):
+        value = self.anim_subtype_box.currentIndex()
+
+        anim_type = list(obj.SmallScenery.AnimationType)[value]
+
+        self.o.changeAnimationType(anim_type)
+        
+        self.container_anim.setEnabled(
+                self.o.animation_type == self.o.AnimationType.REGULAR)
+
+        if self.o.animation_type == self.o.AnimationType.REGULAR:
+            self.spinbox_frame_delay.setValue(
+                    self.o['properties'].get('animationDelay', 0))
+            length = self.o['properties'].get('animationMask')
+            num_frames = self.o['properties'].get('numFrames')
+
+            delay = int(np.log2((length+1)/num_frames))
+
+            self.spinbox_anim_delay.setValue(delay)
 
     def animationDelayChanged(self, value):
         num_frames = self.o['properties'].get('numFrames')
@@ -382,19 +402,6 @@ class SettingsTab(QWidget):
             self.animation_widget.setEnabled(True)
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
-
-            self.container_anim.setEnabled(
-                self.o.animation_type == self.o.AnimationType.REGULAR)
-
-            if self.o.animation_type == self.o.AnimationType.REGULAR:
-                self.spinbox_frame_delay.setValue(
-                    self.o['properties'].get('animationDelay', 0))
-                length = self.o['properties'].get('animationMask')
-                num_frames = self.o['properties'].get('numFrames')
-
-                delay = int(np.log2((length+1)/num_frames))
-
-                self.spinbox_anim_delay.setValue(delay)
 
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
@@ -875,27 +882,56 @@ class EditAnimationSequenceUI(QDialog):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/animation_edit.ui'), self)
 
+        self.o = o
         self.sequence = o['properties'].get('frameOffsets', [0])
 
         self.table.setRowCount(len(self.sequence))
+        self.spinbox_length.setValue(len(self.sequence))
         self.table.setColumnCount(o.num_image_sets)
-        for row, column in enumerate(self.sequence):
-            item = QTableWidgetItem()
-            self.table.setItem(row, column, item)
-            item.setBackground(QtCore.Qt.green)
+        self.spinbox_num_sprites.setValue(o.num_image_sets)
 
         self.table.cellClicked.connect(self.cellClicked)
         self.spinbox_length.valueChanged.connect(self.lengthChanged)
         self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
 
-    def cellClicked(self, row, column):
-        item = QTableWidgetItem()
-        self.table.setItem(row, column, item)
+        self.resize(self.layout().sizeHint())
+        self.updateTable()
 
-        item.setBackground(QtCore.Qt.green)
+    def cellClicked(self, row, column):
+        self.sequence[row] = column
+        
+        self.updateTable()
 
     def lengthChanged(self, value):
-        self.table.setRowCount(value)
+        old_len = len(self.sequence)
+        
+        if old_len < value:
+            for i in range(value-old_len):
+                self.sequence.append(0)
+        else:
+            self.sequence = self.sequence[:value]
+        
+        self.table.setRowCount(value)  
+        
+        self.resize(self.layout().sizeHint())
+        self.updateTable()
 
     def numSpritesChanged(self, value):
+        old_len = len(self.sequence)
+        
+        if old_len > value:
+            self.sequence[:] = [value if x==old_len else x for x in self.sequence]        
+        
         self.table.setColumnCount(value)
+
+        self.resize(self.layout().sizeHint())
+        self.updateTable()
+
+
+    def updateTable(self):
+        self.table.clearContents()
+        
+        for row, column in enumerate(self.sequence):
+            item = QTableWidgetItem()
+            self.table.setItem(row, column, item)
+            item.setBackground(QtCore.Qt.green)

@@ -72,7 +72,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_mainSettings">
          <attribute name="title">
@@ -990,6 +990,19 @@ QTabBar::tab:selected {
              <string>Number of sprites</string>
             </property>
            </widget>
+           <widget class="QPushButton" name="pushButton_editAnimSequence">
+            <property name="geometry">
+             <rect>
+              <x>170</x>
+              <y>10</y>
+              <width>81</width>
+              <height>23</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Edit Sequence</string>
+            </property>
+           </widget>
           </widget>
           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_COG">
            <property name="geometry">
@@ -1081,19 +1094,6 @@ QTabBar::tab:selected {
           </property>
           <property name="text">
            <string>Supports in Remap</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_editAnimSequence">
-          <property name="geometry">
-           <rect>
-            <x>190</x>
-            <y>150</y>
-            <width>81</width>
-            <height>23</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Edit Sequence</string>
           </property>
          </widget>
         </widget>

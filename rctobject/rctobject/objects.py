@@ -255,6 +255,8 @@ class SmallScenery(RCTObject):
                 else:
                     self.animation_type = self.AnimationType.REGULAR
                     self.num_image_sets = int(len(data['images'])/4)
+                    
+                self.has_preview = data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)  
 
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
@@ -522,11 +524,12 @@ class SmallScenery(RCTObject):
 
         if subtype == self.Subtype.ANIMATED:
             self.animation_type = self.AnimationType.REGULAR
-            self.data['properties']['frameOffsets'] = [0, 1, 2, 3]
+            self.data['properties']['frameOffsets'] = [0]
             self.data['properties']['animationDelay'] = 0
-            self.data['properties']['animationMask'] = 3
-            self.data['properties']['numFrames'] = 4
-            self.num_image_sets = 4
+            self.data['properties']['animationMask'] = 1
+            self.data['properties']['numFrames'] = 1
+            self.num_image_sets = 1
+            self.has_preview = False
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
                 for rot in range(4):
@@ -558,6 +561,10 @@ class SmallScenery(RCTObject):
         # quarter is a default
         if shape == self.Shape.QUARTER:
             self.data['properties'].pop('shape')
+            
+    def changeAnimationType(self, subtype):
+        if self.animation_type == subtype:
+            return
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
