@@ -399,22 +399,23 @@ class SmallScenery(RCTObject):
                 rotation = rotation % 4
             else:
                 rotation = self.rotation
-            
+
             base_index = rotation
             foutain_index = rotation+4*(animation_frame+1)
             foutain_index += 4 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
-            
+
             s1 = self.sprites[self.data['images'][base_index]['path']]
-            s2 = self.sprites[self.data['images'][foutain_index]['path']]            
+            s2 = self.sprites[self.data['images'][foutain_index]['path']]
 
             canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
                                 abs(s2.x), abs(s2.image.width+s2.x))
             canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
                                 abs(s2.y), abs(s2.image.height+s2.y))
-            
+
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 s3 = self.sprites[self.data['images'][base_index+4]['path']]
-                s4 = self.sprites[self.data['images'][foutain_index+16]['path']]            
+                s4 = self.sprites[self.data['images']
+                                  [foutain_index+16]['path']]
 
                 canvas_size_x = max(abs(s3.x), abs(s3.image.width+s3.x),
                                     abs(s4.x), abs(s4.image.width+s4.x), canvas_size_x)
@@ -423,19 +424,17 @@ class SmallScenery(RCTObject):
 
             canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
 
-            
             canvas.paste(s1.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                        (s1.x+canvas_size_x, s1.y+canvas_size_y), mask=s1.image)
+                         (s1.x+canvas_size_x, s1.y+canvas_size_y), mask=s1.image)
             canvas.paste(s2.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                        (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
-            
+                         (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
+
             if self.animation_type == self.AnimationType.FOUNTAIN4:
-                
+
                 canvas.paste(s3.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                        (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
+                             (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
                 canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                        (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
-                
+                             (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
 
             bbox = canvas.getbbox()
 
@@ -522,8 +521,12 @@ class SmallScenery(RCTObject):
             self.subtype == self.Subtype.GARDENS)
 
         if subtype == self.Subtype.ANIMATED:
-            raise NotImplementedError(
-                'Animated objects are not yet implemented/supported.')
+            self.animation_type = self.AnimationType.REGULAR
+            self.data['properties']['frameOffsets'] = [0, 1, 2, 3]
+            self.data['properties']['animationDelay'] = 0
+            self.data['properties']['animationMask'] = 3
+            self.data['properties']['numFrames'] = 4
+            self.num_image_sets = 4
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
                 for rot in range(4):
@@ -545,8 +548,8 @@ class SmallScenery(RCTObject):
                         path = f'images/{wither*4+rot+start_index}.png'
                         im = {'path': path, 'x': 0, 'y': 0}
                         self.data['images'].append(im)
-                        self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
-
+                        self.sprites[path] = spr.Sprite(
+                            None, (0, 0), self.palette)
 
     def changeShape(self, shape):
         self.shape = shape

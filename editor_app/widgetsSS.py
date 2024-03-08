@@ -875,14 +875,20 @@ class EditAnimationSequenceUI(QDialog):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/animation_edit.ui'), self)
 
-        self.table.cellClicked.connect(self.cellClicked)
+        self.sequence = o['properties'].get('frameOffsets', [0])
 
+        self.table.setRowCount(len(self.sequence))
+        self.table.setColumnCount(o.num_image_sets)
+        for row, column in enumerate(self.sequence):
+            item = QTableWidgetItem()
+            self.table.setItem(row, column, item)
+            item.setBackground(QtCore.Qt.green)
+
+        self.table.cellClicked.connect(self.cellClicked)
         self.spinbox_length.valueChanged.connect(self.lengthChanged)
         self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
 
     def cellClicked(self, row, column):
-        print(row, column)
-
         item = QTableWidgetItem()
         self.table.setItem(row, column, item)
 
