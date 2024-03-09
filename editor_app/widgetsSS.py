@@ -142,7 +142,7 @@ class SettingsTab(QWidget):
         self.anim_subtype_box = self.findChild(
             QComboBox, "comboBox_animSubtype")
 
-        self.subtype_box.currentIndexChanged.connect(
+        self.anim_subtype_box.currentIndexChanged.connect(
             self.animationTypeChanged)
 
         # Spinboxes
@@ -188,6 +188,8 @@ class SettingsTab(QWidget):
 
         self.sprites_tab.slider_sprite_index.setEnabled(
             subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
+        
+        self.animation_widget.setEnabled(subtype == obj.SmallScenery.Subtype.ANIMATED)
 
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
@@ -883,17 +885,29 @@ class EditAnimationSequenceUI(QDialog):
         uic.loadUi(aux.resource_path('gui/animation_edit.ui'), self)
 
         self.o = o
-        self.sequence = o['properties'].get('frameOffsets', [0])
+        self.sequence = list(o['properties'].get('frameOffsets', [0]))
+        self.num_image_sets = int(o.num_image_sets)
 
         self.table.setRowCount(len(self.sequence))
         self.spinbox_length.setValue(len(self.sequence))
-        self.table.setColumnCount(o.num_image_sets)
-        self.spinbox_num_sprites.setValue(o.num_image_sets)
+        self.table.setColumnCount(self.num_image_sets)
+        self.spinbox_num_sprites.setValue(self.num_image_sets)
 
         self.table.cellClicked.connect(self.cellClicked)
         self.spinbox_length.valueChanged.connect(self.lengthChanged)
         self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
-
+        
+        self.button_ascending.clicked.connect(self.ascending)
+        self.button_descending.clicked.connect(self.descending)
+        self.button_back_forth.clicked.connect(self.backForth)
+        
+        for i in range(self.table.rowCount()):
+            self.table.setRowHeight(i, 10)
+    
+        for i in range(self.table.columnCount()):            
+            self.table.setColumnWidth(i,10)
+            
+        
         self.resize(self.layout().sizeHint())
         self.updateTable()
 
@@ -912,22 +926,55 @@ class EditAnimationSequenceUI(QDialog):
             self.sequence = self.sequence[:value]
         
         self.table.setRowCount(value)  
-        
+        for i in range(self.table.rowCount()):
+            self.table.setRowHeight(i, 10)
+    
         self.resize(self.layout().sizeHint())
         self.updateTable()
 
     def numSpritesChanged(self, value):
-        old_len = len(self.sequence)
+        old_len = max(self.sequence)
         
-        if old_len > value:
-            self.sequence[:] = [value if x==old_len else x for x in self.sequence]        
-        
+        if old_len > value-1:
+            self.sequence = [value-1 if x==old_len else x for x in self.sequence]  
+                    
         self.table.setColumnCount(value)
+        for i in range(self.table.columnCount()):            
+            self.table.setColumnWidth(i,10)
+        
+        self.num_image_sets = value
 
         self.resize(self.layout().sizeHint())
         self.updateTable()
 
-
+    def ascending(self):
+        self.spinbox_num_sprites.setValue(self.table.rowCount())
+        
+        self.sequence = [i for i in range(self.table.rowCount())]
+        
+        self.updateTable()
+        
+    def descending(self):
+        length = self.table.rowCount()
+        self.spinbox_num_sprites.setValue(length)
+        
+        self.sequence = [length-i-1 for i in range(length)]
+        
+        self.updateTable()
+        
+    def backForth(self):
+        length = int(self.table.rowCount()/2)
+        if length<2:
+            return
+        
+        self.spinbox_num_sprites.setValue(length)
+        
+        self.sequence[:length] = [i for i in range(length)]
+        self.sequence[length:] = [length-i-1 for i in range(length)]
+        
+        self.updateTable()
+        
+        
     def updateTable(self):
         self.table.clearContents()
         

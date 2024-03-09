@@ -240,6 +240,8 @@ class SmallScenery(RCTObject):
 
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
+                self.has_preview = data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)  
+
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
                     self.animation_type = self.AnimationType.FOUNTAIN1
                     self.num_image_sets = 4
@@ -254,9 +256,8 @@ class SmallScenery(RCTObject):
                     self.num_image_sets = 16
                 else:
                     self.animation_type = self.AnimationType.REGULAR
-                    self.num_image_sets = int(len(data['images'])/4)
+                    self.num_image_sets = int(len(data['images'])/4) - int(self.has_preview)
                     
-                self.has_preview = data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)  
 
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
@@ -562,9 +563,28 @@ class SmallScenery(RCTObject):
         if shape == self.Shape.QUARTER:
             self.data['properties'].pop('shape')
             
-    def changeAnimationType(self, subtype):
-        if self.animation_type == subtype:
+    def changeAnimationType(self, anim_type):
+        if self.animation_type == anim_type:
             return
+        
+        self.animation_type = anim_type
+        
+        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'] = (self.animation_type == self.AnimationType.FOUNTAIN1)
+        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'] = (self.animation_type == self.AnimationType.FOUNTAIN4)
+        self.data['properties']['isClock'] = (self.animation_type == self.AnimationType.CLOCK)
+        self.data['properties']['SMALL_SCENERY_FLAG_SWAMP_GOO'] = (self.animation_type == self.AnimationType.SINGLEVIEW)
+        
+        if self.animation_type == self.AnimationType.FOUNTAIN1:
+            self.num_image_sets = 4
+        elif self.animation_type == self.AnimationType.FOUNTAIN4:
+            self.num_image_sets = 4
+        elif self.animation_type == self.AnimationType.CLOCK:
+            self.num_image_sets = 110
+        elif self.animation_type == self.AnimationType.SINGLEVIEW:
+            self.num_image_sets = 16
+        else:
+            self.animation_type = self.AnimationType.REGULAR
+            self.num_image_sets = int(len(self.data['images'])/4) - int(self.has_preview)
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
