@@ -171,8 +171,9 @@ class RCTObject:
             mkdir(f'{temp}/images')
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=self.data, fp=file, indent=2)
-            for im_name, sprite in self.sprites.items():
-                sprite.save(f'{temp}/{im_name}')
+            for im in self['images']:
+                sprite = self.sprites[im['path']]
+                sprite.save(f'{temp}/{im["path"]}')
             make_archive(base_name=f'{filename}',
                          root_dir=temp, format='zip')
 
@@ -530,6 +531,8 @@ class SmallScenery(RCTObject):
             self.data['properties']['animationMask'] = 1
             self.data['properties']['numFrames'] = 1
             self.num_image_sets = 1
+            self.data['properties'].pop('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', None)
+            self.data['properties'].pop('SMALL_SCENERY_FLAG17', None)
             self.has_preview = False
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
@@ -585,6 +588,25 @@ class SmallScenery(RCTObject):
         else:
             self.animation_type = self.AnimationType.REGULAR
             self.num_image_sets = int(len(self.data['images'])/4) - int(self.has_preview)
+            
+    def changeNumImagesSets(self, value):
+        if self.animation_type != self.AnimationType.REGULAR:
+            return
+        
+        if self.num_image_sets < value:
+            for i in range(self.num_image_sets, value):
+                index = 4*i+4*int(self.has_preview)
+                entries = [{'path':f'images/{index+k}.png', 'x': 0, 'y':0} for k in [0,1,2,3]]
+                self.data['images'][index:index+4] = entries
+                for im in entries:
+                    if not self.sprites.get(im['path'], False):
+                        self.sprites[im['path']] = spr.Sprite(None)
+        elif self.num_image_sets > value:
+            self.data['images'] = self.data['images'][:4*(value+int(self.has_preview))]
+             
+            self.data['properties']['frameOffsets'] = [value-1 if x==self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']] 
+             
+        self.num_image_sets = value
 
     class Shape(Enum):
         QUARTER = 0, '1/4'

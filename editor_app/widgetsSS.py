@@ -145,16 +145,22 @@ class SettingsTab(QWidget):
         self.anim_subtype_box.currentIndexChanged.connect(
             self.animationTypeChanged)
 
-        # Spinboxes
+        # Animation Spinboxes
         self.spinbox_frame_delay = self.findChild(
             QSpinBox, "spinBox_frameDelay")
         self.spinbox_anim_delay = self.findChild(
             QSpinBox, "spinBox_animDelay")
+        self.spinbox_anim_num_image_sets = self.findChild(
+            QSpinBox, "spinBox_numSprites")
 
         self.spinbox_frame_delay.valueChanged.connect(
             lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
         self.spinbox_anim_delay.valueChanged.connect(
             self.animationDelayChanged)
+        self.spinbox_anim_num_image_sets.valueChanged.connect(
+            self.animationNumImageSetsChanged)
+
+
 
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
@@ -202,6 +208,7 @@ class SettingsTab(QWidget):
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
 
+        self.loadObjectSettings()
         self.sprites_tab.updateLockedSpriteLayersModel()
         self.sprites_tab.updateAllViews()
 
@@ -311,7 +318,9 @@ class SettingsTab(QWidget):
         dialog = EditAnimationSequenceUI(self.o)
 
         if dialog.exec():
-            pass
+            self.o.data['properties']['frameOffsets'] = dialog.sequence
+            self.spinbox_anim_num_image_sets.setValue(dialog.num_image_sets)
+            
 
     def animationTypeChanged(self, value):
         value = self.anim_subtype_box.currentIndex()
@@ -337,6 +346,15 @@ class SettingsTab(QWidget):
         num_frames = self.o['properties'].get('numFrames')
 
         self.o['properties']['animationMask'] = num_frames * 2**value - 1
+        
+    def animationNumImageSetsChanged(self, value):
+        if self.o.num_image_sets == value:
+            return
+        
+        self.o.changeNumImagesSets(value)
+        self.sprites_tab.slider_sprite_index.setMaximum(
+                value-1+int(self.o.has_preview))
+        
 
     def loadObjectSettings(self, author=None, author_id=None):
 
@@ -404,7 +422,13 @@ class SettingsTab(QWidget):
             self.animation_widget.setEnabled(True)
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
-
+            if self.o.animation_type == obj.SmallScenery.AnimationType.REGULAR:
+                self.spinbox_anim_num_image_sets.setValue(self.o.num_image_sets)
+                self.spinbox_frame_delay.setValue(self.o['properties'].get('animationDelay', 0))
+                num_frames = self.o['properties'].get('numFrames')
+                self.spinbox_anim_delay.setValue(np.log2((self.o['properties']['animationMask'] +1 )/num_frames))
+            
+            
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
 
@@ -693,7 +717,47 @@ class SpritesTab(QWidget):
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, base_x, base_y, name=f'Wither 2 View {rot+1}')
                     self.layers[rot].append(layer)
+        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
+            animation_frame = self.slider_sprite_index.value()
+            if self.o.animation_type  in [obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
+                for rot in range(4):
+                    base_index = rot
+                    foutain_index = rot+4*(animation_frame+1)
+                    foutain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
 
+                    sprite = self.o.sprites[self.o.data['images'][base_index]['path']]
+                    layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Base 1 View {rot+1}')
+                    self.layers[rot].append(layer)
+                    
+                    sprite = self.o.sprites[self.o.data['images'][foutain_index]['path']]
+                    layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Jets 1 View {rot+1}')
+                    self.layers[rot].append(layer)
+
+                    if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
+                        sprite = self.o.sprites[self.o.data['images'][base_index+4]['path']]
+                        layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
+                        self.layers[rot].append(layer)
+                        sprite = self.o.sprites[self.o.data['images']
+                                        [foutain_index+16]['path']]
+                        layer = wdg.SpriteLayer(
+                        sprite, self.main_window, base_x, base_y, name=f'Jets 2 View {rot+1}')
+                        self.layers[rot].append(layer)
+            else:
+                if animation_frame == 0 and self.o.has_preview:
+                    for rot in range(4):
+                        sprite = self.o.giveSprite(rotation=rot, animation_frame = animation_frame)
+                        layer = wdg.SpriteLayer(
+                            sprite, self.main_window, base_x, base_y, name=f'Preview Image View {rot+1}')
+                        self.layers[rot].append(layer)
+                else:    
+                    for rot in range(4):
+                        sprite = self.o.giveSprite(rotation=rot, animation_frame = animation_frame)
+                        layer = wdg.SpriteLayer(
+                            sprite, self.main_window, base_x, base_y, name=f'Animation Frame {animation_frame + 1} View {rot+1}')
+                        self.layers[rot].append(layer)
         else:
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot)
