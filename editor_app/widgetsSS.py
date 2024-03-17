@@ -332,28 +332,35 @@ class SettingsTab(QWidget):
         self.container_anim.setEnabled(
                 self.o.animation_type == self.o.AnimationType.REGULAR)
 
-        if self.o.animation_type == self.o.AnimationType.REGULAR:
+        self.spinbox_anim_num_image_sets.setValue(self.o.num_image_sets)
+
+        if anim_type == obj.SmallScenery.AnimationType.REGULAR:
             self.spinbox_frame_delay.setValue(
                     self.o['properties'].get('animationDelay', 0))
-            length = self.o['properties'].get('animationMask')
-            num_frames = self.o['properties'].get('numFrames')
+            length = self.o['properties'].get('animationMask', 0)
+            num_frames = self.o['properties'].get('numFrames', 1)
 
             delay = int(np.log2((length+1)/num_frames))
 
             self.spinbox_anim_delay.setValue(delay)
 
-    def animationDelayChanged(self, value):
-        num_frames = self.o['properties'].get('numFrames')
+        self.sprites_tab.updateLockedSpriteLayersModel()
 
-        self.o['properties']['animationMask'] = num_frames * 2**value - 1
+
+    def animationDelayChanged(self, value):
+        num_frames = self.o['properties'].get('numFrames', False)
+
+        if num_frames:
+            self.o['properties']['animationMask'] = num_frames * 2**value - 1
         
     def animationNumImageSetsChanged(self, value):
+        self.sprites_tab.slider_sprite_index.setMaximum(
+                value-1+int(self.o.has_preview))
         if self.o.num_image_sets == value:
             return
         
         self.o.changeNumImagesSets(value)
-        self.sprites_tab.slider_sprite_index.setMaximum(
-                value-1+int(self.o.has_preview))
+        
         
 
     def loadObjectSettings(self, author=None, author_id=None):
@@ -732,7 +739,7 @@ class SpritesTab(QWidget):
                     
                     sprite = self.o.sprites[self.o.data['images'][foutain_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Jets 1 View {rot+1}')
+                        sprite, self.main_window, base_x, base_y, name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
                     self.layers[rot].append(layer)
 
                     if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
@@ -743,7 +750,7 @@ class SpritesTab(QWidget):
                         sprite = self.o.sprites[self.o.data['images']
                                         [foutain_index+16]['path']]
                         layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Jets 2 View {rot+1}')
+                        sprite, self.main_window, base_x, base_y, name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
                         self.layers[rot].append(layer)
             else:
                 if animation_frame == 0 and self.o.has_preview:

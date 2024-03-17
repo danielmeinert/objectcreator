@@ -530,10 +530,8 @@ class SmallScenery(RCTObject):
             self.data['properties']['animationDelay'] = 0
             self.data['properties']['animationMask'] = 1
             self.data['properties']['numFrames'] = 1
-            self.num_image_sets = 1
-            self.data['properties'].pop('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', None)
-            self.data['properties'].pop('SMALL_SCENERY_FLAG17', None)
             self.has_preview = False
+            self.num_image_sets = int(len(self.data['images'])/4)
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
                 for rot in range(4):
@@ -577,36 +575,58 @@ class SmallScenery(RCTObject):
         self.data['properties']['isClock'] = (self.animation_type == self.AnimationType.CLOCK)
         self.data['properties']['SMALL_SCENERY_FLAG_SWAMP_GOO'] = (self.animation_type == self.AnimationType.SINGLEVIEW)
         
-        if self.animation_type == self.AnimationType.FOUNTAIN1:
-            self.num_image_sets = 4
-        elif self.animation_type == self.AnimationType.FOUNTAIN4:
-            self.num_image_sets = 4
-        elif self.animation_type == self.AnimationType.CLOCK:
-            self.num_image_sets = 110
-        elif self.animation_type == self.AnimationType.SINGLEVIEW:
-            self.num_image_sets = 16
+        if self.animation_type == self.AnimationType.REGULAR:   
+            self.data['properties']['frameOffsets'] = [0]
+            self.data['properties']['animationDelay'] = 0
+            self.data['properties']['animationMask'] = 1
+            self.data['properties']['numFrames'] = 1
         else:
-            self.animation_type = self.AnimationType.REGULAR
-            self.num_image_sets = int(len(self.data['images'])/4) - int(self.has_preview)
+            self.data['properties'].pop('frameOffsets', None)
+            self.data['properties'].pop('animationDelay', None)
+            self.data['properties'].pop('animationMask', None)
+            self.data['properties'].pop('numFrames', None)
+            self.data['properties'].pop('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', None)
+            self.data['properties'].pop('SMALL_SCENERY_FLAG17', None)
+            self.has_preview = False
+        
+        if self.animation_type == self.AnimationType.FOUNTAIN1:
+            self.changeNumImagesSets(4)
+        elif self.animation_type == self.AnimationType.FOUNTAIN4:
+            self.changeNumImagesSets(4)
+        elif self.animation_type == self.AnimationType.CLOCK:
+            self.changeNumImagesSets(110)
+        elif self.animation_type == self.AnimationType.SINGLEVIEW:
+            self.changeNumImagesSets(16)
+        else:
+            self.has_preview = self.data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)  
+            self.changeNumImagesSets(int(len(self.data['images'])/4) - int(self.has_preview))
             
     def changeNumImagesSets(self, value):
-        if self.animation_type != self.AnimationType.REGULAR:
-            return
+        shift = int(self.has_preview)
+        shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
+        shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
+        shift += 8 if self.animation_type == self.AnimationType.CLOCK else 0
         
-        if self.num_image_sets < value:
-            for i in range(self.num_image_sets, value):
-                index = 4*i+4*int(self.has_preview)
-                entries = [{'path':f'images/{index+k}.png', 'x': 0, 'y':0} for k in [0,1,2,3]]
+        multiplier = 1 if self.animation_type in [self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4 
+        
+        if len(self.data['images']) < (value+shift)*multiplier:
+            for i in range(len(self.data['images']), (value+shift)*multiplier):
+                index = multiplier*(i+shift)
+                entries = [{'path':f'images/{index+k}.png', 'x': 0, 'y':0} for k in range(multiplier)]
                 self.data['images'][index:index+4] = entries
                 for im in entries:
                     if not self.sprites.get(im['path'], False):
                         self.sprites[im['path']] = spr.Sprite(None)
-        elif self.num_image_sets > value:
-            self.data['images'] = self.data['images'][:4*(value+int(self.has_preview))]
+        else:
+            self.data['images'] = self.data['images'][:(value+shift)*multiplier]
              
-            self.data['properties']['frameOffsets'] = [value-1 if x==self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']] 
+            if self.animation_type == self.AnimationType.REGULAR:   
+                self.data['properties']['frameOffsets'] = [value-1 if x==self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']] 
              
         self.num_image_sets = value
+        
+    def changePreviewImage(self):
+        pass
 
     class Shape(Enum):
         QUARTER = 0, '1/4'

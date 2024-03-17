@@ -811,7 +811,7 @@ QTabBar::tab:selected {
             <x>10</x>
             <y>170</y>
             <width>271</width>
-            <height>171</height>
+            <height>221</height>
            </rect>
           </property>
           <property name="title">
@@ -880,25 +880,9 @@ QTabBar::tab:selected {
              <x>0</x>
              <y>40</y>
              <width>271</width>
-             <height>121</height>
+             <height>171</height>
             </rect>
            </property>
-           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>100</y>
-              <width>131</width>
-              <height>17</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</string>
-            </property>
-            <property name="text">
-             <string>Animate on Zoom Out</string>
-            </property>
-           </widget>
            <widget class="QSpinBox" name="spinBox_frameDelay">
             <property name="geometry">
              <rect>
@@ -910,22 +894,6 @@ QTabBar::tab:selected {
             </property>
             <property name="toolTip">
              <string notr="true">Delay of ticks between animation frames.</string>
-            </property>
-           </widget>
-           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG17">
-            <property name="geometry">
-             <rect>
-              <x>170</x>
-              <y>100</y>
-              <width>131</width>
-              <height>17</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string>SMALL_SCENERY_FLAG17</string>
-            </property>
-            <property name="text">
-             <string>Flag 17</string>
             </property>
            </widget>
            <widget class="QSpinBox" name="spinBox_animDelay">
@@ -976,6 +944,9 @@ QTabBar::tab:selected {
               <height>22</height>
              </rect>
             </property>
+            <property name="maximum">
+             <number>256</number>
+            </property>
            </widget>
            <widget class="QLabel" name="label">
             <property name="geometry">
@@ -1001,6 +972,51 @@ QTabBar::tab:selected {
             </property>
             <property name="text">
              <string>Edit Sequence</string>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED">
+            <property name="geometry">
+             <rect>
+              <x>15</x>
+              <y>120</y>
+              <width>130</width>
+              <height>17</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</string>
+            </property>
+            <property name="text">
+             <string>Animate on Zoom Out</string>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG17">
+            <property name="geometry">
+             <rect>
+              <x>170</x>
+              <y>120</y>
+              <width>130</width>
+              <height>17</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>SMALL_SCENERY_FLAG17</string>
+            </property>
+            <property name="text">
+             <string>Flag 17</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_2">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>100</y>
+              <width>221</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Enable either of these for preview images</string>
             </property>
            </widget>
           </widget>
