@@ -169,11 +169,16 @@ class RCTObject:
 
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
+
+            for i, im in enumerate(self['images']):
+                newpath = f'images/{i}.png'
+                sprite = self.sprites[im['path']]
+                sprite.save(f'{temp}/{newpath}')
+                im['path'] = newpath
+
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=self.data, fp=file, indent=2)
-            for im in self['images']:
-                sprite = self.sprites[im['path']]
-                sprite.save(f'{temp}/{im["path"]}')
+
             make_archive(base_name=f'{filename}',
                          root_dir=temp, format='zip')
 
@@ -241,7 +246,8 @@ class SmallScenery(RCTObject):
 
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
-                self.has_preview = data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)  
+                self.has_preview = data['properties'].get(
+                    'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)
 
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
                     self.animation_type = self.AnimationType.FOUNTAIN1
@@ -257,8 +263,8 @@ class SmallScenery(RCTObject):
                     self.num_image_sets = 16
                 else:
                     self.animation_type = self.AnimationType.REGULAR
-                    self.num_image_sets = int(len(data['images'])/4) - int(self.has_preview)
-                    
+                    self.num_image_sets = int(
+                        len(data['images'])/4) - int(self.has_preview)
 
             elif data['properties'].get('hasGlass', False):
                 self.subtype = self.Subtype.GLASS
@@ -563,19 +569,23 @@ class SmallScenery(RCTObject):
         # quarter is a default
         if shape == self.Shape.QUARTER:
             self.data['properties'].pop('shape')
-            
+
     def changeAnimationType(self, anim_type):
         if self.animation_type == anim_type:
             return
-        
+
         self.animation_type = anim_type
-        
-        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'] = (self.animation_type == self.AnimationType.FOUNTAIN1)
-        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'] = (self.animation_type == self.AnimationType.FOUNTAIN4)
-        self.data['properties']['isClock'] = (self.animation_type == self.AnimationType.CLOCK)
-        self.data['properties']['SMALL_SCENERY_FLAG_SWAMP_GOO'] = (self.animation_type == self.AnimationType.SINGLEVIEW)
-        
-        if self.animation_type == self.AnimationType.REGULAR:   
+
+        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'] = (
+            self.animation_type == self.AnimationType.FOUNTAIN1)
+        self.data['properties']['SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4'] = (
+            self.animation_type == self.AnimationType.FOUNTAIN4)
+        self.data['properties']['isClock'] = (
+            self.animation_type == self.AnimationType.CLOCK)
+        self.data['properties']['SMALL_SCENERY_FLAG_SWAMP_GOO'] = (
+            self.animation_type == self.AnimationType.SINGLEVIEW)
+
+        if self.animation_type == self.AnimationType.REGULAR:
             self.data['properties']['frameOffsets'] = [0]
             self.data['properties']['animationDelay'] = 0
             self.data['properties']['animationMask'] = 1
@@ -585,10 +595,11 @@ class SmallScenery(RCTObject):
             self.data['properties'].pop('animationDelay', None)
             self.data['properties'].pop('animationMask', None)
             self.data['properties'].pop('numFrames', None)
-            self.data['properties'].pop('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', None)
+            self.data['properties'].pop(
+                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', None)
             self.data['properties'].pop('SMALL_SCENERY_FLAG17', None)
             self.has_preview = False
-        
+
         if self.animation_type == self.AnimationType.FOUNTAIN1:
             self.changeNumImagesSets(4)
         elif self.animation_type == self.AnimationType.FOUNTAIN4:
@@ -598,33 +609,39 @@ class SmallScenery(RCTObject):
         elif self.animation_type == self.AnimationType.SINGLEVIEW:
             self.changeNumImagesSets(16)
         else:
-            self.has_preview = self.data['properties'].get('SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)  
-            self.changeNumImagesSets(int(len(self.data['images'])/4) - int(self.has_preview))
-            
+            self.has_preview = self.data['properties'].get(
+                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+            self.changeNumImagesSets(
+                int(len(self.data['images'])/4) - int(self.has_preview))
+
     def changeNumImagesSets(self, value):
         shift = int(self.has_preview)
         shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
         shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
         shift += 8 if self.animation_type == self.AnimationType.CLOCK else 0
-        
-        multiplier = 1 if self.animation_type in [self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4 
-        
+
+        multiplier = 1 if self.animation_type in [
+            self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
+
         if len(self.data['images']) < (value+shift)*multiplier:
             for i in range(len(self.data['images']), (value+shift)*multiplier):
                 index = multiplier*(i+shift)
-                entries = [{'path':f'images/{index+k}.png', 'x': 0, 'y':0} for k in range(multiplier)]
+                entries = [{'path': f'images/{index+k}.png', 'x': 0, 'y': 0}
+                           for k in range(multiplier)]
                 self.data['images'][index:index+4] = entries
                 for im in entries:
                     if not self.sprites.get(im['path'], False):
                         self.sprites[im['path']] = spr.Sprite(None)
         else:
-            self.data['images'] = self.data['images'][:(value+shift)*multiplier]
-             
-            if self.animation_type == self.AnimationType.REGULAR:   
-                self.data['properties']['frameOffsets'] = [value-1 if x==self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']] 
-             
+            self.data['images'] = self.data['images'][:(
+                value+shift)*multiplier]
+
+            if self.animation_type == self.AnimationType.REGULAR:
+                self.data['properties']['frameOffsets'] = [
+                    value-1 if x == self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']]
+
         self.num_image_sets = value
-        
+
     def changePreviewImage(self):
         pass
 
