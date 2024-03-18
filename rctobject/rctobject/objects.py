@@ -642,8 +642,10 @@ class SmallScenery(RCTObject):
 
         self.num_image_sets = value
 
-    def changePreviewImage(self):
-        pass
+    def updateAnimPreviewImage(self):
+        self.has_preview = self.data['properties'].get(
+            'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+        self.changeNumImagesSets(self.num_image_sets)
 
     class Shape(Enum):
         QUARTER = 0, '1/4'

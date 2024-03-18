@@ -944,6 +944,9 @@ QTabBar::tab:selected {
               <height>22</height>
              </rect>
             </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
             <property name="maximum">
              <number>256</number>
             </property>

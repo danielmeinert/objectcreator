@@ -160,7 +160,11 @@ class SettingsTab(QWidget):
         self.spinbox_anim_num_image_sets.valueChanged.connect(
             self.animationNumImageSetsChanged)
 
-
+        checkbox = self.findChild(
+            QCheckBox, 'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED')
+        checkbox.stateChanged.connect(self.animationChangePreviewImage)
+        checkbox = self.findChild(QCheckBox, 'SMALL_SCENERY_FLAG17')
+        checkbox.stateChanged.connect(self.animationChangePreviewImage)
 
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
@@ -194,8 +198,9 @@ class SettingsTab(QWidget):
 
         self.sprites_tab.slider_sprite_index.setEnabled(
             subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
-        
-        self.animation_widget.setEnabled(subtype == obj.SmallScenery.Subtype.ANIMATED)
+
+        self.animation_widget.setEnabled(
+            subtype == obj.SmallScenery.Subtype.ANIMATED)
 
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
@@ -320,7 +325,6 @@ class SettingsTab(QWidget):
         if dialog.exec():
             self.o.data['properties']['frameOffsets'] = dialog.sequence
             self.spinbox_anim_num_image_sets.setValue(dialog.num_image_sets)
-            
 
     def animationTypeChanged(self, value):
         value = self.anim_subtype_box.currentIndex()
@@ -328,15 +332,15 @@ class SettingsTab(QWidget):
         anim_type = list(obj.SmallScenery.AnimationType)[value]
 
         self.o.changeAnimationType(anim_type)
-        
+
         self.container_anim.setEnabled(
-                self.o.animation_type == self.o.AnimationType.REGULAR)
+            self.o.animation_type == self.o.AnimationType.REGULAR)
 
         self.spinbox_anim_num_image_sets.setValue(self.o.num_image_sets)
 
         if anim_type == obj.SmallScenery.AnimationType.REGULAR:
             self.spinbox_frame_delay.setValue(
-                    self.o['properties'].get('animationDelay', 0))
+                self.o['properties'].get('animationDelay', 0))
             length = self.o['properties'].get('animationMask', 0)
             num_frames = self.o['properties'].get('numFrames', 1)
 
@@ -346,22 +350,29 @@ class SettingsTab(QWidget):
 
         self.sprites_tab.updateLockedSpriteLayersModel()
 
-
     def animationDelayChanged(self, value):
         num_frames = self.o['properties'].get('numFrames', False)
 
         if num_frames:
             self.o['properties']['animationMask'] = num_frames * 2**value - 1
-        
+
     def animationNumImageSetsChanged(self, value):
         self.sprites_tab.slider_sprite_index.setMaximum(
-                value-1+int(self.o.has_preview))
+            value-1+int(self.o.has_preview))
         if self.o.num_image_sets == value:
             return
-        
+
         self.o.changeNumImagesSets(value)
-        
-        
+
+        self.sprites_tab.updateLockedSpriteLayersModel()
+
+    def animationChangePreviewImage(self):
+        self.o.updateAnimPreviewImage()
+
+        self.sprites_tab.slider_sprite_index.setMaximum(
+            self.o.num_image_sets-1+int(self.o.has_preview))
+
+        self.sprites_tab.updateLockedSpriteLayersModel()
 
     def loadObjectSettings(self, author=None, author_id=None):
 
@@ -430,12 +441,14 @@ class SettingsTab(QWidget):
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
             if self.o.animation_type == obj.SmallScenery.AnimationType.REGULAR:
-                self.spinbox_anim_num_image_sets.setValue(self.o.num_image_sets)
-                self.spinbox_frame_delay.setValue(self.o['properties'].get('animationDelay', 0))
+                self.spinbox_anim_num_image_sets.setValue(
+                    self.o.num_image_sets)
+                self.spinbox_frame_delay.setValue(
+                    self.o['properties'].get('animationDelay', 0))
                 num_frames = self.o['properties'].get('numFrames')
-                self.spinbox_anim_delay.setValue(np.log2((self.o['properties']['animationMask'] +1 )/num_frames))
-            
-            
+                self.spinbox_anim_delay.setValue(
+                    np.log2((self.o['properties']['animationMask'] + 1)/num_frames))
+
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
 
@@ -726,44 +739,50 @@ class SpritesTab(QWidget):
                     self.layers[rot].append(layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
             animation_frame = self.slider_sprite_index.value()
-            if self.o.animation_type  in [obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
+            if self.o.animation_type in [obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
                 for rot in range(4):
                     base_index = rot
                     foutain_index = rot+4*(animation_frame+1)
                     foutain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
 
-                    sprite = self.o.sprites[self.o.data['images'][base_index]['path']]
+                    sprite = self.o.sprites[self.o.data['images']
+                                            [base_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, base_x, base_y, name=f'Base 1 View {rot+1}')
                     self.layers[rot].append(layer)
-                    
-                    sprite = self.o.sprites[self.o.data['images'][foutain_index]['path']]
+
+                    sprite = self.o.sprites[self.o.data['images']
+                                            [foutain_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, base_x, base_y, name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
                     self.layers[rot].append(layer)
 
                     if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
-                        sprite = self.o.sprites[self.o.data['images'][base_index+4]['path']]
+                        sprite = self.o.sprites[self.o.data['images']
+                                                [base_index+4]['path']]
                         layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
+                            sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
                         self.layers[rot].append(layer)
                         sprite = self.o.sprites[self.o.data['images']
-                                        [foutain_index+16]['path']]
+                                                [foutain_index+16]['path']]
                         layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
+                            sprite, self.main_window, base_x, base_y, name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
                         self.layers[rot].append(layer)
             else:
                 if animation_frame == 0 and self.o.has_preview:
                     for rot in range(4):
-                        sprite = self.o.giveSprite(rotation=rot, animation_frame = animation_frame)
+                        sprite = self.o.giveSprite(
+                            rotation=rot, animation_frame=animation_frame)
                         layer = wdg.SpriteLayer(
                             sprite, self.main_window, base_x, base_y, name=f'Preview Image View {rot+1}')
                         self.layers[rot].append(layer)
-                else:    
+                else:
                     for rot in range(4):
-                        sprite = self.o.giveSprite(rotation=rot, animation_frame = animation_frame)
+                        sprite = self.o.giveSprite(
+                            rotation=rot, animation_frame=animation_frame)
+
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, name=f'Animation Frame {animation_frame + 1} View {rot+1}')
+                            sprite, self.main_window, base_x, base_y, name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
                         self.layers[rot].append(layer)
         else:
             for rot in range(4):
@@ -786,7 +805,12 @@ class SpritesTab(QWidget):
         if self.o.subtype == self.o.Subtype.SIMPLE:
             return 1
         elif self.o.subtype == self.o.Subtype.ANIMATED:
-            raise NotImplementedError("Subtype missing")
+            if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN1:
+                return 2
+            elif self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
+                return 4
+            else:
+                return 1
         elif self.o.subtype == self.o.Subtype.GLASS:
             return 2
         elif self.o.subtype == self.o.Subtype.GARDENS:
@@ -967,52 +991,52 @@ class EditAnimationSequenceUI(QDialog):
         self.table.cellClicked.connect(self.cellClicked)
         self.spinbox_length.valueChanged.connect(self.lengthChanged)
         self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
-        
+
         self.button_ascending.clicked.connect(self.ascending)
         self.button_descending.clicked.connect(self.descending)
         self.button_back_forth.clicked.connect(self.backForth)
-        
+
         for i in range(self.table.rowCount()):
             self.table.setRowHeight(i, 10)
-    
-        for i in range(self.table.columnCount()):            
-            self.table.setColumnWidth(i,10)
-            
-        
+
+        for i in range(self.table.columnCount()):
+            self.table.setColumnWidth(i, 10)
+
         self.resize(self.layout().sizeHint())
         self.updateTable()
 
     def cellClicked(self, row, column):
         self.sequence[row] = column
-        
+
         self.updateTable()
 
     def lengthChanged(self, value):
         old_len = len(self.sequence)
-        
+
         if old_len < value:
             for i in range(value-old_len):
                 self.sequence.append(0)
         else:
             self.sequence = self.sequence[:value]
-        
-        self.table.setRowCount(value)  
+
+        self.table.setRowCount(value)
         for i in range(self.table.rowCount()):
             self.table.setRowHeight(i, 10)
-    
+
         self.resize(self.layout().sizeHint())
         self.updateTable()
 
     def numSpritesChanged(self, value):
         old_len = max(self.sequence)
-        
+
         if old_len > value-1:
-            self.sequence = [value-1 if x==old_len else x for x in self.sequence]  
-                    
+            self.sequence = [value-1 if x ==
+                             old_len else x for x in self.sequence]
+
         self.table.setColumnCount(value)
-        for i in range(self.table.columnCount()):            
-            self.table.setColumnWidth(i,10)
-        
+        for i in range(self.table.columnCount()):
+            self.table.setColumnWidth(i, 10)
+
         self.num_image_sets = value
 
         self.resize(self.layout().sizeHint())
@@ -1020,35 +1044,34 @@ class EditAnimationSequenceUI(QDialog):
 
     def ascending(self):
         self.spinbox_num_sprites.setValue(self.table.rowCount())
-        
+
         self.sequence = [i for i in range(self.table.rowCount())]
-        
+
         self.updateTable()
-        
+
     def descending(self):
         length = self.table.rowCount()
         self.spinbox_num_sprites.setValue(length)
-        
+
         self.sequence = [length-i-1 for i in range(length)]
-        
+
         self.updateTable()
-        
+
     def backForth(self):
         length = int(self.table.rowCount()/2)
-        if length<2:
+        if length < 2:
             return
-        
+
         self.spinbox_num_sprites.setValue(length)
-        
+
         self.sequence[:length] = [i for i in range(length)]
         self.sequence[length:] = [length-i-1 for i in range(length)]
-        
+
         self.updateTable()
-        
-        
+
     def updateTable(self):
         self.table.clearContents()
-        
+
         for row, column in enumerate(self.sequence):
             item = QTableWidgetItem()
             self.table.setItem(row, column, item)
