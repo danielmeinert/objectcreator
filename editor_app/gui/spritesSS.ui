@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>299</width>
-    <height>552</height>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -487,6 +487,32 @@
       </property>
       <property name="horizontalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_allViewsCycleFrame">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>507</y>
+        <width>101</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Apply to all views</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_cycleFrame">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>480</y>
+        <width>81</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Cycle Frame</string>
       </property>
      </widget>
     </widget>
