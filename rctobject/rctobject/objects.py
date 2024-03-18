@@ -534,7 +534,7 @@ class SmallScenery(RCTObject):
             self.animation_type = self.AnimationType.REGULAR
             self.data['properties']['frameOffsets'] = [0]
             self.data['properties']['animationDelay'] = 0
-            self.data['properties']['animationMask'] = 1
+            self.data['properties']['animationMask'] = 0
             self.data['properties']['numFrames'] = 1
             self.has_preview = False
             self.num_image_sets = int(len(self.data['images'])/4)
@@ -588,7 +588,7 @@ class SmallScenery(RCTObject):
         if self.animation_type == self.AnimationType.REGULAR:
             self.data['properties']['frameOffsets'] = [0]
             self.data['properties']['animationDelay'] = 0
-            self.data['properties']['animationMask'] = 1
+            self.data['properties']['animationMask'] = 0
             self.data['properties']['numFrames'] = 1
         else:
             self.data['properties'].pop('frameOffsets', None)
