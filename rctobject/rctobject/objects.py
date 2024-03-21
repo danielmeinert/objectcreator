@@ -135,7 +135,7 @@ class RCTObject:
         self.rotateObject(-self.rotation)
 
         # If sprites have changed, they have to be updated
-        self.updateSpritesList()
+        self.updateImageList()
         self.updateImageOffsets()
 
         if not include_originalId and self.data.get('originalId', False):
@@ -170,11 +170,9 @@ class RCTObject:
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
 
-            for i, im in enumerate(self['images']):
-                newpath = f'images/{i}.png'
+            for im in self['images']:
                 sprite = self.sprites[im['path']]
-                sprite.save(f'{temp}/{newpath}')
-                im['path'] = newpath
+                sprite.save(f"{temp}/{im['path']}")
 
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=self.data, fp=file, indent=2)
@@ -224,8 +222,15 @@ class RCTObject:
             im['x'] = self.sprites[im['path']].x
             im['y'] = self.sprites[im['path']].y
 
-    def updateSpritesList(self):
-        pass
+    def updateImageList(self):
+        new_dict = {}
+        
+        for i, im in enumerate(self['images']):
+            sprite = self.sprites.pop(im['path'])
+            im['path'] = f'images/{i}.png'
+            new_dict[im['path']] = sprite
+
+        self.sprites = new_dict
 
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
         self.sprites[self.data['images'][sprite_index]
@@ -248,6 +253,7 @@ class SmallScenery(RCTObject):
                 self.subtype = self.Subtype.ANIMATED
                 self.has_preview = data['properties'].get(
                     'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)
+                self.preview_backup = {}
 
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
                     self.animation_type = self.AnimationType.FOUNTAIN1
@@ -411,11 +417,11 @@ class SmallScenery(RCTObject):
                 rotation = self.rotation
 
             base_index = rotation
-            foutain_index = rotation+4*(animation_frame+1)
-            foutain_index += 4 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
+            fountain_index = rotation+4*(animation_frame+1)
+            fountain_index += 4 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
 
             s1 = self.sprites[self.data['images'][base_index]['path']]
-            s2 = self.sprites[self.data['images'][foutain_index]['path']]
+            s2 = self.sprites[self.data['images'][fountain_index]['path']]
 
             canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
                                 abs(s2.x), abs(s2.image.width+s2.x))
@@ -425,7 +431,7 @@ class SmallScenery(RCTObject):
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 s3 = self.sprites[self.data['images'][base_index+4]['path']]
                 s4 = self.sprites[self.data['images']
-                                  [foutain_index+16]['path']]
+                                  [fountain_index+16]['path']]
 
                 canvas_size_x = max(abs(s3.x), abs(s3.image.width+s3.x),
                                     abs(s4.x), abs(s4.image.width+s4.x), canvas_size_x)
@@ -512,6 +518,8 @@ class SmallScenery(RCTObject):
             image_list = self.data['images'][4*i:4*i+4]
             self.data['images'][4*i:4*i+4] = image_list[-step:] + \
                 image_list[:-step]
+                
+        self.updateImageList()
 
     def changeFlag(self, flag, value):
         self.data['properties'][flag] = value
@@ -537,6 +545,8 @@ class SmallScenery(RCTObject):
             self.data['properties']['animationMask'] = 0
             self.data['properties']['numFrames'] = 1
             self.has_preview = False
+            self.preview_backup = {}
+
             self.num_image_sets = int(len(self.data['images'])/4)
         elif subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
@@ -641,11 +651,66 @@ class SmallScenery(RCTObject):
                     value-1 if x == self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']]
 
         self.num_image_sets = value
+        
+        self.updateImageList()
 
     def updateAnimPreviewImage(self):
-        self.has_preview = self.data['properties'].get(
+        new_has_preview = self.data['properties'].get(
             'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
-        self.changeNumImagesSets(self.num_image_sets)
+        if not new_has_preview == self.has_preview:
+            self.has_preview = new_has_preview
+            if self.has_preview:
+                previews = [{'path': f'pre{i}', 'x':0, 'y':0} for i in [0,1,2,3]]
+                self['images'] = previews + self['images']
+                for im in previews:
+                    self.sprites[im['path']] = self.preview_backup.get(im['path'], spr.Sprite(None,(0,0), palette=self.palette))
+            else:
+                for i, im in enumerate(self['images'][:4]):
+                    sprite = self.sprites.pop(im['path'])
+                    self.preview_backup[f'pre{i}'] = sprite
+                
+                self['images'] = self['images'][4:]   
+                
+        self.updateImageList()
+                        
+    def cycleAnimationFrame(self, view = -1):
+        shift = int(self.has_preview)
+        shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
+        shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
+        shift += 8 if self.animation_type == self.AnimationType.CLOCK else 0
+        step = 1 if self.animation_type in [
+            self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
+
+        
+        shift = step*shift
+        
+        #case cycle all views
+        if view == -1:            
+            image_list = self.data['images'][shift:]
+            if self.animation_type == self.AnimationType.FOUNTAIN4:
+                fountain1 = image_list[:16]
+                fountain2 = image_list[16:]
+                
+                self.data['images'][shift:] = fountain1[-step:] + \
+                    fountain1[:-step] + fountain2[-step:] + fountain2[:-step]
+            else:    
+                self.data['images'][shift:] = image_list[-step:] + \
+                    image_list[:-step]
+        #case just one view
+        else:
+            image_list = self.data['images'][shift+view::step]
+            if self.animation_type == self.AnimationType.FOUNTAIN4:
+                fountain1 = image_list[:4]
+                fountain2 = image_list[4:]
+                
+                self.data['images'][shift+view::step] = fountain1[-1:] + \
+                    fountain1[:-1] + fountain2[-1:] + fountain2[:-1]
+            else:    
+                self.data['images'][shift+view::step] = image_list[-1:] + \
+                image_list[:-1]
+            
+            
+
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
@@ -793,9 +858,6 @@ class LargeScenery(RCTObject):
             pos = rot_mat.dot(pos)
             tile['x'], tile['y'] = int(pos[0]), int(pos[1])
 
-    def updateSpritesList(self):
-        if self.subtype == self.Subtype.SIGN:
-            self.sprites = self.glyphs_sprites.append(self.sprites)
 
     def getDrawingOrder(self):
         order = {}

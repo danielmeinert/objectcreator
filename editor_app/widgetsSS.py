@@ -198,6 +198,7 @@ class SettingsTab(QWidget):
 
         self.sprites_tab.slider_sprite_index.setEnabled(
             subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
+        self.sprites_tab.widget_animation_controls.setEnabled(subtype == obj.SmallScenery.Subtype.ANIMATED)
 
         self.animation_widget.setEnabled(
             subtype == obj.SmallScenery.Subtype.ANIMATED)
@@ -494,6 +495,11 @@ class SpritesTab(QWidget):
             QPushButton, "pushButton_cycleRotation")
 
         self.button_cycle_rotation.clicked.connect(self.cycleRotation)
+        
+        self.button_cycle_animation_frame = self.findChild(
+            QPushButton, "pushButton_cycleFrame")
+
+        self.button_cycle_animation_frame.clicked.connect(self.cycleAnimationFrame)
 
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(
@@ -666,6 +672,14 @@ class SpritesTab(QWidget):
 
     def cycleRotation(self):
         self.o.cycleSpritesRotation()
+
+        self.updateLockedSpriteLayersModel()
+        self.updateAllViews()
+        
+    def cycleAnimationFrame(self):
+        view = -1 if self.checkBox_allViewsCycleFrame.isChecked() else self.o.rotation
+        
+        self.o.cycleAnimationFrame(view = view)
 
         self.updateLockedSpriteLayersModel()
         self.updateAllViews()

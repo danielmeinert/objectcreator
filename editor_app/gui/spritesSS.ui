@@ -489,32 +489,66 @@
        <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
-     <widget class="QCheckBox" name="checkBox_allViewsCycleFrame">
+     <widget class="QWidget" name="widget_animation_controls" native="true">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>507</y>
+        <y>470</y>
         <width>101</width>
-        <height>20</height>
+        <height>111</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Apply to all views</string>
-      </property>
+      <widget class="QPushButton" name="pushButton_cycleFrame">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>81</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Cycle Frame</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="checkBox_allViewsCycleFrame">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>40</y>
+         <width>101</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Apply to all views</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="pushButton_cycleFrame">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>480</y>
-        <width>81</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Cycle Frame</string>
-      </property>
-     </widget>
+     <zorder>widget_animation_controls</zorder>
+     <zorder>pushButton_resetOffsets</zorder>
+     <zorder>pushButton_resetImage</zorder>
+     <zorder>pushButton_loadImage</zorder>
+     <zorder>sprite_view_preview0</zorder>
+     <zorder>label_activeView</zorder>
+     <zorder>label_2</zorder>
+     <zorder>horizontalSlider_spriteIndex</zorder>
+     <zorder>sprite_view_preview1</zorder>
+     <zorder>sprite_view_preview2</zorder>
+     <zorder>sprite_view_preview3</zorder>
+     <zorder>pushButton_cycleRotation</zorder>
+     <zorder>label</zorder>
+     <zorder>label_3</zorder>
+     <zorder>label_7</zorder>
+     <zorder>label_8</zorder>
+     <zorder>groupBox_remap</zorder>
+     <zorder>sprite_view_main</zorder>
     </widget>
    </item>
   </layout>
