@@ -773,6 +773,11 @@ class LargeScenery(RCTObject):
             self.object_type = cts.Type.LARGE
 
             self.num_tiles = len(self.data['properties']['tiles'])
+            self.tiles = []
+            for i, tile_dict in enumerate(self['properties']['tiles']):
+                tile = self.Tile(tile_dict, self['images'][4*(i+1: ])
+                self.tiles.append(tile)
+                
 
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
@@ -785,21 +790,15 @@ class LargeScenery(RCTObject):
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
 
-        self.rotation_matrices = [
-            np.array([[1, 0], [0, 1]]),      # R^0
-            np.array([[0, 1], [-1, 0]]),  # R
-            np.array([[-1, 0], [0, -1]]),  # R^2
-            np.array([[0, -1], [1, 0]])   # R^3
-        ]
 
     def size(self):
         max_x = 0
         max_y = 0
         max_z = 0
-        for tile in self.data['properties']['tiles']:
-            max_x = max(tile['x'], max_x)
-            max_y = max(tile['y'], max_y)
-            max_z = max(tile.get('z', 0) + tile['clearance'], max_z)
+        for tile in self.tiles:
+            max_x = max(tile.x, max_x)
+            max_y = max(tile.y, max_y)
+            max_z = max(tile.z + tile.clearance, max_z)
 
         x = (max_x + 32)/32
         y = (max_y + 32)/32
@@ -811,10 +810,7 @@ class LargeScenery(RCTObject):
         x_size, y_size, z_size = self.size()
         canvas = Image.new('RGBA', self.spriteBoundingBox())
 
-        tiles = self.data['properties']['tiles']
         tile_index = 0
-
-        view = self.rotation
 
         drawing_order = self.getDrawingOrder()
 
@@ -833,13 +829,12 @@ class LargeScenery(RCTObject):
             x_baseline = 32
 
         for tile_index in drawing_order:
-            tile = tiles[tile_index]
+            tile = self.tiles[tile_index]
             y_base = y_baseline + \
-                int(tile['x']/2) + int(tile['y']/2) - tile.get('z', 0)
-            x_base = x_baseline - tile['x'] + tile['y']
-
-            sprite_index = 4 + 4*tile_index + view + self.num_glyph_sprites
-            sprite = self.sprites[self.data['images'][sprite_index]['path']]
+                int(tile.x/2) + int(tile.y/2) - tile.z
+            x_base = x_baseline - tile.x + tile.y
+            
+            sprite = tile.giveSprite()
             canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
@@ -907,6 +902,24 @@ class LargeScenery(RCTObject):
 
         def __int__(self):
             return self.value
+        
+    class Tile:
+        def __init__(self, dict_entry, images):
+            self.dict_entry = dict_entry
+            self.x = int(dict_entry['x']/32)
+            self.y = int(dict_entry['y']/32)
+            self.z = int(dict_entry.get('z', 0)/8)
+            self.clearance = int(dict_entry['clearance']/8)
+            
+            self.images = images
+            
+            
+            self.rotation_matrices = [
+                np.array([[1, 0], [0, 1]]),   # R^0
+                np.array([[0, 1], [-1, 0]]),  # R
+                np.array([[-1, 0], [0, -1]]), # R^2
+                np.array([[0, -1], [1, 0]])   # R^3
+                ]
 
 
 # Wrapper to load any object type and instantiate is as the correct subclass
