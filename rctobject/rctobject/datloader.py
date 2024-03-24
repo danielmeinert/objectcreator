@@ -293,27 +293,23 @@ def loadDatObject(filename: str):
             result['images'], sprites = read_image_table(chunk, pos)
             # if(result["image"] == =FALSE)return FALSE
 
-        # elif object_type == 'scenery_large':
-        #     tag_large_scenery_header(chunk, tags)
+        elif object_type == 'scenery_large':
+            tag_large_scenery_header(chunk, tags)
 
-        #     pos += 0x1A
-        #     result['strings'], pos = read_string_table(chunk, pos)
+            pos += 0x1A
+            result['strings'], pos = read_string_table(chunk, pos)
 
-        #     if result['strings'].get('en-US', False):
-        #         result['strings'].pop('en-US')
+            if result['strings'].get('en-US', False):
+                result['strings'].pop('en-US')
 
-        #     # skip group info
-        #     scenery_group = chunk[pos+4:pos+12].decode('utf-8')
-        #     if scenery_group != '        ':
-        #         result['sceneryGroup'] = scenery_group
-        #     pos += 16
-        #     tags['tiles'] = large_scenery_scan_optional(chunk, pos)
+            # skip group info
+            scenery_group = chunk[pos+4:pos+12].decode('utf-8')
+            if scenery_group != '        ':
+                result['sceneryGroup'] = scenery_group
+            pos += 16
+            tags['tiles'] = large_scenery_scan_optional(chunk, pos)
 
-            # if((ord(chunk[7]) & 0x4) != 0x4)
-            # {
-            # result["image"] = large_scenery_get_preview(chunk, pos, tile_info)
-        # 		if(result["image"] == =FALSE)return FALSE
-
+            result['images'], sprites = read_image_table(chunk, pos)
         else:
             raise NotImplementedError(
                 f'dat-Import of {object_type} not supported.')
@@ -395,18 +391,19 @@ def read_image_table(data, graphic_base):
 
     length = len(data)
     if graphic_base >= length-3:
-        return False
+        raise RuntimeError(f'Length of graphic base {graphic_base} larger than length of image data {length}.')
 
     num_images = int.from_bytes(data[graphic_base:graphic_base+4], 'little')
 
     bitmap_base = 8+graphic_base+16*num_images
     if bitmap_base >= length:
-        return False
+        raise RuntimeError(f'Length of bitmap base {bitmap_base} larger than length of image data {length}.')
 
     # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
     images = []
     sprites = {}
 
+    print(num_images)
     for index in range(num_images):
         im = {}
 
@@ -424,7 +421,7 @@ def read_image_table(data, graphic_base):
         if flag & 0x4:
             image_base = bitmap_base+offset
             if image_base+2*height >= length:
-                return False
+                raise RuntimeError(f'Length of image data {image_base+2*height} larger than length of image data {length}.')
             for row in range(height):
                 row_data = image_base + \
                     unpack('H', data[image_base+row*2:image_base+row*2+2])[0]
@@ -432,19 +429,20 @@ def read_image_table(data, graphic_base):
                 last = 0
                 while True:
                     if row_data >= length:
-                        return False
+                        raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
 
                     seg_length = data[row_data] & 0x7F
                     last = data[row_data] & 0x80
                     row_data += 1
                     if row_data >= length:
-                        return False
+                        raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
+
 
                     x_offset = data[row_data]
                     row_data += 1
                     for x in range(seg_length):
                         if row_data >= length:
-                            return False
+                            raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
                         image.putpixel(
                             (x+x_offset, row), tuple(pal.complete_palette_array[data[row_data]]))
                         row_data += 1
@@ -454,7 +452,7 @@ def read_image_table(data, graphic_base):
         else:
             pixel = bitmap_base + offset
             if pixel+width*height >= length:
-                return False
+                raise RuntimeError(f'Length of image data {pixel+width*height} larger than length of image data {length}.')
             for y in range(height):
                 for x in range(width):
                     image.putpixel(

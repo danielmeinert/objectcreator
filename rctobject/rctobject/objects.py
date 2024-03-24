@@ -770,14 +770,7 @@ class LargeScenery(RCTObject):
             if data['objectType'] != 'scenery_large':
                 raise TypeError("Object is not large scenery.")
 
-            self.object_type = cts.Type.LARGE
-
-            self.num_tiles = len(self.data['properties']['tiles'])
-            self.tiles = []
-            for i, tile_dict in enumerate(self['properties']['tiles']):
-                tile = self.Tile(tile_dict, self['images'][4*(i+1: ])
-                self.tiles.append(tile)
-                
+            self.object_type = cts.Type.LARGE          
 
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
@@ -785,10 +778,15 @@ class LargeScenery(RCTObject):
                 self.glyphs = self.font['glyphs']
                 self.num_glyph_sprites = self.font['numImages'] * \
                     2*(2-int(self.font.get('isVertical', 0)))
-
             else:
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
+                
+            self.num_tiles = len(self.data['properties']['tiles'])
+            self.tiles = []
+            for i, tile_dict in enumerate(self['properties']['tiles']):
+                tile = self.Tile(o = self, dict_entry=tile_dict, images=self['images'][4*(i+1)+self.num_glyph_sprites:4*(i+2)+self.num_glyph_sprites], rotation=self.rotation)
+                self.tiles.append(tile)
 
 
     def size(self):
@@ -814,6 +812,7 @@ class LargeScenery(RCTObject):
 
         drawing_order = self.getDrawingOrder()
 
+        view = self.rotation
         # Set base point of (0,0) tile according to rotation
         if view == 0:
             y_baseline = z_size*8
@@ -842,23 +841,15 @@ class LargeScenery(RCTObject):
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
-        if self.num_tiles == 1:
-            return
 
-        rot_mat = self.rotation_matrices[rot % 4]
-
-        for tile in self.data['properties']['tiles']:
-            pos = np.array([tile['x'], tile['y']])
-
-            pos = rot_mat.dot(pos)
-            tile['x'], tile['y'] = int(pos[0]), int(pos[1])
-
-
+        for tile in self.tiles:
+            tile.rotate(rot)
+            
     def getDrawingOrder(self):
         order = {}
 
-        for tile_index, tile in enumerate(self.data['properties']['tiles']):
-            score = tile['x'] + tile['y']
+        for tile_index, tile in enumerate(self.tiles):
+            score = tile.x + tile.y
             order[tile_index] = score
 
         return sorted(order, key=order.get)
@@ -904,7 +895,9 @@ class LargeScenery(RCTObject):
             return self.value
         
     class Tile:
-        def __init__(self, dict_entry, images):
+        def __init__(self, o, dict_entry, images, rotation = 0):
+            self.o = o
+            
             self.dict_entry = dict_entry
             self.x = int(dict_entry['x']/32)
             self.y = int(dict_entry['y']/32)
@@ -913,13 +906,32 @@ class LargeScenery(RCTObject):
             
             self.images = images
             
-            
+            self.rotation = rotation
             self.rotation_matrices = [
                 np.array([[1, 0], [0, 1]]),   # R^0
                 np.array([[0, 1], [-1, 0]]),  # R
                 np.array([[-1, 0], [0, -1]]), # R^2
                 np.array([[0, -1], [1, 0]])   # R^3
                 ]
+         
+        def rotate(self, rot):   
+            self.rotation = (self.rotation + rot) % 4
+            
+            rot_mat = self.rotation_matrices[rot % 4]
+        
+            pos = np.array([self.x, self.y])
+
+            pos = rot_mat.dot(pos)
+            self.x, self.y = int(pos[0]), int(pos[1])
+            
+        def giveSprite(self, rotation = None):
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+                
+            return self.o.sprites[self.images[rotation]['path']]
+
 
 
 # Wrapper to load any object type and instantiate is as the correct subclass
@@ -940,8 +952,8 @@ def load(filepath: str, openpath=OPENRCTPATH):
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(obj.data, obj.sprites, obj.old_id)
-   # elif obj_type == 'scenery_large':
-   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
         raise NotImplementedError(
             f"Object type {obj_type} unsupported by now.")
@@ -959,8 +971,8 @@ def loadFromId(identifier: str, openpath=OPENRCTPATH):
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(obj.data, obj.sprites, obj.old_id)
-   # elif obj_type == 'scenery_large':
-   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
         raise NotImplementedError(
             f"Object type {obj_type} unsupported by now.")
