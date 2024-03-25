@@ -787,6 +787,8 @@ class LargeScenery(RCTObject):
             for i, tile_dict in enumerate(self['properties']['tiles']):
                 tile = self.Tile(o = self, dict_entry=tile_dict, images=self['images'][4*(i+1)+self.num_glyph_sprites:4*(i+2)+self.num_glyph_sprites], rotation=self.rotation)
                 self.tiles.append(tile)
+            
+            self.updateImageList()
 
 
     def size(self):
@@ -794,13 +796,13 @@ class LargeScenery(RCTObject):
         max_y = 0
         max_z = 0
         for tile in self.tiles:
-            max_x = max(tile.x, max_x)
-            max_y = max(tile.y, max_y)
-            max_z = max(tile.z + tile.clearance, max_z)
+            max_x = max(abs(tile.x), max_x)
+            max_y = max(abs(tile.y), max_y)
+            max_z = max(abs(tile.z + tile.clearance), max_z)
 
-        x = (max_x + 32)/32
-        y = (max_y + 32)/32
-        z = max_z / 8
+        x = max_x + 1
+        y = max_y + 1
+        z = max_z
 
         return (int(x), int(y), int(z))
 
@@ -830,8 +832,8 @@ class LargeScenery(RCTObject):
         for tile_index in drawing_order:
             tile = self.tiles[tile_index]
             y_base = y_baseline + \
-                int(tile.x/2) + int(tile.y/2) - tile.z
-            x_base = x_baseline - tile.x + tile.y
+                tile.x*16 + tile.y*16 - tile.z*8
+            x_base = x_baseline - tile.x*32 + tile.y*32
             
             sprite = tile.giveSprite()
             canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
@@ -880,6 +882,25 @@ class LargeScenery(RCTObject):
                 image = self.sprites[im['path']].show()
                 im['x'] = -int(image.size[0]/2)
                 im['y'] = image.size[1]
+                
+    # Override base class method
+    def updateImageList(self):
+        new_dict = {}
+        
+        for view in range(4):
+            im = self['images'][view]
+            sprite = self.sprites.pop(im['path'])
+            im['path'] = f'images/preview_{view}.png'
+            new_dict[im['path']] = sprite
+        
+        for i, tile in enumerate(self.tiles):
+            for view in range(4):
+                im = tile.images[view]
+                sprite = self.sprites.pop(im['path'])
+                im['path'] = f'images/tile_{i}_im_{view}.png'
+                new_dict[im['path']] = sprite
+
+        self.sprites = new_dict
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
