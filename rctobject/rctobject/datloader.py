@@ -171,7 +171,7 @@ def tag_small_scenery_scan_optional(data, tags, pos):
             if pos >= length:
                 raise RuntimeError("Error while scanning optional")
 
-        tags['framesOffsets'] = frames
+        tags['frameOffsets'] = frames
 
     pos += 1
     if pos >= length:
