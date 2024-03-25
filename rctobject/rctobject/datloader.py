@@ -396,14 +396,13 @@ def read_image_table(data, graphic_base):
     num_images = int.from_bytes(data[graphic_base:graphic_base+4], 'little')
 
     bitmap_base = 8+graphic_base+16*num_images
-    if bitmap_base >= length:
+    if bitmap_base > length:
         raise RuntimeError(f'Length of bitmap base {bitmap_base} larger than length of image data {length}.')
 
-    # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
+    # images is the list for the json with offset data, sprites is the dict with the sprites for the object
     images = []
     sprites = {}
 
-    print(num_images)
     for index in range(num_images):
         im = {}
 
@@ -420,7 +419,7 @@ def read_image_table(data, graphic_base):
 
         if flag & 0x4:
             image_base = bitmap_base+offset
-            if image_base+2*height >= length:
+            if image_base+2*height > length:
                 raise RuntimeError(f'Length of image data {image_base+2*height} larger than length of image data {length}.')
             for row in range(height):
                 row_data = image_base + \
@@ -428,20 +427,20 @@ def read_image_table(data, graphic_base):
 
                 last = 0
                 while True:
-                    if row_data >= length:
+                    if row_data > length:
                         raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
 
                     seg_length = data[row_data] & 0x7F
                     last = data[row_data] & 0x80
                     row_data += 1
-                    if row_data >= length:
+                    if row_data > length:
                         raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
 
 
                     x_offset = data[row_data]
                     row_data += 1
                     for x in range(seg_length):
-                        if row_data >= length:
+                        if row_data > length:
                             raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
                         image.putpixel(
                             (x+x_offset, row), tuple(pal.complete_palette_array[data[row_data]]))
@@ -451,8 +450,8 @@ def read_image_table(data, graphic_base):
                         break
         else:
             pixel = bitmap_base + offset
-            if pixel+width*height >= length:
-                raise RuntimeError(f'Length of image data {pixel+width*height} larger than length of image data {length}.')
+            if pixel+width*height > length:
+                raise RuntimeError(f'Length of pixel image data {pixel+width*height} larger than length of image data {length}.')
             for y in range(height):
                 for x in range(width):
                     image.putpixel(
