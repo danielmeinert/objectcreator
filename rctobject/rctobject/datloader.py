@@ -406,7 +406,6 @@ def read_image_table(data, graphic_base):
     images = []
     sprites = {}
 
-    print(num_images)
     for index in range(num_images):
         im = {}
 
