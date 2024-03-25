@@ -176,6 +176,8 @@ def tag_small_scenery_scan_optional(data, tags, pos):
     pos += 1
     if pos >= length:
         raise RuntimeError("Error while scanning optional")
+    
+    return pos
 
 
 def tag_large_scenery_header(data, tags):
@@ -204,6 +206,7 @@ def large_scenery_scan_optional(data, pos):
     if pos >= length-1:
         return RuntimeError("Error while scanning optional")
 
+    i = 0
     while (data[pos] != 0xFF) or (data[pos+1] != 0xFF):
         tile = {}
         tile['x'] = int.from_bytes(data[pos:pos+2], 'little', signed=True)
@@ -216,12 +219,12 @@ def large_scenery_scan_optional(data, pos):
 
         tiles.append(tile)
         pos += 9
-
-    if pos >= length-1:
-        return RuntimeError("Error while scanning optional")
-
+        i+=1
+        if pos >= length-1:
+            return RuntimeError("Error while scanning optional")
+    
     pos += 2
-    return tiles
+    return tiles, pos
 
 
 def read_string_table(data, pos):
@@ -288,7 +291,7 @@ def loadDatObject(filename: str):
             if scenery_group != '        ':
                 result['sceneryGroup'] = scenery_group
             pos += 16
-            tag_small_scenery_scan_optional(chunk, tags, pos)
+            pos = tag_small_scenery_scan_optional(chunk, tags, pos)
 
             result['images'], sprites = read_image_table(chunk, pos)
             # if(result["image"] == =FALSE)return FALSE
@@ -307,8 +310,8 @@ def loadDatObject(filename: str):
             if scenery_group != '        ':
                 result['sceneryGroup'] = scenery_group
             pos += 16
-            tags['tiles'] = large_scenery_scan_optional(chunk, pos)
-
+            tags['tiles'], pos = large_scenery_scan_optional(chunk, pos)
+            
             result['images'], sprites = read_image_table(chunk, pos)
         else:
             raise NotImplementedError(
