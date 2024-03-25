@@ -901,6 +901,42 @@ class LargeScenery(RCTObject):
                 new_dict[im['path']] = sprite
 
         self.sprites = new_dict
+        
+    def addTile(self, coords):
+        # we expect that the image list is ordered
+        
+        index = len(self.tiles)
+        
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path':path, 'x':0, 'y':0}
+                self.sprites[path] = spr.Sprite(None, (0,0), self.palette) 
+
+            images.append(im)
+        
+        dict_entry = {'x': coords[0]*32,
+                      'y': coords[1]*32,
+                      'z': 0,
+                      'clearance': 0,
+                      'hasSupports': False,
+                      'allowSupportsAbove':False, 
+                      'walls': 0,
+                      'corners': 15}
+        
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+        
+    def removeTile(self, index):
+        if index <1:
+            raise RuntimeError('Cannot remove anchor tile.')
+        
+        self.tiles.pop(index)
+        
+        self.updateImageList()
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
@@ -927,13 +963,15 @@ class LargeScenery(RCTObject):
             
             self.images = images
             
-            self.rotation = rotation
+            self.rotation = 0
             self.rotation_matrices = [
                 np.array([[1, 0], [0, 1]]),   # R^0
                 np.array([[0, 1], [-1, 0]]),  # R
                 np.array([[-1, 0], [0, -1]]), # R^2
                 np.array([[0, -1], [1, 0]])   # R^3
                 ]
+            
+            self.rotate(rotation)
          
         def rotate(self, rot):   
             self.rotation = (self.rotation + rot) % 4
