@@ -140,3 +140,9 @@ dmypy.json
 .pylint.d/widgets1.stats
 .vscode/settings.json
 build_files/auto-py-to-exe_editor.json
+
+# IDE stuff
+.idea/*
+
+# Mac stuff
+.DS_Store
