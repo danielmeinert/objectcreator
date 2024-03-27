@@ -9,7 +9,7 @@
 """
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, \
-    QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton,\
+    QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QToolButton, QComboBox, QPushButton, \
     QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
@@ -87,7 +87,7 @@ class BoundingBoxes():
 
     def giveBackbox(self, o):
         object_type = o.object_type
-        if object_type == cts.Type.SMALL:
+        if object_type == obj.Type.SMALL:
             shape = o.shape
             h = int(o['properties']['height']/8)
 
@@ -192,7 +192,7 @@ class SymmetryAxes():
 
     def giveSymmAxes(self, o):
         object_type = o.object_type
-        if object_type == cts.Type.SMALL:
+        if object_type == obj.Type.SMALL:
             shape = o.shape
             rot = o.rotation
 

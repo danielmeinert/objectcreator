@@ -124,7 +124,7 @@ class MainWindowUi(QMainWindow):
 
         # Menubar
         self.actionSmallScenery.triggered.connect(
-            lambda x: self.objectNew(cts.Type.SMALL))
+            lambda x: self.objectNew(obj.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionDATIdentifier.triggered.connect(
             self.objectOpenFileFromIdentifier)
@@ -371,9 +371,12 @@ class MainWindowUi(QMainWindow):
 
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
-                tab.sprites_tab.sprite_view_main.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.current_background_color[0],
-                                                                                              self.current_background_color[1],
-                                                                                              self.current_background_color[2])))
+                tab.sprites_tab.sprite_view_main.setBackgroundBrush(
+                    QtGui.QBrush(
+                        QtGui.QColor(
+                            self.current_background_color[0],
+                            self.current_background_color[1],
+                            self.current_background_color[2])))
                 for _, preview in enumerate(tab.sprites_tab.sprite_preview):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"
@@ -556,7 +559,7 @@ class MainWindowUi(QMainWindow):
 
     # Menubar actions
 
-    def objectNew(self, obj_type=cts.Type.SMALL):
+    def objectNew(self, obj_type=obj.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1
