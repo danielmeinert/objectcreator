@@ -124,7 +124,7 @@ class MainWindowUi(QMainWindow):
 
         # Menubar
         self.actionSmallScenery.triggered.connect(
-            lambda x: self.objectNew(cts.Type.SMALL))
+            lambda x: self.objectNew(obj.Type.SMALL))
         self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionDATIdentifier.triggered.connect(
             self.objectOpenFileFromIdentifier)
@@ -563,7 +563,7 @@ class MainWindowUi(QMainWindow):
 
     # Menubar actions
 
-    def objectNew(self, obj_type=cts.Type.SMALL):
+    def objectNew(self, obj_type=obj.Type.SMALL):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2023 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -37,7 +37,7 @@ from rctobject import objects as obj
 class SettingsTab(QWidget):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
-        uic.loadUi(aux.resource_path('gui/settingsSS.ui'), self)
+        uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
 
         self.o = o
         self.object_tab = object_tab
@@ -56,18 +56,9 @@ class SettingsTab(QWidget):
             QComboBox, "comboBox_subtype")
 
         self.subtype_box.currentIndexChanged.connect(self.subtypeChanged)
-
-        # Shape combobox
-        self.shape_box = self.findChild(
-            QComboBox, "comboBox_shape")
-        self.diagonal_box = self.findChild(QCheckBox, "checkBox_diagonal")
-
-        self.shape_box.currentIndexChanged.connect(self.shapeChanged)
-        self.diagonal_box.stateChanged.connect(self.shapeChanged)
-
-        # clearance Spinbox
-        self.clearance_box = self.findChild(QSpinBox, "spinBox_clearance")
-        self.clearance_box.valueChanged.connect(self.clearanceChanged)
+        # disactivate 3d sign and scrolling sign for now
+        for i in [1, 2]:
+            self.subtype_box.model().item(i).setEnabled(False)
 
         # Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
@@ -95,21 +86,19 @@ class SettingsTab(QWidget):
             QPushButton, "pushButton_clearAllLang")
         self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
 
-        self.author_field.textChanged.connect(self.authorChanged)
+        self.author_field.textEdited.connect(self.authorChanged)
         self.author_id_field.textEdited.connect(self.authorIdChanged)
-        self.object_id_field.textChanged.connect(self.idChanged)
-        self.object_name_field.textChanged.connect(self.nameChanged)
-        self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
+        self.object_id_field.textEdited.connect(self.idChanged)
+        self.object_name_field.textEdited.connect(self.nameChanged)
+        self.object_name_lang_field.textEdited.connect(self.nameChangedLang)
 
         # Flags
-        for flag in cts.Jsmall_flags:
+        for flag in cts.Jlarge_flags:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
                 checkbox.stateChanged.connect(
                     lambda x, flag=checkbox.objectName(): self.flagChanged(x, flag))
-        checkbox = self.findChild(QCheckBox, 'isTree')
-        checkbox.stateChanged.connect(
-            lambda x, flag=checkbox.objectName(): self.flagChanged(x, flag))
+
         checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
         checkbox.stateChanged.connect(
             lambda x, flag=checkbox.objectName(): self.flagChanged(x, flag))
@@ -129,43 +118,6 @@ class SettingsTab(QWidget):
         self.spinbox_version.valueChanged.connect(
             lambda value, name='version': self.spinBoxChanged(value, name))
 
-        # Animation
-        self.animation_widget = self.findChild(
-            QGroupBox, 'groupBox_animOptions')
-
-        self.button_animation_sequence = self.findChild(
-            QPushButton, 'pushButton_editAnimSequence')
-        self.button_animation_sequence.clicked.connect(
-            self.clickAnimationSequence)
-
-        # Animationsubtype combobox
-        self.anim_subtype_box = self.findChild(
-            QComboBox, "comboBox_animSubtype")
-
-        self.anim_subtype_box.currentIndexChanged.connect(
-            self.animationTypeChanged)
-
-        # Animation Spinboxes
-        self.spinbox_frame_delay = self.findChild(
-            QSpinBox, "spinBox_frameDelay")
-        self.spinbox_anim_delay = self.findChild(
-            QSpinBox, "spinBox_animDelay")
-        self.spinbox_anim_num_image_sets = self.findChild(
-            QSpinBox, "spinBox_numSprites")
-
-        self.spinbox_frame_delay.valueChanged.connect(
-            lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
-        self.spinbox_anim_delay.valueChanged.connect(
-            self.animationDelayChanged)
-        self.spinbox_anim_num_image_sets.valueChanged.connect(
-            self.animationNumImageSetsChanged)
-
-        checkbox = self.findChild(
-            QCheckBox, 'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED')
-        checkbox.stateChanged.connect(self.animationChangePreviewImage)
-        checkbox = self.findChild(QCheckBox, 'SMALL_SCENERY_FLAG17')
-        checkbox.stateChanged.connect(self.animationChangePreviewImage)
-
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
@@ -183,77 +135,15 @@ class SettingsTab(QWidget):
                 self.o['strings']['name']['en-GB'])
 
     def giveDummy(self):
-        dummy_o = obj.newEmpty(obj.Type.SMALL)
+        dummy_o = obj.newEmpty(obj.Type.LARGE)
         dummy_o.changeShape(self.o.shape)
-        dummy_o['properties']['height'] = int(self.o['properties']['height'])
 
         return dummy_o
 
     def subtypeChanged(self, value):
         value = self.subtype_box.currentIndex()
 
-        subtype = list(obj.SmallScenery.Subtype)[value]
-
-        self.o.changeSubtype(subtype)
-
-        self.sprites_tab.slider_sprite_index.setEnabled(
-            subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
-        self.sprites_tab.widget_animation_controls.setEnabled(
-            subtype == obj.SmallScenery.Subtype.ANIMATED)
-
-        self.animation_widget.setEnabled(
-            subtype == obj.SmallScenery.Subtype.ANIMATED)
-
-        if subtype == obj.SmallScenery.Subtype.GARDENS:
-            self.sprites_tab.slider_sprite_index.setMaximum(2)
-        elif subtype == obj.SmallScenery.Subtype.ANIMATED:
-            self.sprites_tab.slider_sprite_index.setMaximum(
-                self.o.num_image_sets-1+int(self.o.has_preview))
-            self.animation_widget.setEnabled(True)
-
-            self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
-        else:
-            self.sprites_tab.slider_sprite_index.setMaximum(0)
-
-        self.loadObjectSettings()
-        self.sprites_tab.updateLockedSpriteLayersModel()
-        self.sprites_tab.updateAllViews()
-
-    def shapeChanged(self):
-        value = self.shape_box.currentIndex()
-        if value == 0:
-            self.diagonal_box.setEnabled(True)
-            if self.diagonal_box.isChecked():
-                shape = obj.SmallScenery.Shape.QUARTERD
-            else:
-                shape = obj.SmallScenery.Shape.QUARTER
-
-        elif value == 1:
-            self.diagonal_box.setChecked(False)
-            self.diagonal_box.setEnabled(False)
-            shape = obj.SmallScenery.Shape.HALF
-
-        elif value == 2:
-            self.diagonal_box.setChecked(True)
-            self.diagonal_box.setEnabled(False)
-            shape = obj.SmallScenery.Shape.THREEQ
-
-        elif value == 3:
-            self.diagonal_box.setEnabled(True)
-            if self.diagonal_box.isChecked():
-                shape = obj.SmallScenery.Shape.FULLD
-            else:
-                shape = obj.SmallScenery.Shape.FULL
-
-        self.o.changeShape(shape)
-
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
-        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(
-            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
-        self.sprites_tab.updateMainView()
+        pass
 
     def clearanceChanged(self, value):
         self.o['properties']['height'] = value*8
@@ -286,8 +176,7 @@ class SettingsTab(QWidget):
         for lang in self.o['strings']['name'].keys():
             if lang != 'en-GB':
                 self.o['strings']['name'][lang] = ''
-        if self.language_index != 0:
-            self.object_name_lang_field.setText('')
+        self.object_name_lang_field.setText('')
 
     def spinBoxChanged(self, value, name):
         if name == 'version':
@@ -322,85 +211,15 @@ class SettingsTab(QWidget):
         self.hasSecondaryColour.setEnabled(not bool(value))
         self.hasTertiaryColour.setEnabled(not bool(value))
 
-    def clickAnimationSequence(self):
-        dialog = EditAnimationSequenceUI(self.o)
-
-        if dialog.exec():
-            self.o.data['properties']['frameOffsets'] = dialog.sequence
-            self.spinbox_anim_num_image_sets.setValue(dialog.num_image_sets)
-
-    def animationTypeChanged(self, value):
-        value = self.anim_subtype_box.currentIndex()
-
-        anim_type = list(obj.SmallScenery.AnimationType)[value]
-
-        self.o.changeAnimationType(anim_type)
-
-        self.container_anim.setEnabled(
-            self.o.animation_type == self.o.AnimationType.REGULAR)
-
-        self.spinbox_anim_num_image_sets.setValue(self.o.num_image_sets)
-
-        if anim_type == obj.SmallScenery.AnimationType.REGULAR:
-            self.spinbox_frame_delay.setValue(
-                self.o['properties'].get('animationDelay', 0))
-            length = self.o['properties'].get('animationMask', 0)
-            num_frames = self.o['properties'].get('numFrames', 1)
-
-            delay = int(np.log2((length+1)/num_frames))
-
-            self.spinbox_anim_delay.setValue(delay)
-
-        self.sprites_tab.updateLockedSpriteLayersModel()
-
-    def animationDelayChanged(self, value):
-        num_frames = self.o['properties'].get('numFrames', False)
-
-        if num_frames:
-            self.o['properties']['animationMask'] = num_frames * 2**value - 1
-
-    def animationNumImageSetsChanged(self, value):
-        self.sprites_tab.slider_sprite_index.setMaximum(
-            value-1+int(self.o.has_preview))
-        if self.o.num_image_sets == value:
-            return
-
-        self.o.changeNumImagesSets(value)
-
-        self.sprites_tab.updateLockedSpriteLayersModel()
-
-    def animationChangePreviewImage(self):
-        self.o.updateAnimPreviewImage()
-
-        self.sprites_tab.slider_sprite_index.setMaximum(
-            self.o.num_image_sets-1+int(self.o.has_preview))
-
-        self.sprites_tab.updateLockedSpriteLayersModel()
-
     def loadObjectSettings(self, author=None, author_id=None):
 
         self.subtype_box.setCurrentIndex(self.o.subtype.value)
-
-        shape = self.o.shape
-
-        if shape == obj.SmallScenery.Shape.FULLD:
-            self.shape_box.setCurrentIndex(3)
-            self.diagonal_box.setChecked(True)
-        elif shape == obj.SmallScenery.Shape.QUARTERD:
-            self.shape_box.setCurrentIndex(0)
-            self.diagonal_box.setChecked(True)
-        else:
-            self.shape_box.setCurrentIndex(shape.value)
-
-        self.clearance_box.setValue(int(self.o['properties']['height']/8))
 
         for flag in cts.Jsmall_flags:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
                 checkbox.setChecked(self.o['properties'].get(flag, False))
 
-        checkbox = self.findChild(QCheckBox, 'isTree')
-        checkbox.setChecked(self.o['properties'].get('isTree', False))
         checkbox = self.findChild(QCheckBox, 'hasTertiaryColour')
         checkbox.setChecked(self.o['properties'].get(
             'hasTertiaryColour', False))
@@ -439,43 +258,30 @@ class SettingsTab(QWidget):
             self.o['properties'].get('removalPrice', 1))
         self.spinbox_version.setValue(float(self.o.data.get('version', 1.0)))
 
-        if self.o['properties'].get('isAnimated'):
-            self.animation_widget.setEnabled(True)
-
-            self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
-            if self.o.animation_type == obj.SmallScenery.AnimationType.REGULAR:
-                self.spinbox_anim_num_image_sets.setValue(
-                    self.o.num_image_sets)
-                self.spinbox_frame_delay.setValue(
-                    self.o['properties'].get('animationDelay', 0))
-                num_frames = self.o['properties'].get('numFrames')
-                self.spinbox_anim_delay.setValue(int(
-                    np.log2((self.o['properties']['animationMask'] + 1)/num_frames)))
-
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
 
     def setDefaults(self):
 
-        settings_SS = self.main_window.settings['small_scenery_defaults']
+        settings_LS = self.main_window.settings['large_scenery_defaults']
 
-        for flag in settings_SS:
+        for flag in settings_LS:
             checkbox = self.findChild(QCheckBox, flag)
             if checkbox:
-                checkbox.setChecked(settings_SS.get(flag, False))
+                checkbox.setChecked(settings_LS.get(flag, False))
 
-        self.spinbox_price.setValue(settings_SS.get('price', 1))
-        self.spinbox_removal_price.setValue(settings_SS.get('removalPrice', 1))
-        self.spinbox_version.setValue(settings_SS.get('version', 1.0))
+        self.spinbox_price.setValue(settings_LS.get('price', 1))
+        self.spinbox_removal_price.setValue(settings_LS.get('removalPrice', 1))
+        self.spinbox_version.setValue(settings_LS.get('version', 1.0))
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
-            settings_SS.get('cursor', 'CURSOR_BLANK')))
+            settings_LS.get('cursor', 'CURSOR_BLANK')))
 
 
 class SpritesTab(QWidget):
     def __init__(self, o, object_tab):
         super().__init__()
-        uic.loadUi(aux.resource_path('gui/spritesSS.ui'), self)
+        uic.loadUi(aux.resource_path('gui/spritesLS.ui'), self)
 
         self.o = o
         self.object_tab = object_tab
@@ -501,8 +307,7 @@ class SpritesTab(QWidget):
         self.button_cycle_animation_frame = self.findChild(
             QPushButton, "pushButton_cycleFrame")
 
-        self.button_cycle_animation_frame.clicked.connect(
-            self.cycleAnimationFrame)
+        self.button_cycle_animation_frame.clicked.connect(self.cycleAnimationFrame)
 
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(
@@ -578,12 +383,8 @@ class SpritesTab(QWidget):
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         transparent_color=self.main_window.current_import_color,
-                                         include_sparkles=False, selected_colors=selected_colors,
-                                         alpha_threshold=0)
+                                         transparent_color=self.main_window.current_import_color)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
@@ -635,15 +436,9 @@ class SpritesTab(QWidget):
             except:
                 return
 
-        image = image.convert('RGBA')
-
         if image:
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color,
-                                include_sparkles=False, selected_colors=selected_colors,
-                                alpha_threshold=0)
+                                transparent_color=self.main_window.current_import_color)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()

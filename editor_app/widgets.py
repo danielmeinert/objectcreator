@@ -58,7 +58,7 @@ class ObjectTab(QWidget):
 
         layout = QHBoxLayout()
 
-        if o.object_type == cts.Type.SMALL:
+        if o.object_type == obj.Type.SMALL:
             self.sprites_tab = widgetsSS.SpritesTab(o, self)
             self.settings_tab = widgetsSS.SettingsTab(
                 o, self, self.sprites_tab, author, author_id)
@@ -201,7 +201,7 @@ class SpriteTab(QWidget):
         self.spinbox_height.valueChanged.connect(
             lambda x: self.canvasSizeChanged(height=x))
 
-        self.dummy_o = obj.newEmpty(cts.Type.SMALL)
+        self.dummy_o = obj.newEmpty(obj.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
         self.dummy_o['properties']['height'] = 0
 
@@ -1762,17 +1762,17 @@ class ChangeSettingsUi(QDialog):
 
     def loadSSSettings(self, settings):
         for flag in cts.Jsmall_flags:
-            checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
+            checkbox = self.tab_SS_default.findChild(QCheckBox, flag+{'_SS'})
             if checkbox:
                 checkbox.setChecked(settings.get(
                     'small_scenery_defaults', {}).get(flag, False))
 
-        checkbox = self.tab_SS_default.findChild(QCheckBox, 'isTree')
+        checkbox = self.tab_SS_default.findChild(QCheckBox, 'isTree_SS')
         checkbox.setChecked(settings.get(
             'small_scenery_defaults', {}).get('isTree', False))
 
         self.cursor_box = self.tab_SS_default.findChild(
-            QComboBox, "comboBox_cursor")
+            QComboBox, "comboBox_cursor_SS")
 
         for cursor in cts.cursors:
             self.cursor_box.addItem(cursor.replace('_', ' '))
@@ -1780,11 +1780,11 @@ class ChangeSettingsUi(QDialog):
         self.cursor_box.setCurrentText(settings.get(
             'small_scenery_defaults', {}).get('cursor', 'CURSOR BLANK'))
 
-        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price_SS")
         spinbox.setValue(
             int(settings.get('small_scenery_defaults', {}).get('price', 1)))
         spinbox = self.tab_SS_default.findChild(
-            QSpinBox, "spinBox_removalPrice")
+            QSpinBox, "spinBox_removalPrice_SS")
         spinbox.setValue(
             int(settings.get('small_scenery_defaults', {}).get('removalPrice', 1)))
 

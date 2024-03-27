@@ -37,6 +37,19 @@ import rctobject.constants as cts
 OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 
 
+class Type(Enum):
+    SMALL = 'scenery_small'
+    LARGE = 'scenery_large'
+    WALL = "scenery_wall"
+    BANNER = "footpath_banner"
+    PATH = "footpath"
+    PATHITEM = "footpath_item"
+    GROUP = "scenery_group"
+    ENTRANCE = "park_entrance"
+    PALETTE = "water"
+    TEXT = "scenario text"
+
+
 class RCTObject:
     """Base class for all editable objects; loads from .parkobj or .DAT files."""
 
@@ -224,7 +237,7 @@ class RCTObject:
 
     def updateImageList(self):
         new_dict = {}
-        
+
         for i, im in enumerate(self['images']):
             sprite = self.sprites.pop(im['path'])
             im['path'] = f'images/{i}.png'
@@ -247,12 +260,13 @@ class SmallScenery(RCTObject):
             if data['objectType'] != 'scenery_small':
                 raise TypeError("Object is not small scenery.")
 
-            self.object_type = cts.Type.SMALL
+            self.object_type = Type.SMALL
 
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
                 self.has_preview = data['properties'].get(
-                    'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)
+                    'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get(
+                    'SMALL_SCENERY_FLAG17', False)
                 self.preview_backup = {}
 
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
@@ -518,7 +532,7 @@ class SmallScenery(RCTObject):
             image_list = self.data['images'][4*i:4*i+4]
             self.data['images'][4*i:4*i+4] = image_list[-step:] + \
                 image_list[:-step]
-                
+
         self.updateImageList()
 
     def changeFlag(self, flag, value):
@@ -620,7 +634,8 @@ class SmallScenery(RCTObject):
             self.changeNumImagesSets(16)
         else:
             self.has_preview = self.data['properties'].get(
-                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get(
+                'SMALL_SCENERY_FLAG17', False)
             self.changeNumImagesSets(
                 int(len(self.data['images'])/4) - int(self.has_preview))
 
@@ -651,29 +666,31 @@ class SmallScenery(RCTObject):
                     value-1 if x == self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']]
 
         self.num_image_sets = value
-        
+
         self.updateImageList()
 
     def updateAnimPreviewImage(self):
         new_has_preview = self.data['properties'].get(
-            'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+            'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get(
+            'SMALL_SCENERY_FLAG17', False)
         if not new_has_preview == self.has_preview:
             self.has_preview = new_has_preview
             if self.has_preview:
-                previews = [{'path': f'pre{i}', 'x':0, 'y':0} for i in [0,1,2,3]]
+                previews = [{'path': f'pre{i}', 'x': 0, 'y': 0} for i in [0, 1, 2, 3]]
                 self['images'] = previews + self['images']
                 for im in previews:
-                    self.sprites[im['path']] = self.preview_backup.get(im['path'], spr.Sprite(None,(0,0), palette=self.palette))
+                    self.sprites[im['path']] = self.preview_backup.get(
+                        im['path'], spr.Sprite(None, (0, 0), palette=self.palette))
             else:
                 for i, im in enumerate(self['images'][:4]):
                     sprite = self.sprites.pop(im['path'])
                     self.preview_backup[f'pre{i}'] = sprite
-                
-                self['images'] = self['images'][4:]   
-                
+
+                self['images'] = self['images'][4:]
+
         self.updateImageList()
-                        
-    def cycleAnimationFrame(self, view = -1):
+
+    def cycleAnimationFrame(self, view=-1):
         shift = int(self.has_preview)
         shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
         shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
@@ -681,36 +698,32 @@ class SmallScenery(RCTObject):
         step = 1 if self.animation_type in [
             self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
 
-        
         shift = step*shift
-        
-        #case cycle all views
-        if view == -1:            
+
+        # case cycle all views
+        if view == -1:
             image_list = self.data['images'][shift:]
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 fountain1 = image_list[:16]
                 fountain2 = image_list[16:]
-                
+
                 self.data['images'][shift:] = fountain1[-step:] + \
                     fountain1[:-step] + fountain2[-step:] + fountain2[:-step]
-            else:    
+            else:
                 self.data['images'][shift:] = image_list[-step:] + \
                     image_list[:-step]
-        #case just one view
+        # case just one view
         else:
             image_list = self.data['images'][shift+view::step]
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 fountain1 = image_list[:4]
                 fountain2 = image_list[4:]
-                
+
                 self.data['images'][shift+view::step] = fountain1[-1:] + \
                     fountain1[:-1] + fountain2[-1:] + fountain2[:-1]
-            else:    
+            else:
                 self.data['images'][shift+view::step] = image_list[-1:] + \
-                image_list[:-1]
-            
-            
-
+                    image_list[:-1]
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
@@ -770,7 +783,7 @@ class LargeScenery(RCTObject):
             if data['objectType'] != 'scenery_large':
                 raise TypeError("Object is not large scenery.")
 
-            self.object_type = cts.Type.LARGE          
+            self.object_type = Type.LARGE
 
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
@@ -781,15 +794,17 @@ class LargeScenery(RCTObject):
             else:
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
-                
+
             self.num_tiles = len(self.data['properties']['tiles'])
             self.tiles = []
             for i, tile_dict in enumerate(self['properties']['tiles']):
-                tile = self.Tile(o = self, dict_entry=tile_dict, images=self['images'][4*(i+1)+self.num_glyph_sprites:4*(i+2)+self.num_glyph_sprites], rotation=self.rotation)
+                tile = self.Tile(o=self, dict_entry=tile_dict,
+                                 images=self['images']
+                                 [4 * (i + 1) + self.num_glyph_sprites: 4 * (i + 2) + self.num_glyph_sprites],
+                                 rotation=self.rotation)
                 self.tiles.append(tile)
-            
-            self.updateImageList()
 
+            self.updateImageList()
 
     def size(self):
         max_x = 0
@@ -834,7 +849,7 @@ class LargeScenery(RCTObject):
             y_base = y_baseline + \
                 tile.x*16 + tile.y*16 - tile.z*8
             x_base = x_baseline - tile.x*32 + tile.y*32
-            
+
             sprite = tile.giveSprite()
             canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
@@ -846,7 +861,7 @@ class LargeScenery(RCTObject):
 
         for tile in self.tiles:
             tile.rotate(rot)
-            
+
     def getDrawingOrder(self):
         order = {}
 
@@ -882,17 +897,17 @@ class LargeScenery(RCTObject):
                 image = self.sprites[im['path']].show()
                 im['x'] = -int(image.size[0]/2)
                 im['y'] = image.size[1]
-                
+
     # Override base class method
     def updateImageList(self):
         new_dict = {}
-        
+
         for view in range(4):
             im = self['images'][view]
             sprite = self.sprites.pop(im['path'])
             im['path'] = f'images/preview_{view}.png'
             new_dict[im['path']] = sprite
-        
+
         for i, tile in enumerate(self.tiles):
             for view in range(4):
                 im = tile.images[view]
@@ -901,41 +916,41 @@ class LargeScenery(RCTObject):
                 new_dict[im['path']] = sprite
 
         self.sprites = new_dict
-        
+
     def addTile(self, coords):
         # we expect that the image list is ordered
-        
+
         index = len(self.tiles)
-        
+
         images = []
         for i in range(4):
             path = f'images/tile_{index}_im_{i}.png'
             try:
                 im = self['images'][4*(index+1)+i]
             except IndexError:
-                im = {'path':path, 'x':0, 'y':0}
-                self.sprites[path] = spr.Sprite(None, (0,0), self.palette) 
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
 
             images.append(im)
-        
+
         dict_entry = {'x': coords[0]*32,
                       'y': coords[1]*32,
                       'z': 0,
                       'clearance': 0,
                       'hasSupports': False,
-                      'allowSupportsAbove':False, 
+                      'allowSupportsAbove': False,
                       'walls': 0,
                       'corners': 15}
-        
+
         tile = self.Tile(self, dict_entry, images, self.rotation)
         self.tiles.append(tile)
-        
+
     def removeTile(self, index):
-        if index <1:
+        if index < 1:
             raise RuntimeError('Cannot remove anchor tile.')
-        
+
         self.tiles.pop(index)
-        
+
         self.updateImageList()
 
     class Subtype(Enum):
@@ -950,47 +965,46 @@ class LargeScenery(RCTObject):
 
         def __int__(self):
             return self.value
-        
+
     class Tile:
-        def __init__(self, o, dict_entry, images, rotation = 0):
+        def __init__(self, o, dict_entry, images, rotation=0):
             self.o = o
-            
+
             self.dict_entry = dict_entry
             self.x = int(dict_entry['x']/32)
             self.y = int(dict_entry['y']/32)
             self.z = int(dict_entry.get('z', 0)/8)
             self.clearance = int(dict_entry['clearance']/8)
-            
+
             self.images = images
-            
+
             self.rotation = 0
             self.rotation_matrices = [
                 np.array([[1, 0], [0, 1]]),   # R^0
                 np.array([[0, 1], [-1, 0]]),  # R
-                np.array([[-1, 0], [0, -1]]), # R^2
+                np.array([[-1, 0], [0, -1]]),  # R^2
                 np.array([[0, -1], [1, 0]])   # R^3
-                ]
-            
+            ]
+
             self.rotate(rotation)
-         
-        def rotate(self, rot):   
+
+        def rotate(self, rot):
             self.rotation = (self.rotation + rot) % 4
-            
+
             rot_mat = self.rotation_matrices[rot % 4]
-        
+
             pos = np.array([self.x, self.y])
 
             pos = rot_mat.dot(pos)
             self.x, self.y = int(pos[0]), int(pos[1])
-            
-        def giveSprite(self, rotation = None):
+
+        def giveSprite(self, rotation=None):
             if isinstance(rotation, int):
                 rotation = rotation % 4
             else:
                 rotation = self.rotation
-                
-            return self.o.sprites[self.images[rotation]['path']]
 
+            return self.o.sprites[self.images[rotation]['path']]
 
 
 # Wrapper to load any object type and instantiate is as the correct subclass
@@ -1050,14 +1064,14 @@ def new(data, sprites):
             f"Object type {object_type} unsupported by now.")
 
 
-def newEmpty(object_type: cts.Type):
+def newEmpty(object_type: Type):
     """Instantiates a new empty object of given type."""
 
     data = {}
 
-    if object_type == cts.Type.SMALL:
+    if object_type == Type.SMALL:
         data = copy.deepcopy(cts.data_template_small)
-    elif object_type == cts.Type.LARGE:
+    elif object_type == Type.LARGE:
         data = copy.deepcopy(cts.data_template_large)
     else:
         raise NotImplementedError(

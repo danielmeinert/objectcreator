@@ -39,14 +39,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QPushButton" name="pushButton_applyDefaultSettings">
-        <property name="text">
-         <string>Apply User Defaults</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="tabWidget_settingsSS">
+       <widget class="QTabWidget" name="tabWidget_settingsLS">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -73,6 +66,9 @@ QTabBar::tab:selected {
         </property>
         <property name="currentIndex">
          <number>1</number>
+        </property>
+        <property name="tabBarAutoHide">
+         <bool>false</bool>
         </property>
         <widget class="QWidget" name="tab_mainSettings">
          <attribute name="title">
@@ -290,73 +286,14 @@ QTabBar::tab:selected {
           </item>
           <item>
            <property name="text">
-            <string>Animated</string>
+            <string>3D Sign</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Glass</string>
+            <string>Scrolling Sign</string>
            </property>
           </item>
-          <item>
-           <property name="text">
-            <string>Gardens</string>
-           </property>
-          </item>
-         </widget>
-         <widget class="QCheckBox" name="isRotatable">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>100</y>
-            <width>121</width>
-            <height>31</height>
-           </rect>
-          </property>
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>When set, the user can rotate the object. Else, the object rotates automatically/randomly</string>
-          </property>
-          <property name="text">
-           <string>Rotatable by User</string>
-          </property>
-          <property name="tristate">
-           <bool>false</bool>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="spinBox_clearance">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>70</y>
-            <width>62</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string notr="true">Object height</string>
-          </property>
-          <property name="maximum">
-           <number>31</number>
-          </property>
-          <property name="value">
-           <number>1</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_clearance">
-          <property name="geometry">
-           <rect>
-            <x>90</x>
-            <y>70</y>
-            <width>51</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Clearance</string>
-          </property>
          </widget>
          <widget class="QLabel" name="label_subtype">
           <property name="geometry">
@@ -387,7 +324,7 @@ QTabBar::tab:selected {
            <string notr="true">Object type</string>
           </property>
           <property name="text">
-           <string>Small Scenery</string>
+           <string>Large Scenery</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -422,82 +359,11 @@ QTabBar::tab:selected {
            <string notr="true"/>
           </property>
          </widget>
-         <widget class="QLabel" name="label_shape">
-          <property name="geometry">
-           <rect>
-            <x>230</x>
-            <y>40</y>
-            <width>41</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Shape</string>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_shape">
-          <property name="geometry">
-           <rect>
-            <x>160</x>
-            <y>40</y>
-            <width>61</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <item>
-           <property name="text">
-            <string>1/4</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Half Tile</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>3/4</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Full Tile</string>
-           </property>
-          </item>
-         </widget>
-         <widget class="QCheckBox" name="checkBox_diagonal">
-          <property name="geometry">
-           <rect>
-            <x>160</x>
-            <y>70</y>
-            <width>81</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>When set, this affects mirroring properties and shape, if fulltile.</string>
-          </property>
-          <property name="text">
-           <string>Diagonal</string>
-          </property>
-          <property name="tristate">
-           <bool>false</bool>
-          </property>
-         </widget>
          <widget class="QGroupBox" name="groupBox_remap">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>160</y>
+            <y>157</y>
             <width>151</width>
             <height>101</height>
            </rect>
@@ -578,79 +444,24 @@ QTabBar::tab:selected {
            </item>
           </layout>
          </widget>
-        </widget>
-        <widget class="QWidget" name="tab_minorSettings">
-         <attribute name="title">
-          <string>Minor Settings</string>
-         </attribute>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_version">
+         <widget class="QLabel" name="label_removalPrice_2">
           <property name="geometry">
            <rect>
-            <x>20</x>
-            <y>10</y>
-            <width>62</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
-          </property>
-          <property name="locale">
-           <locale language="English" country="UnitedStates"/>
-          </property>
-          <property name="decimals">
-           <number>1</number>
-          </property>
-          <property name="singleStep">
-           <double>0.100000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_version">
-          <property name="geometry">
-           <rect>
-            <x>90</x>
-            <y>10</y>
-            <width>47</width>
-            <height>16</height>
+            <x>200</x>
+            <y>70</y>
+            <width>71</width>
+            <height>21</height>
            </rect>
           </property>
           <property name="text">
-           <string>Version</string>
+           <string>Removal Price</string>
           </property>
          </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_price">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>40</y>
-            <width>62</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_price">
+         <widget class="QLabel" name="label_price_2">
           <property name="geometry">
            <rect>
             <x>90</x>
-            <y>40</y>
+            <y>70</y>
             <width>51</width>
             <height>21</height>
            </rect>
@@ -659,11 +470,11 @@ QTabBar::tab:selected {
            <string>Price</string>
           </property>
          </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_removalPrice">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_removalPrice_2">
           <property name="geometry">
            <rect>
-            <x>140</x>
-            <y>40</y>
+            <x>130</x>
+            <y>70</y>
             <width>62</width>
             <height>22</height>
            </rect>
@@ -687,432 +498,809 @@ QTabBar::tab:selected {
            <double>1.000000000000000</double>
           </property>
          </widget>
-         <widget class="QLabel" name="label_removalPrice">
-          <property name="geometry">
-           <rect>
-            <x>210</x>
-            <y>40</y>
-            <width>71</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Removal Price</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="requiresFlatSurface">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>110</y>
-            <width>111</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string>requiresFlatSurface</string>
-          </property>
-          <property name="text">
-           <string>Flat Surface Only</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VOFFSET_CENTRE">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_price_2">
           <property name="geometry">
            <rect>
             <x>20</x>
             <y>70</y>
+            <width>62</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="toolTip">
+           <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
+          </property>
+          <property name="decimals">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="isPhotogenic">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>100</y>
             <width>111</width>
             <height>17</height>
            </rect>
           </property>
           <property name="toolTip">
-           <string>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</string>
+           <string>Tick if you want peeps to take pictures of your object. Not recommended for structural pieces.</string>
           </property>
           <property name="text">
-           <string>Block Rain</string>
+           <string>Photogenic</string>
           </property>
          </widget>
-         <widget class="QCheckBox" name="isStackable">
+         <widget class="QLabel" name="label_version">
           <property name="geometry">
            <rect>
-            <x>20</x>
-            <y>90</y>
-            <width>111</width>
-            <height>17</height>
+            <x>200</x>
+            <y>100</y>
+            <width>47</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Version</string>
+          </property>
+         </widget>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_version">
+          <property name="geometry">
+           <rect>
+            <x>130</x>
+            <y>100</y>
+            <width>62</width>
+            <height>22</height>
            </rect>
           </property>
           <property name="toolTip">
-           <string>isStackable</string>
+           <string notr="true">Unless you don't revise an already released object, keep this at 1.0</string>
           </property>
-          <property name="text">
-           <string>Stackable</string>
+          <property name="locale">
+           <locale language="English" country="UnitedStates"/>
           </property>
-          <property name="checked">
-           <bool>true</bool>
+          <property name="decimals">
+           <number>1</number>
           </property>
-         </widget>
-         <widget class="QCheckBox" name="prohibitWalls">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>130</y>
-            <width>111</width>
-            <height>17</height>
-           </rect>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
           </property>
-          <property name="toolTip">
-           <string>prohibitWalls</string>
-          </property>
-          <property name="text">
-           <string>Prohibit Walls</string>
+          <property name="value">
+           <double>1.000000000000000</double>
           </property>
          </widget>
-         <widget class="QCheckBox" name="SMALL_SCENERY_FLAG27">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>150</y>
-            <width>171</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string>SMALL_SCENERY_FLAG27</string>
-          </property>
-          <property name="text">
-           <string>Block Supports like Full Tile</string>
-          </property>
-         </widget>
-         <widget class="QCheckBox" name="allowSupportsAbove">
-          <property name="geometry">
-           <rect>
-            <x>140</x>
-            <y>130</y>
-            <width>131</width>
-            <height>17</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string>allowSupportsAbove</string>
-          </property>
-          <property name="text">
-           <string>Allow Supports Above</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-         <widget class="QGroupBox" name="groupBox_animOptions">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+        </widget>
+        <widget class="QWidget" name="tab_tiles">
+         <attribute name="title">
+          <string>Tiles</string>
+         </attribute>
+         <widget class="QTableWidget" name="table">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>170</y>
+            <y>50</y>
+            <width>157</width>
+            <height>165</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>600</height>
+           </size>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::NoSelection</enum>
+          </property>
+          <property name="showGrid">
+           <bool>true</bool>
+          </property>
+          <property name="gridStyle">
+           <enum>Qt::SolidLine</enum>
+          </property>
+          <property name="cornerButtonEnabled">
+           <bool>true</bool>
+          </property>
+          <attribute name="horizontalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>20</number>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>20</number>
+          </attribute>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderMinimumSectionSize">
+           <number>20</number>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>20</number>
+          </attribute>
+          <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>1</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>2</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>3</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>4</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>5</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>6</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>7</string>
+           </property>
+          </row>
+          <column>
+           <property name="text">
+            <string>1</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>2</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>3</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>4</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>5</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>6</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>7</string>
+           </property>
+          </column>
+          <item row="0" column="0">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="background">
+            <brush brushstyle="NoBrush">
+             <color alpha="255">
+              <red>0</red>
+              <green>170</green>
+              <blue>0</blue>
+             </color>
+            </brush>
+           </property>
+           <property name="flags">
+            <set>ItemIsSelectable|ItemIsEnabled</set>
+           </property>
+          </item>
+         </widget>
+         <widget class="QLabel" name="label">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>3</y>
+            <width>91</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Outer shape</string>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="spinBox_size_x">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>23</y>
+            <width>42</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>7</number>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="spinBox_size_y">
+          <property name="geometry">
+           <rect>
+            <x>80</x>
+            <y>23</y>
+            <width>42</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>7</number>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_2">
+          <property name="geometry">
+           <rect>
+            <x>60</x>
+            <y>27</y>
+            <width>47</width>
+            <height>13</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>X</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_3">
+          <property name="geometry">
+           <rect>
+            <x>130</x>
+            <y>27</y>
+            <width>47</width>
+            <height>13</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </widget>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>250</y>
             <width>271</width>
-            <height>221</height>
+            <height>191</height>
            </rect>
           </property>
           <property name="title">
-           <string>Animation Options</string>
+           <string>Selected Tile Settings</string>
           </property>
           <property name="flat">
            <bool>true</bool>
           </property>
-          <widget class="QLabel" name="label_animSubtype">
-           <property name="geometry">
-            <rect>
-             <x>110</x>
-             <y>20</y>
-             <width>101</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Animation Subtype</string>
-           </property>
-          </widget>
-          <widget class="QComboBox" name="comboBox_animSubtype">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>91</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <item>
-            <property name="text">
-             <string>Regular</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Fountain 1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Fountain 2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Clock</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Single view</string>
-            </property>
-           </item>
-          </widget>
-          <widget class="QWidget" name="container_anim" native="true">
+          <widget class="QSpinBox" name="spinBox">
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>40</y>
-             <width>271</width>
-             <height>171</height>
+             <y>20</y>
+             <width>42</width>
+             <height>22</height>
             </rect>
            </property>
-           <widget class="QSpinBox" name="spinBox_frameDelay">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>40</y>
-              <width>51</width>
-              <height>22</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string notr="true">Delay of ticks between animation frames.</string>
-            </property>
-           </widget>
-           <widget class="QSpinBox" name="spinBox_animDelay">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>70</y>
-              <width>51</width>
-              <height>22</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string notr="true">Delay of ticks after one animation cycle (0 = continuous).</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_frameDelay">
-            <property name="geometry">
-             <rect>
-              <x>70</x>
-              <y>40</y>
-              <width>71</width>
-              <height>16</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Frame Delay</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_animDelay">
-            <property name="geometry">
-             <rect>
-              <x>70</x>
-              <y>70</y>
-              <width>81</width>
-              <height>16</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Animation Delay</string>
-            </property>
-           </widget>
-           <widget class="QSpinBox" name="spinBox_numSprites">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>7</y>
-              <width>51</width>
-              <height>22</height>
-             </rect>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>256</number>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label">
-            <property name="geometry">
-             <rect>
-              <x>70</x>
-              <y>10</y>
-              <width>91</width>
-              <height>16</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Number of sprites</string>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="pushButton_editAnimSequence">
-            <property name="geometry">
-             <rect>
-              <x>170</x>
-              <y>10</y>
-              <width>81</width>
-              <height>23</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Edit Sequence</string>
-            </property>
-           </widget>
-           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED">
-            <property name="geometry">
-             <rect>
-              <x>15</x>
-              <y>120</y>
-              <width>130</width>
-              <height>17</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</string>
-            </property>
-            <property name="text">
-             <string>Animate on Zoom Out</string>
-            </property>
-           </widget>
-           <widget class="QCheckBox" name="SMALL_SCENERY_FLAG17">
-            <property name="geometry">
-             <rect>
-              <x>170</x>
-              <y>120</y>
-              <width>130</width>
-              <height>17</height>
-             </rect>
-            </property>
-            <property name="toolTip">
-             <string>SMALL_SCENERY_FLAG17</string>
-            </property>
-            <property name="text">
-             <string>Flag 17</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_2">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>100</y>
-              <width>221</width>
-              <height>16</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Enable either of these for preview images</string>
-            </property>
-           </widget>
+           <property name="frame">
+            <bool>true</bool>
+           </property>
+           <property name="maximum">
+            <number>31</number>
+           </property>
           </widget>
-          <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_COG">
+          <widget class="QLabel" name="label_4">
            <property name="geometry">
             <rect>
-             <x>170</x>
+             <x>50</x>
+             <y>20</y>
+             <width>81</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Base Height</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_6">
+           <property name="geometry">
+            <rect>
+             <x>50</x>
+             <y>50</y>
+             <width>81</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Clearance</string>
+           </property>
+          </widget>
+          <widget class="QSpinBox" name="spinBox_3">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>50</y>
+             <width>42</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="frame">
+            <bool>true</bool>
+           </property>
+           <property name="maximum">
+            <number>31</number>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="checkBox">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
              <y>80</y>
+             <width>111</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>No Supports</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="checkBox_2">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>100</y>
              <width>131</width>
              <height>17</height>
             </rect>
            </property>
-           <property name="toolTip">
-            <string>SMALL_SCENERY_FLAG_COG</string>
-           </property>
            <property name="text">
-            <string>Sync Anim.</string>
+            <string>Allow Supports Above</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
-          <widget class="QCheckBox" name="hasOverlayImage">
+          <widget class="QGroupBox" name="groupBox_2">
            <property name="geometry">
             <rect>
-             <x>170</x>
-             <y>100</y>
-             <width>101</width>
-             <height>21</height>
+             <x>140</x>
+             <y>10</y>
+             <width>121</width>
+             <height>121</height>
             </rect>
            </property>
            <property name="toolTip">
-            <string>hasOverlayImage</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select which quarter tiles and which tile borders the object covers on this tile. Oriented as in the large grid.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
-           <property name="text">
-            <string>Preview Overlay</string>
+           <property name="title">
+            <string>Quarter Tiles | Walls</string>
            </property>
+           <widget class="QToolButton" name="toolButton_4">
+            <property name="geometry">
+             <rect>
+              <x>40</x>
+              <y>63</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton">
+            <property name="geometry">
+             <rect>
+              <x>40</x>
+              <y>43</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_2">
+            <property name="geometry">
+             <rect>
+              <x>60</x>
+              <y>43</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_3">
+            <property name="geometry">
+             <rect>
+              <x>60</x>
+              <y>63</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_5">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>19</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_6">
+            <property name="geometry">
+             <rect>
+              <x>16</x>
+              <y>53</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_7">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>87</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QToolButton" name="toolButton_8">
+            <property name="geometry">
+             <rect>
+              <x>84</x>
+              <y>53</y>
+              <width>20</width>
+              <height>20</height>
+             </rect>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
           </widget>
-          <zorder>container_anim</zorder>
-          <zorder>label_animSubtype</zorder>
-          <zorder>comboBox_animSubtype</zorder>
-          <zorder>SMALL_SCENERY_FLAG_COG</zorder>
-          <zorder>hasOverlayImage</zorder>
+          <zorder>groupBox_2</zorder>
+          <zorder>spinBox</zorder>
+          <zorder>label_4</zorder>
+          <zorder>label_6</zorder>
+          <zorder>spinBox_3</zorder>
+          <zorder>checkBox</zorder>
+          <zorder>checkBox_2</zorder>
          </widget>
-         <widget class="QCheckBox" name="isTree">
+         <widget class="QPushButton" name="pushButton_add_tile">
           <property name="geometry">
            <rect>
-            <x>140</x>
-            <y>70</y>
-            <width>111</width>
-            <height>16</height>
+            <x>10</x>
+            <y>220</y>
+            <width>75</width>
+            <height>23</height>
            </rect>
           </property>
-          <property name="toolTip">
-           <string>isTree</string>
-          </property>
           <property name="text">
-           <string>Is Tree</string>
+           <string>Add Tile</string>
           </property>
          </widget>
-         <widget class="QCheckBox" name="hasNoSupports">
+         <widget class="QPushButton" name="pushButton_remove_tile">
           <property name="geometry">
            <rect>
-            <x>140</x>
-            <y>90</y>
-            <width>111</width>
-            <height>17</height>
+            <x>90</x>
+            <y>220</y>
+            <width>75</width>
+            <height>23</height>
            </rect>
           </property>
-          <property name="toolTip">
-           <string>hasNoSupports</string>
+          <property name="text">
+           <string>Remove Tile</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_fill_all">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>23</y>
+            <width>101</width>
+            <height>23</height>
+           </rect>
           </property>
           <property name="text">
-           <string>No Supports</string>
+           <string>Fill Shape</string>
           </property>
-          <property name="checked">
+         </widget>
+         <widget class="QPushButton" name="pushButton">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>50</y>
+            <width>101</width>
+            <height>23</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Rotate</string>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="spinBox_4">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>80</y>
+            <width>42</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="frame">
            <bool>true</bool>
           </property>
-         </widget>
-         <widget class="QCheckBox" name="supportsHavePrimaryColour">
-          <property name="enabled">
-           <bool>false</bool>
+          <property name="maximum">
+           <number>31</number>
           </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_2">
           <property name="geometry">
            <rect>
-            <x>140</x>
+            <x>180</x>
             <y>110</y>
-            <width>111</width>
-            <height>17</height>
+            <width>101</width>
+            <height>23</height>
            </rect>
           </property>
-          <property name="toolTip">
-           <string>supportsHavePrimaryColour</string>
+          <property name="text">
+           <string>Set All Clearances</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>170</y>
+            <width>101</width>
+            <height>21</height>
+           </rect>
           </property>
           <property name="text">
-           <string>Supports in Remap</string>
+           <string>Apply</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_5">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>140</y>
+            <width>101</width>
+            <height>31</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Auto-detect Inner Tile Borders</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
           </property>
          </widget>
         </widget>
@@ -1250,6 +1438,13 @@ QTabBar::tab:selected {
         </widget>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_applyDefaultSettings">
+        <property name="text">
+         <string>Apply User Defaults</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -1257,10 +1452,6 @@ QTabBar::tab:selected {
  </widget>
  <tabstops>
   <tabstop>comboBox_subtype</tabstop>
-  <tabstop>comboBox_shape</tabstop>
-  <tabstop>spinBox_clearance</tabstop>
-  <tabstop>checkBox_diagonal</tabstop>
-  <tabstop>isRotatable</tabstop>
   <tabstop>comboBox_cursor</tabstop>
   <tabstop>checkBox_remapCheck</tabstop>
   <tabstop>hasPrimaryColour</tabstop>
@@ -1271,67 +1462,13 @@ QTabBar::tab:selected {
   <tabstop>lineEdit_authorID</tabstop>
   <tabstop>lineEdit_objectID</tabstop>
   <tabstop>lineEdit_objectName</tabstop>
-  <tabstop>tabWidget_settingsSS</tabstop>
   <tabstop>checkBox_keepOrginalId</tabstop>
   <tabstop>lineEdit_originalID</tabstop>
   <tabstop>pushButton_clearAllLang</tabstop>
   <tabstop>pushButton_applyDefaultSettings</tabstop>
-  <tabstop>doubleSpinBox_version</tabstop>
-  <tabstop>doubleSpinBox_price</tabstop>
-  <tabstop>doubleSpinBox_removalPrice</tabstop>
-  <tabstop>requiresFlatSurface</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</tabstop>
-  <tabstop>isStackable</tabstop>
-  <tabstop>prohibitWalls</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG27</tabstop>
-  <tabstop>allowSupportsAbove</tabstop>
-  <tabstop>comboBox_animSubtype</tabstop>
-  <tabstop>pushButton_editAnimSequence</tabstop>
-  <tabstop>spinBox_frameDelay</tabstop>
-  <tabstop>spinBox_animDelay</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</tabstop>
-  <tabstop>hasOverlayImage</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG17</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG_COG</tabstop>
-  <tabstop>isTree</tabstop>
-  <tabstop>hasNoSupports</tabstop>
-  <tabstop>supportsHavePrimaryColour</tabstop>
   <tabstop>comboBox_languageSelect</tabstop>
   <tabstop>lineEdit_nameInput</tabstop>
  </tabstops>
  <resources/>
- <connections>
-  <connection>
-   <sender>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SMALL_SCENERY_FLAG17</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>77</x>
-     <y>404</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>225</x>
-     <y>405</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>SMALL_SCENERY_FLAG17</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>238</x>
-     <y>405</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>86</x>
-     <y>401</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
