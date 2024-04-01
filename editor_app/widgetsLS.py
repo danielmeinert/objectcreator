@@ -44,7 +44,7 @@ class SettingsTab(QWidget):
         self.sprites_tab = sprites_tab
         self.main_window = object_tab.main_window
 
-        self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
+        self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsLS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
 
         self.button_set_defaults = self.findChild(
