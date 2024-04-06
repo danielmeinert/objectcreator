@@ -356,7 +356,6 @@ class ColorSelectWidget(QWidget):
             240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
 
         self.active_color_button = None
-        self.active_shade = None
 
         self.bars = {}
         for colorname in palette.color_dict:
@@ -400,13 +399,11 @@ class ColorSelectWidget(QWidget):
         button = self.sender()
         if button is self.active_color_button:
             self.active_color_button = None
-            self.active_shade = None
             return
         elif self.active_color_button:
             self.active_color_button.setChecked(False)
 
         self.active_color_button = button
-        self.active_shade = button.shade
 
     def clickSelectAll(self):
         for name, bar in self.bars.items():
@@ -447,10 +444,16 @@ class ColorSelectWidget(QWidget):
         return ret
 
     def giveActiveShade(self):
-        return self.active_shade
+        if self.active_color_button:
+            return self.active_color_button.shade
+        else:
+            return None
 
-    def switchPalette(self, palette):
+    def switchPaletteFirstRemap(self, palette):
         layout = self.color_widget.layout()
+
+        if self.active_color_button.color_name == '1st Remap':
+            self.active_color_button = None
 
         old_bar = self.bars.pop('1st Remap')
         layout.removeWidget(old_bar)

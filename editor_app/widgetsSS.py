@@ -448,8 +448,8 @@ class SettingsTab(QWidget):
                 self.spinbox_frame_delay.setValue(
                     self.o['properties'].get('animationDelay', 0))
                 num_frames = self.o['properties'].get('numFrames')
-                self.spinbox_anim_delay.setValue(
-                    np.log2((self.o['properties']['animationMask'] + 1)/num_frames))
+                self.spinbox_anim_delay.setValue(int(
+                    np.log2((self.o['properties']['animationMask'] + 1)/num_frames)))
 
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
@@ -755,7 +755,8 @@ class SpritesTab(QWidget):
                     self.layers[rot].append(layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
             animation_frame = self.slider_sprite_index.value()
-            if self.o.animation_type in [obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
+            if self.o.animation_type in [
+                    obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
                 for rot in range(4):
                     base_index = rot
                     foutain_index = rot+4*(animation_frame+1)
@@ -770,7 +771,8 @@ class SpritesTab(QWidget):
                     sprite = self.o.sprites[self.o.data['images']
                                             [foutain_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
+                        sprite, self.main_window, base_x, base_y,
+                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
                     self.layers[rot].append(layer)
 
                     if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
@@ -782,7 +784,8 @@ class SpritesTab(QWidget):
                         sprite = self.o.sprites[self.o.data['images']
                                                 [foutain_index+16]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
+                            sprite, self.main_window, base_x, base_y,
+                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
                         self.layers[rot].append(layer)
             else:
                 if animation_frame == 0 and self.o.has_preview:
@@ -798,7 +801,8 @@ class SpritesTab(QWidget):
                             rotation=rot, animation_frame=animation_frame)
 
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
+                            sprite, self.main_window, base_x, base_y,
+                            name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
                         self.layers[rot].append(layer)
         else:
             for rot in range(4):

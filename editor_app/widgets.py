@@ -481,8 +481,12 @@ class SpriteTab(QWidget):
                         draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int(i/2)), (x+i,
                                   y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int(i/2))], fill=shade, width=1)
                     else:
-                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int((brushsize-i-1)/2)), (x+i,
-                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int((brushsize-i-1)/2))], fill=shade, width=1)
+                        draw.line(
+                            [(x + i, y - 1 + int(brushsize / 2) - int((brushsize + 1) / 4) + y_mod -
+                              int((brushsize - i - 1) / 2)),
+                             (x + i, y - 1 + int(brushsize / 2) - int((brushsize + 1) / 4) + y_mod +
+                              int((brushsize - i - 1) / 2))],
+                            fill=shade, width=1)
 
         else:
             draw.point((x, y), shade)
@@ -577,8 +581,12 @@ class SpriteTab(QWidget):
                         draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int(i/2)), (x+i,
                                   y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int(i/2))], fill=shade, width=1)
                     else:
-                        draw.line([(x+i,  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod - int((brushsize-i-1)/2)), (x+i,
-                                  y-1+int(brushsize/2) - int((brushsize+1)/4)+y_mod + int((brushsize-i-1)/2))], fill=shade, width=1)
+                        draw.line(
+                            [(x + i, y - 1 + int(brushsize / 2) - int((brushsize + 1) / 4) + y_mod -
+                              int((brushsize - i - 1) / 2)),
+                             (x + i, y - 1 + int(brushsize / 2) - int((brushsize + 1) / 4) + y_mod +
+                              int((brushsize - i - 1) / 2))],
+                            fill=shade, width=1)
 
         else:
             draw.point((x, y), shade)
@@ -831,7 +839,8 @@ class SpriteTab(QWidget):
             if image:
                 layer = SpriteLayer(
                     spr.Sprite(
-                        image, palette=self.main_window.current_palette, transparent_color=self.main_window.current_import_color),
+                        image, palette=self.main_window.current_palette,
+                        transparent_color=self.main_window.current_import_color),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
 
@@ -848,6 +857,15 @@ class SpriteTab(QWidget):
             pixmap = QtGui.QPixmap.fromImage(image)
 
             QApplication.clipboard().setPixmap(pixmap)
+
+    def switchPalette(self, palette):
+        if self.locked:
+            return
+
+        for index in range(self.layers.rowCount()):
+            layer = self.layers.item(index, 0)
+            layer.sprite.switchPalette(palette)
+            layer.updateLayer()
 
 
 class SpriteViewWidget(QGraphicsView):

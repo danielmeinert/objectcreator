@@ -338,12 +338,16 @@ class MainWindowUi(QMainWindow):
             self.actionPaletteOld.setChecked(True)
 
         if update_widgets:
-            self.tool_widget.color_select_panel.switchPalette(
+            self.tool_widget.color_select_panel.switchPaletteFirstRemap(
                 self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
                 tab.o.switchPalette(self.current_palette)
                 tab.sprites_tab.updateAllViews()
+
+            for index in range(self.sprite_tabs.count()):
+                tab = self.sprite_tabs.widget(index)
+                tab.switchPalette(self.current_palette)
 
     def setCurrentBackgroundColor(self, mode, update_widgets=True):
         if mode == 0:
@@ -371,9 +375,12 @@ class MainWindowUi(QMainWindow):
 
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)
-                tab.sprites_tab.sprite_view_main.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.current_background_color[0],
-                                                                                              self.current_background_color[1],
-                                                                                              self.current_background_color[2])))
+                tab.sprites_tab.sprite_view_main.setBackgroundBrush(
+                    QtGui.QBrush(
+                        QtGui.QColor(
+                            self.current_background_color[0],
+                            self.current_background_color[1],
+                            self.current_background_color[2])))
                 for _, preview in enumerate(tab.sprites_tab.sprite_preview):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"

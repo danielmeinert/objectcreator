@@ -173,10 +173,10 @@ def tag_small_scenery_scan_optional(data, tags, pos):
 
         tags['frameOffsets'] = frames
 
-    pos += 1
-    if pos >= length:
-        raise RuntimeError("Error while scanning optional")
-    
+        pos += 1
+        if pos >= length:
+            raise RuntimeError("Error while scanning optional")
+
     return pos
 
 
@@ -219,10 +219,10 @@ def large_scenery_scan_optional(data, pos):
 
         tiles.append(tile)
         pos += 9
-        i+=1
+        i += 1
         if pos >= length-1:
             return RuntimeError("Error while scanning optional")
-    
+
     pos += 2
     return tiles, pos
 
@@ -311,7 +311,7 @@ def loadDatObject(filename: str):
                 result['sceneryGroup'] = scenery_group
             pos += 16
             tags['tiles'], pos = large_scenery_scan_optional(chunk, pos)
-            
+
             result['images'], sprites = read_image_table(chunk, pos)
         else:
             raise NotImplementedError(
@@ -423,7 +423,8 @@ def read_image_table(data, graphic_base):
         if flag & 0x4:
             image_base = bitmap_base+offset
             if image_base+2*height > length:
-                raise RuntimeError(f'Length of image data {image_base+2*height} larger than length of image data {length}.')
+                raise RuntimeError(
+                    f'Length of image data {image_base+2*height} larger than length of image data {length}.')
             for row in range(height):
                 row_data = image_base + \
                     unpack('H', data[image_base+row*2:image_base+row*2+2])[0]
@@ -439,12 +440,12 @@ def read_image_table(data, graphic_base):
                     if row_data > length:
                         raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
 
-
                     x_offset = data[row_data]
                     row_data += 1
                     for x in range(seg_length):
                         if row_data > length:
-                            raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
+                            raise RuntimeError(
+                                f'Length of row data {row_data} larger than length of image data {length}.')
                         image.putpixel(
                             (x+x_offset, row), tuple(pal.complete_palette_array[data[row_data]]))
                         row_data += 1
@@ -454,7 +455,8 @@ def read_image_table(data, graphic_base):
         else:
             pixel = bitmap_base + offset
             if pixel+width*height > length:
-                raise RuntimeError(f'Length of pixel image data {pixel+width*height} larger than length of image data {length}.')
+                raise RuntimeError(
+                    f'Length of pixel image data {pixel+width*height} larger than length of image data {length}.')
             for y in range(height):
                 for x in range(width):
                     image.putpixel(
