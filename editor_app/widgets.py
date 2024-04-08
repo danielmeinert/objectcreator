@@ -73,6 +73,8 @@ class ObjectTab(QWidget):
     def saveObject(self, get_path):
 
         name = self.o.data.get('id', '')
+        if name == '':
+            raise RuntimeError('Cannot save object without id. Enter id first!')
 
         if get_path or not self.saved:
             if self.lastpath:

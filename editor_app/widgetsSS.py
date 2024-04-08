@@ -96,7 +96,7 @@ class SettingsTab(QWidget):
         self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
 
         self.author_field.textChanged.connect(self.authorChanged)
-        self.author_id_field.textChanged.connect(self.authorIdChanged)
+        self.author_id_field.textEdited.connect(self.authorIdChanged)
         self.object_id_field.textChanged.connect(self.idChanged)
         self.object_name_field.textChanged.connect(self.nameChanged)
         self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
@@ -286,7 +286,8 @@ class SettingsTab(QWidget):
         for lang in self.o['strings']['name'].keys():
             if lang != 'en-GB':
                 self.o['strings']['name'][lang] = ''
-        self.object_name_lang_field.setText('')
+        if self.language_index != 0:
+            self.object_name_lang_field.setText('')
 
     def spinBoxChanged(self, value, name):
         if name == 'version':
