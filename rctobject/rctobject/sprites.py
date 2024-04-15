@@ -15,10 +15,11 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0)):
+                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0):
 
         if image:
-            image = pal.addPalette(image, palette, dither, transparent_color)
+            image = pal.addPalette(
+                image, palette, dither, transparent_color, selected_colors, alpha_threshold)
 
             bbox = image.getbbox()
             image = image.crop(bbox)

@@ -172,7 +172,8 @@ class ToolBoxWidget(QWidget):
                 get_data("customwidgets", f'res/icon_{shape.fullname}.png'), 'png')
             btn.setIcon(QtGui.QIcon(icon))
             btn.setFixedSize(32, 32)
-            btn.clicked.connect(lambda x, shape=shape: self.selectBrushshape(shape))
+            btn.clicked.connect(
+                lambda x, shape=shape: self.selectBrushshape(shape))
             self.shape_buttons[shape] = btn
             container_btn.addWidget(btn, 1, shape.value)
 
@@ -452,7 +453,7 @@ class ColorSelectWidget(QWidget):
     def switchPaletteFirstRemap(self, palette):
         layout = self.color_widget.layout()
 
-        if self.active_color_button.color_name == '1st Remap':
+        if self.active_color_button and self.active_color_button.color_name == '1st Remap':
             self.active_color_button = None
 
         old_bar = self.bars.pop('1st Remap')

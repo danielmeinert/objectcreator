@@ -74,6 +74,13 @@ class Palette(np.ndarray):
 
         return color
 
+    def getReducedArray(self, colors: list):
+        ret = []
+        for color in colors:
+            ret.append(self.getColor(color))
+
+        return np.array(ret)
+
     def arr(self):
         return np.array(self)
 
@@ -232,22 +239,25 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), include_sparkles=False):
+def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
     # If no transparent_color is given we choose the color from (0,0) pixel
     if not transparent_color:
         transparent_color = image.getpixel((0, 0))[:3]
 
-    mask = alphaMask(image, transparent_color)
+    mask = alphaMask(image, transparent_color, alpha_threshold)
     image = image.convert('RGB')
 
+    # If no selected_colors is given we use the entire palette
+    if not selected_colors:
+        selected_colors = palette.color_dict.keys()
+
     if include_sparkles and palette.has_sparkles:
-        palette = np.concatenate(
-            (np.array(palette), np.array([palette.sparkles])))
+        selected_colors.append('Sparkles')
     elif include_sparkles:
         raise TypeError(
             'Asked to include sparkles but given palette has no sparkles.')
 
-    pal_in = np.array(palette)
+    pal_in = palette.getReducedArray(selected_colors)
 
     pal_in = pal_in.reshape(-1, pal_in.shape[-1])
     pal_in = np.append(np.zeros((256-len(pal_in), 3)), pal_in, axis=0)
@@ -291,13 +301,14 @@ def colorAllVisiblePixels(image: Image.Image, color):
     return Image.fromarray(x, 'RGBA')
 
 
-def alphaMask(image: Image.Image, color=(0, 0, 0), alpha_threshold = 0):
+def alphaMask(image: Image.Image, color=(0, 0, 0), alpha_threshold=0):
     data_in = np.array(image)
     r1, g1, b1 = color
 
     red, green, blue, alpha = data_in[:, :, 0], data_in[:,
                                                         :, 1], data_in[:, :, 2], data_in[:, :, 3]
-    mask = ((red == r1) & (green == g1) & (blue == b1)) | (alpha <= alpha_threshold)
+    mask = ((red == r1) & (green == g1) & (
+        blue == b1)) | (alpha <= alpha_threshold)
 
     return mask
 
