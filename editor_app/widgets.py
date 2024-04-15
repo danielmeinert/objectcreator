@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout,
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
     QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
-from PIL import Image, ImageGrab, ImageDraw
+from PIL import Image, ImageGrab, ImageDraw, ImageEnhance
 from PIL.ImageQt import ImageQt
 from copy import copy
 import io
@@ -1580,6 +1580,180 @@ class LayersWidget(QWidget):
         self.combo_box_shape.setEnabled(val)
         self.spin_box_clearance.setEnabled(val)
         self.label_clearance.setEnabled(val)
+        
+
+class ImportSpriteUi(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('importsprite.ui', self)
+
+        self.setFixedSize(self.size())
+
+        
+        self.base = Image.new('RGBA', (1, 1))
+
+        self.contrast = 1.0
+        self.sharpness = 1.0
+        self.brightness = 1.0
+
+        self.factor = 1
+        self.angle = 0
+
+        self.spriteViewLabel = self.findChild(QLabel, "sprite_view")
+        self.spritePreviewLabel = self.findChild(QLabel, "sprite_preview")
+
+        self.buttonLoadBase = self.findChild(
+            QPushButton, "pushButton_loadImageButton")
+        self.buttonLoadBase.clicked.connect(self.clickLoadImage)
+
+        self.boxAngle = self.findChild(QSpinBox, "spinBox_angle")
+        self.boxAngle.valueChanged.connect(self.angleChanged)
+
+        self.sliderZoom = self.findChild(QSlider, "slider_zoom")
+        self.sliderZoom.valueChanged.connect(self.zoomChanged)
+
+        self.sliderContrast = self.findChild(QSlider, "slider_contrast")
+        self.sliderContrast.valueChanged.connect(self.contrastChanged)
+
+        self.sliderBrightness = self.findChild(QSlider, "slider_brightness")
+        self.sliderBrightness.valueChanged.connect(self.brightnessChanged)
+
+        self.sliderSharpness = self.findChild(QSlider, "slider_sharpness")
+        self.sliderSharpness.valueChanged.connect(self.sharpnessChanged)
+
+
+    def clickLoadImage(self):
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Open Base Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
+
+        if filepath:
+            self.base = Image.open(filepath).convert('RGBA')
+            self.base.crop(self.base.getbbox())
+            self.sliderContrast.setValue(100)
+            self.sliderBrightness.setValue(100)
+            self.sliderSharpness.setValue(100)
+
+
+
+        self.updateMainView()
+
+    def angleChanged(self, val):
+        self.angle = val
+
+        self.updateMainView()
+
+    def zoomChanged(self, val):
+        if val > 0:
+            self.factor = 1.5**(val/10)
+        else:
+            self.factor = 2**(val/10)
+
+        self.updateMainView()
+
+    def contrastChanged(self, val):
+        self.contrast = val/100
+
+        self.updateMainView()
+
+    def brightnessChanged(self, val):
+        self.brightness = val/100
+
+        self.updateMainView()
+
+    def sharpnessChanged(self, val):
+        self.sharpness = val/100
+
+        self.updateMainView()
+
+
+    def updateMainView(self):
+        base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
+                                      ).rotate(self.angle, resample= Image.BICUBIC, expand=1)
+
+        x = self.x -int(base.size[0]/2)
+        y = self.y -int(base.size[1]/2)
+
+        canvas = Image.new('RGBA', (172, 132))
+        canvas.paste(
+            base, (88+x, 66+y), base)
+        canvas.paste(self.frame_image, self.frame_image)
+
+        image = ImageQt(canvas)
+        pixmap = QtGui.QPixmap.fromImage(image)
+        self.spriteViewLabel.setPixmap(pixmap)
+
+        self.updatePreview(base)
+
+    def updatePreview(self, base):
+        if self.base.size == (1,1):
+            return
+
+        else:
+
+            x = self.x -int(base.size[0]/2)
+            y = self.y -int(base.size[1]/2)
+
+            im = self.fixToMask(base, x, y)
+
+            if self.contrast != 1:
+                im = ImageEnhance.Contrast(im).enhance(self.contrast)
+            if self.brightness != 1:
+                im = ImageEnhance.Brightness(im).enhance(self.brightness)
+            if self.sharpness != 1:
+                im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+
+            canvas = Image.new('RGBA', (71, 71))
+            canvas.paste(
+                im, (3, 21), im)
+
+            image = ImageQt(canvas)
+            pixmap = QtGui.QPixmap.fromImage(image)
+            self.spritePreviewLabel.setPixmap(pixmap)
+
+
+
+    def accept(self):
+
+        if self.base.size == (1,1):
+            super().reject()
+        else:
+            base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
+                                          ).rotate(self.angle, resample= Image.BICUBIC, expand=1)
+
+            x = self.x -int(base.size[0]/2)
+            y = self.y -int(base.size[1]/2)
+
+            if self.checkBox_rotations.isChecked():
+                self.ret = []
+                for rot in range(4):
+                    im = self.fixToMask(base, x, y, rot)
+
+                    if self.contrast != 1:
+                        im = ImageEnhance.Contrast(im).enhance(self.contrast)
+                    if self.brightness != 1:
+                        im = ImageEnhance.Brightness(im).enhance(self.brightness)
+                    if self.sharpness != 1:
+                        im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+
+                    self.ret.append(im)
+
+
+            else:
+                im = self.fixToMask(base, x, y)
+
+                if self.contrast != 1:
+                    im = ImageEnhance.Contrast(im).enhance(self.contrast)
+                if self.brightness != 1:
+                    im = ImageEnhance.Brightness(im).enhance(self.brightness)
+                if self.sharpness != 1:
+                    im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
+
+
+                self.ret = im
+
+            super().accept()
+
+
 
 
 # Tools
