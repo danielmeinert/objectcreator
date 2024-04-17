@@ -20,10 +20,6 @@ class Sprite:
         if image:
             image = pal.addPalette(
                 image, palette, dither, transparent_color, selected_colors, alpha_threshold)
-
-            bbox = image.getbbox()
-            image = image.crop(bbox)
-
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -34,10 +30,11 @@ class Sprite:
             self.x_base, self.y_base = coords
         else:
             self.x = -int(image.size[0]/2)
-            self.y = -int(image.size[1])
+            self.y = -int(image.size[1]/2)
             self.x_base = int(self.x)
             self.y_base = int(self.y)
 
+        self.crop()
         self.palette = palette
 
     @classmethod
