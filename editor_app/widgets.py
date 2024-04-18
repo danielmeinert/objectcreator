@@ -840,10 +840,14 @@ class SpriteTab(QWidget):
             image = ImageGrab.grabclipboard()
 
             if image:
+                selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
                 layer = SpriteLayer(
                     spr.Sprite(
                         image, palette=self.main_window.current_palette,
-                        transparent_color=self.main_window.current_import_color),
+                        transparent_color=self.main_window.current_import_color,
+                        include_sparkles=False, selected_colors=selected_colors,
+                        alpha_threshold=0),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
 

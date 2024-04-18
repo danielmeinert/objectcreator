@@ -577,12 +577,13 @@ class SpritesTab(QWidget):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
-        selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
         if filepath:
+            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color,
-                                         include_sparkles = False, selected_colors = selected_colors,
-                                         alpha_threshold = 0)
+                                         include_sparkles=False, selected_colors=selected_colors,
+                                         alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
@@ -635,8 +636,12 @@ class SpritesTab(QWidget):
                 return
 
         if image:
+            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color)
+                                transparent_color=self.main_window.current_import_color,
+                                include_sparkles=False, selected_colors=selected_colors,
+                                alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
