@@ -838,6 +838,13 @@ class SpriteTab(QWidget):
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
             image = ImageGrab.grabclipboard()
+            if type(image) == list:
+                try:
+                    image = Image.open(image[0])
+                except:
+                    return
+
+            image = image.convert('RGBA')
 
             if image:
                 selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
