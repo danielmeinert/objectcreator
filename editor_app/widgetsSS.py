@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -96,7 +96,7 @@ class SettingsTab(QWidget):
         self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
 
         self.author_field.textChanged.connect(self.authorChanged)
-        self.author_id_field.textChanged.connect(self.authorIdChanged)
+        self.author_id_field.textEdited.connect(self.authorIdChanged)
         self.object_id_field.textChanged.connect(self.idChanged)
         self.object_name_field.textChanged.connect(self.nameChanged)
         self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
@@ -286,7 +286,8 @@ class SettingsTab(QWidget):
         for lang in self.o['strings']['name'].keys():
             if lang != 'en-GB':
                 self.o['strings']['name'][lang] = ''
-        self.object_name_lang_field.setText('')
+        if self.language_index != 0:
+            self.object_name_lang_field.setText('')
 
     def spinBoxChanged(self, value, name):
         if name == 'version':
@@ -577,8 +578,12 @@ class SpritesTab(QWidget):
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
+            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         transparent_color=self.main_window.current_import_color)
+                                         transparent_color=self.main_window.current_import_color,
+                                         include_sparkles=False, selected_colors=selected_colors,
+                                         alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
@@ -631,8 +636,12 @@ class SpritesTab(QWidget):
                 return
 
         if image:
+            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color)
+                                transparent_color=self.main_window.current_import_color,
+                                include_sparkles=False, selected_colors=selected_colors,
+                                alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -16,7 +16,7 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 import sys
 import io
-from os.path import abspath, join
+from os.path import abspath, join, dirname
 
 from pkgutil import get_data
 
@@ -32,7 +32,7 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = abspath(".")
+        base_path = dirname(__file__)
 
     return join(base_path, relative_path)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -73,6 +73,9 @@ class ObjectTab(QWidget):
     def saveObject(self, get_path):
 
         name = self.o.data.get('id', '')
+        if name == '':
+            raise RuntimeError(
+                'Cannot save object without id. Enter id first!')
 
         if get_path or not self.saved:
             if self.lastpath:
@@ -837,10 +840,14 @@ class SpriteTab(QWidget):
             image = ImageGrab.grabclipboard()
 
             if image:
+                selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
                 layer = SpriteLayer(
                     spr.Sprite(
                         image, palette=self.main_window.current_palette,
-                        transparent_color=self.main_window.current_import_color),
+                        transparent_color=self.main_window.current_import_color,
+                        include_sparkles=False, selected_colors=selected_colors,
+                        alpha_threshold=0),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
 

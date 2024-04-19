@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -73,6 +73,13 @@ class Palette(np.ndarray):
             color[i] = self[int(lookup[i][0]), int(lookup[i][1])]
 
         return color
+
+    def getReducedArray(self, colors: list):
+        ret = []
+        for color in colors:
+            ret.append(self.getColor(color))
+
+        return np.array(ret)
 
     def arr(self):
         return np.array(self)
@@ -232,22 +239,25 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), include_sparkles=False):
+def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
     # If no transparent_color is given we choose the color from (0,0) pixel
     if not transparent_color:
         transparent_color = image.getpixel((0, 0))[:3]
 
-    mask = alphaMask(image, transparent_color)
+    mask = alphaMask(image, transparent_color, alpha_threshold)
     image = image.convert('RGB')
 
+    # If no selected_colors is given we use the entire palette
+    if not selected_colors:
+        selected_colors = palette.color_dict.keys()
+
     if include_sparkles and palette.has_sparkles:
-        palette = np.concatenate(
-            (np.array(palette), np.array([palette.sparkles])))
+        selected_colors.append('Sparkles')
     elif include_sparkles:
         raise TypeError(
             'Asked to include sparkles but given palette has no sparkles.')
 
-    pal_in = np.array(palette)
+    pal_in = palette.getReducedArray(selected_colors)
 
     pal_in = pal_in.reshape(-1, pal_in.shape[-1])
     pal_in = np.append(np.zeros((256-len(pal_in), 3)), pal_in, axis=0)
@@ -291,13 +301,14 @@ def colorAllVisiblePixels(image: Image.Image, color):
     return Image.fromarray(x, 'RGBA')
 
 
-def alphaMask(image: Image.Image, color=(0, 0, 0)):
+def alphaMask(image: Image.Image, color=(0, 0, 0), alpha_threshold=0):
     data_in = np.array(image)
     r1, g1, b1 = color
 
     red, green, blue, alpha = data_in[:, :, 0], data_in[:,
                                                         :, 1], data_in[:, :, 2], data_in[:, :, 3]
-    mask = ((red == r1) & (green == g1) & (blue == b1)) | (alpha == 0)
+    mask = ((red == r1) & (green == g1) & (
+        blue == b1)) | (alpha <= alpha_threshold)
 
     return mask
 
@@ -329,15 +340,15 @@ def removeColorOnMask(image: Image.Image, mask: np.array):
 complete_palette_array = np.zeros((256, 3), dtype=int)
 
 complete_palette_array[0] = np.array([0, 0, 0])
-complete_palette_array[1] = np.array([0, 0, 0])
-complete_palette_array[2] = np.array([0, 0, 0])
-complete_palette_array[3] = np.array([0, 0, 0])
-complete_palette_array[4] = np.array([0, 0, 0])
-complete_palette_array[5] = np.array([0, 0, 0])
-complete_palette_array[6] = np.array([0, 0, 0])
-complete_palette_array[7] = np.array([0, 0, 0])
-complete_palette_array[8] = np.array([0, 0, 0])
-complete_palette_array[9] = np.array([0, 0, 0])
+complete_palette_array[1] = np.array([1, 1, 1])
+complete_palette_array[2] = np.array([2, 2, 2])
+complete_palette_array[3] = np.array([3, 3, 3])
+complete_palette_array[4] = np.array([4, 4, 4])
+complete_palette_array[5] = np.array([5, 5, 5])
+complete_palette_array[6] = np.array([6, 6, 6])
+complete_palette_array[7] = np.array([7, 7, 7])
+complete_palette_array[8] = np.array([8, 8, 8])
+complete_palette_array[9] = np.array([9, 9, 9])
 complete_palette_array[10] = np.array([23, 35, 35])
 complete_palette_array[11] = np.array([35, 51, 51])
 complete_palette_array[12] = np.array([47, 67, 67])
@@ -559,15 +570,15 @@ complete_palette_array[227] = np.array([255, 183, 0])
 complete_palette_array[228] = np.array([255, 219, 0])
 complete_palette_array[229] = np.array([255, 255, 0])
 complete_palette_array[230] = np.array([39, 143, 135])
-complete_palette_array[231] = np.array([7, 107, 99])
-complete_palette_array[232] = np.array([7, 107, 99])
-complete_palette_array[233] = np.array([7, 107, 99])
-complete_palette_array[234] = np.array([27, 131, 123])
-complete_palette_array[235] = np.array([155, 227, 227])
-complete_palette_array[236] = np.array([55, 155, 151])
-complete_palette_array[237] = np.array([55, 155, 151])
-complete_palette_array[238] = np.array([55, 155, 151])
-complete_palette_array[239] = np.array([115, 203, 203])
+complete_palette_array[231] = np.array([27, 131, 123])
+complete_palette_array[232] = np.array([7, 103, 95])
+complete_palette_array[233] = np.array([0, 95, 87])
+complete_palette_array[234] = np.array([15, 119, 111])
+complete_palette_array[235] = np.array([199, 255, 255])
+complete_palette_array[236] = np.array([155, 227, 227])
+complete_palette_array[237] = np.array([83, 175, 175])
+complete_palette_array[238] = np.array([51, 155, 151])
+complete_palette_array[239] = np.array([123, 203, 203])
 complete_palette_array[240] = np.array([67, 91, 91])
 complete_palette_array[241] = np.array([83, 107, 107])
 complete_palette_array[242] = np.array([99, 123, 123])
@@ -583,4 +594,4 @@ complete_palette_array[251] = np.array([255, 127, 39])
 complete_palette_array[252] = np.array([255, 155, 51])
 complete_palette_array[253] = np.array([255, 183, 63])
 complete_palette_array[254] = np.array([255, 207, 75])
-complete_palette_array[255] = np.array([0, 0, 0])
+complete_palette_array[255] = np.array([255, 255, 255])

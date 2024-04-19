@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -50,7 +50,7 @@ from rctobject import palette as pal
 # pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.6'
+VERSION = 'v0.1.8'
 
 myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string

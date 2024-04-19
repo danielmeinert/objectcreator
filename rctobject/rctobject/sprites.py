@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2023 Tolsimir
+ * Copyright (c) 2024 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -15,14 +15,11 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0)):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
 
         if image:
-            image = pal.addPalette(image, palette, dither, transparent_color)
-
-            bbox = image.getbbox()
-            image = image.crop(bbox)
-
+            image = pal.addPalette(
+                image, palette, dither, transparent_color, include_sparkles, selected_colors, alpha_threshold)
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -33,19 +30,21 @@ class Sprite:
             self.x_base, self.y_base = coords
         else:
             self.x = -int(image.size[0]/2)
-            self.y = -int(image.size[1])
+            self.y = -int(image.size[1]/2)
             self.x_base = int(self.x)
             self.y_base = int(self.y)
 
+        self.crop()
         self.palette = palette
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0)):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
-            image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color)
+            image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
+            include_sparkles = False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
