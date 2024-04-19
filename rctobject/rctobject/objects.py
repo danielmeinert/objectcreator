@@ -224,7 +224,7 @@ class RCTObject:
 
     def updateImageList(self):
         new_dict = {}
-        
+
         for i, im in enumerate(self['images']):
             sprite = self.sprites.pop(im['path'])
             im['path'] = f'images/{i}.png'
@@ -518,7 +518,7 @@ class SmallScenery(RCTObject):
             image_list = self.data['images'][4*i:4*i+4]
             self.data['images'][4*i:4*i+4] = image_list[-step:] + \
                 image_list[:-step]
-                
+
         self.updateImageList()
 
     def changeFlag(self, flag, value):
@@ -651,7 +651,7 @@ class SmallScenery(RCTObject):
                     value-1 if x == self.num_image_sets-1 else x for x in self.data['properties']['frameOffsets']]
 
         self.num_image_sets = value
-        
+
         self.updateImageList()
 
     def updateAnimPreviewImage(self):
@@ -660,20 +660,22 @@ class SmallScenery(RCTObject):
         if not new_has_preview == self.has_preview:
             self.has_preview = new_has_preview
             if self.has_preview:
-                previews = [{'path': f'pre{i}', 'x':0, 'y':0} for i in [0,1,2,3]]
+                previews = [{'path': f'pre{i}', 'x': 0, 'y': 0}
+                            for i in [0, 1, 2, 3]]
                 self['images'] = previews + self['images']
                 for im in previews:
-                    self.sprites[im['path']] = self.preview_backup.get(im['path'], spr.Sprite(None,(0,0), palette=self.palette))
+                    self.sprites[im['path']] = self.preview_backup.get(
+                        im['path'], spr.Sprite(None, (0, 0), palette=self.palette))
             else:
                 for i, im in enumerate(self['images'][:4]):
                     sprite = self.sprites.pop(im['path'])
                     self.preview_backup[f'pre{i}'] = sprite
-                
-                self['images'] = self['images'][4:]   
-                
+
+                self['images'] = self['images'][4:]
+
         self.updateImageList()
-                        
-    def cycleAnimationFrame(self, view = -1):
+
+    def cycleAnimationFrame(self, view=-1):
         shift = int(self.has_preview)
         shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
         shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
@@ -681,36 +683,32 @@ class SmallScenery(RCTObject):
         step = 1 if self.animation_type in [
             self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
 
-        
         shift = step*shift
-        
-        #case cycle all views
-        if view == -1:            
+
+        # case cycle all views
+        if view == -1:
             image_list = self.data['images'][shift:]
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 fountain1 = image_list[:16]
                 fountain2 = image_list[16:]
-                
+
                 self.data['images'][shift:] = fountain1[-step:] + \
                     fountain1[:-step] + fountain2[-step:] + fountain2[:-step]
-            else:    
+            else:
                 self.data['images'][shift:] = image_list[-step:] + \
                     image_list[:-step]
-        #case just one view
+        # case just one view
         else:
             image_list = self.data['images'][shift+view::step]
             if self.animation_type == self.AnimationType.FOUNTAIN4:
                 fountain1 = image_list[:4]
                 fountain2 = image_list[4:]
-                
+
                 self.data['images'][shift+view::step] = fountain1[-1:] + \
                     fountain1[:-1] + fountain2[-1:] + fountain2[:-1]
-            else:    
+            else:
                 self.data['images'][shift+view::step] = image_list[-1:] + \
-                image_list[:-1]
-            
-            
-
+                    image_list[:-1]
 
     class Shape(Enum):
         QUARTER = 0, '1/4'
@@ -858,7 +856,6 @@ class LargeScenery(RCTObject):
             pos = rot_mat.dot(pos)
             tile['x'], tile['y'] = int(pos[0]), int(pos[1])
 
-
     def getDrawingOrder(self):
         order = {}
 
@@ -894,6 +891,10 @@ class LargeScenery(RCTObject):
                 image = self.sprites[im['path']].show()
                 im['x'] = -int(image.size[0]/2)
                 im['y'] = image.size[1]
+
+    # for now we override this method to do nothing
+    def updateImageList(self):
+        return
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'

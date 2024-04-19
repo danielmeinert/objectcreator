@@ -22,7 +22,7 @@
     },
     "images": [
       {
-        "path": "images/.png",
+        "path": "images/0.png",
         "x": -32,
         "y": 31
       },
@@ -42,7 +42,7 @@
         "y": 31
       },
       {
-        "path": "images/.png",
+        "path": "images/0.png",
         "x": -32,
         "y": -8
       },
