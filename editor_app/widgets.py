@@ -732,7 +732,7 @@ class SpriteTab(QWidget):
         if width + layer.sprite.x > self.canvas_width/2 - 20:
             self.canvasSizeChanged(width=2*(width + layer.sprite.x + 20))
 
-        if -layer.sprite.y + 70 > self.canvas_height - 20:
+        if -layer.sprite.y > self.canvas_height - 20:
             self.canvasSizeChanged(height=-layer.sprite.y + 90)
 
         if height + layer.sprite.y + 70 > self.canvas_height - 20:
