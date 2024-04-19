@@ -75,8 +75,7 @@ class PathObject:
             image = spr.pasteOnMask(mask, base[rot].image)
 
             sprite = spr.Sprite(image)
-            print(settings['raised'])
-            sprite.y += 0 if settings['raised'] else 8
+            sprite.y -= 8 if settings['raised'] else 0
             sprites[im['path']] = sprite
             rot = (rot + 1) % 4
 
