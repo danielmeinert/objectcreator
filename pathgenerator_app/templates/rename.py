@@ -10,12 +10,8 @@ for dir in dirs:
     data = load(fp=open(f'{dir}/object.json'))
 
     for im in images:
-        if im[0] == '0':
-            os.replace(f'{dir}/images/{im}', f'{dir}/images/{im[1:]}')
-
-    for im in data['json']['images']:
-        if im['path'][7] == '0':
-            im['path'] = f'images/{im["path"][8:]}'
+        if im == '.png':
+            os.replace(f'{dir}/images/{im}', f'{dir}/images/0.png')
 
     with open(f'{dir}/object.json', mode='w') as file:
         dump(obj=data, fp=file, indent=2)
