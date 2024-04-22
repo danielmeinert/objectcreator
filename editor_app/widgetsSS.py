@@ -642,6 +642,8 @@ class SpritesTab(QWidget):
             except:
                 return
 
+        image = image.convert('RGBA')
+
         if image:
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 

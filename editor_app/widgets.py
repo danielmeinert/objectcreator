@@ -732,7 +732,7 @@ class SpriteTab(QWidget):
         if width + layer.sprite.x > self.canvas_width/2 - 20:
             self.canvasSizeChanged(width=2*(width + layer.sprite.x + 20))
 
-        if -layer.sprite.y + 70 > self.canvas_height - 20:
+        if -layer.sprite.y > self.canvas_height - 20:
             self.canvasSizeChanged(height=-layer.sprite.y + 90)
 
         if height + layer.sprite.y + 70 > self.canvas_height - 20:
@@ -838,6 +838,13 @@ class SpriteTab(QWidget):
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
             image = ImageGrab.grabclipboard()
+            if type(image) == list:
+                try:
+                    image = Image.open(image[0])
+                except:
+                    return
+
+            image = image.convert('RGBA')
 
             if image:
                 selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
