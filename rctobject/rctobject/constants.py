@@ -140,40 +140,41 @@ Jlarge_flags = {
 
 
 data_template_small = {
-  "id": "",
-  "authors": "",
-  "sourceGame": "custom",
-  "objectType": "scenery_small",
-  "properties": {
-      "height": 0
-      },
-  "images": [
-    {
-      "path": "images/00.png",
-      "x": 0,
-      "y": 0
+    "id": "",
+    "authors": "",
+    "sourceGame": "custom",
+    "objectType": "scenery_small",
+    "properties": {
+        "height": 0,
+        'isRotatable': True
     },
-    {
-      "path": "images/01.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/02.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/03.png",
-      "x": 0,
-      "y": 0
+    "images": [
+        {
+            "path": "images/00.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/01.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/02.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/03.png",
+            "x": 0,
+            "y": 0
+        }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": ""
+        }
     }
-  ],
-  "strings": {
-    "name": {
-      "en-GB": ""
-    }
-  }
 }
 
 data_template_large = {
@@ -186,37 +187,37 @@ data_template_large = {
           "x": 0,
           "y": 0,
           "clearance": 1
-        }        ]},
-  "images": [
-    {
-      "path": "images/00.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/01.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/02.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/03.png",
-      "x": 0,
-      "y": 0
-    },
-    {
-      "path": "images/04.png",
-      "x": 0,
-      "y": 0
+        }]},
+    "images": [
+        {
+            "path": "images/00.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/01.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/02.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/03.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/04.png",
+            "x": 0,
+            "y": 0
+        }
+    ],
+    "strings": {
+        "name": {
+            "en-GB": ""
+        }
     }
-  ],
-  "strings": {
-    "name": {
-      "en-GB": ""
-    }
-  }
 }
