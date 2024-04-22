@@ -32,7 +32,6 @@ class PathObject:
         data['authors'] = settings['author']
         data['version'] = settings['version']
 
-
         data['id'] = f"{settings['author_id']}.{data['objectType']}.{settings['object_id']}_{data['id']}"
 
         if settings['hasPrimaryColour']:
@@ -59,7 +58,6 @@ class PathObject:
         else:
             base = [self.bases[0], self.bases[1], self.bases[2], self.bases[3]]
 
-
         if template.num_tiles == 1:
             preview_skip = 0
         else:
@@ -76,10 +74,9 @@ class PathObject:
 
             image = spr.pasteOnMask(mask, base[rot].image)
 
-            bbox = image.getbbox()
-            image = image.crop(bbox)
-
-            sprites[im['path']] = spr.Sprite(image, (im['x'], im['y']))
+            sprite = spr.Sprite(image)
+            sprite.y -= 8 if settings['raised'] else 0
+            sprites[im['path']] = sprite
             rot = (rot + 1) % 4
 
         self.object = obj.new(data, sprites)
@@ -98,7 +95,8 @@ class PathGenerator:
         self.loadSettings()
         self.loadTemplatesAtStart()
         self.selected_templates = []
-        self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
+        self.bases = [spr.Sprite(None), spr.Sprite(
+            None), spr.Sprite(None), spr.Sprite(None)]
         self.base = self.bases[0]
         self.current_rotation = 0
 
@@ -117,7 +115,6 @@ class PathGenerator:
             self.settings['author_id'] = ''
             self.settings['no_zip'] = False
             self.settings['version'] = '1.0'
-
 
         self.settings['name'] = {'en-GB': {}}
         self.settings['object_id'] = ''
@@ -162,11 +159,11 @@ class PathGenerator:
 
     def importBases(self, bases):
         for i, base in enumerate(bases):
-            self.bases[i] = spr.Sprite(base, (-32,0))
-
+            self.bases[i] = spr.Sprite(base, (-32, 0))
 
     def resetAllBases(self):
-        self.bases = [spr.Sprite(None),spr.Sprite(None),spr.Sprite(None),spr.Sprite(None)]
+        self.bases = [spr.Sprite(None), spr.Sprite(
+            None), spr.Sprite(None), spr.Sprite(None)]
         self.base = self.bases[0]
         self.current_rotation = 0
 
@@ -184,7 +181,7 @@ class PathGenerator:
                 (-32-self.base.x, -self.base.y, -self.base.x+32, -self.base.y+31))
             mask.paste(image, mask)
 
-            self.bases[self.current_rotation] = spr.Sprite(mask, (-32,0))
+            self.bases[self.current_rotation] = spr.Sprite(mask, (-32, 0))
             self.base = self.bases[self.current_rotation]
 
     def rotationOptionChanged(self, item):
@@ -201,24 +198,26 @@ class PathGenerator:
 
     def generateRotations(self, direction):
 
-
         sprite = self.bases[0].image
         x = self.bases[0].x
         y = self.bases[0].y
 
         if direction == 0:
-            self.bases[1] = spr.Sprite(sprite.transpose(Image.FLIP_LEFT_RIGHT), (x,y))
+            self.bases[1] = spr.Sprite(
+                sprite.transpose(Image.FLIP_LEFT_RIGHT), (x, y))
             self.bases[2] = spr.Sprite((sprite.transpose(Image.FLIP_LEFT_RIGHT)
-                       ).transpose(Image.FLIP_TOP_BOTTOM), (x,y))
-            self.bases[3] = spr.Sprite(sprite.transpose(Image.FLIP_TOP_BOTTOM), (x,y))
+                                        ).transpose(Image.FLIP_TOP_BOTTOM), (x, y))
+            self.bases[3] = spr.Sprite(
+                sprite.transpose(Image.FLIP_TOP_BOTTOM), (x, y))
         elif direction == 1:
-            self.bases[1] = spr.Sprite(sprite.transpose(Image.FLIP_TOP_BOTTOM), (x,y))
+            self.bases[1] = spr.Sprite(
+                sprite.transpose(Image.FLIP_TOP_BOTTOM), (x, y))
             self.bases[2] = spr.Sprite((sprite.transpose(Image.FLIP_TOP_BOTTOM)
-                        ).transpose(Image.FLIP_LEFT_RIGHT), (x,y))
-            self.bases[3] = spr.Sprite(sprite.transpose(Image.FLIP_LEFT_RIGHT), (x,y))
+                                        ).transpose(Image.FLIP_LEFT_RIGHT), (x, y))
+            self.bases[3] = spr.Sprite(
+                sprite.transpose(Image.FLIP_LEFT_RIGHT), (x, y))
 
         self.base = self.bases[self.current_rotation]
-
 
     def generate(self, output_folder: str):
 
@@ -227,7 +226,7 @@ class PathGenerator:
         tertiary_check = False
 
         for base in self.bases:
-            if base.image.size == (1,1):
+            if base.image.size == (1, 1):
                 return 'Not all base images loaded!'
 
             primary_check = (base.checkPrimaryColor() or primary_check)
@@ -237,10 +236,9 @@ class PathGenerator:
             if self.settings['rotationMode'] == 0:
                 break
 
-        self.settings['hasPrimaryColour']= primary_check
+        self.settings['hasPrimaryColour'] = primary_check
         self.settings['hasSecondaryColour'] = secondary_check
-        self.settings['hasTertiaryColour']= tertiary_check
-
+        self.settings['hasTertiaryColour'] = tertiary_check
 
         if self.selected_templates == []:
             return 'No templates selected!'

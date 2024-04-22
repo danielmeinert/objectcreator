@@ -1,7 +1,7 @@
 {
   "template_type": "path_tile_small",
   "json": {
-    "id": "quarter",
+    "id": "quarterdiagonal",
     "authors": "",
     "version": "1.0",
     "sourceGame": "custom",
@@ -11,7 +11,7 @@
       "removalPrice": -1,
       "cursor": "CURSOR_PATH_DOWN",
       "height": 8,
-      "shape": "1/4",
+      "shape": "1/4+D",
       "isRotatable": true,
       "hasPrimaryColour": true,
       "isStackable": true,
@@ -41,7 +41,7 @@
     ],
     "strings": {
       "name": {
-        "en-GB": "Quarter"
+        "en-GB": "Quarter Diagonal"
       }
     }
   }
