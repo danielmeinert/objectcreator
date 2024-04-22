@@ -75,6 +75,8 @@ class SettingsTab(QWidget):
         for cursor in cts.cursors:
             self.cursor_box.addItem(cursor.replace('_', ' '))
 
+        self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
+
         # Names
         self.author_field = self.findChild(QLineEdit, "lineEdit_author")
         self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
@@ -263,6 +265,11 @@ class SettingsTab(QWidget):
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
 
         self.sprites_tab.updateMainView()
+
+    def cursorChanged(self):
+        value = self.cursor_box.currentIndex()
+
+        self.o['properties']['cursor'] = cts.cursors[value]
 
     def authorChanged(self, value):
         self.o['authors'] = value.split(',')
