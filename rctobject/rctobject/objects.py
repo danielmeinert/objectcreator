@@ -800,7 +800,7 @@ class LargeScenery(RCTObject):
             for i, tile_dict in enumerate(self['properties']['tiles']):
                 tile = self.Tile(o=self, dict_entry=tile_dict,
                                  images=self['images']
-                                 [4 * (i + 1) + self.num_glyph_sprites: 4 * (i + 2) + self.num_glyph_sprites],
+                                 [4 * (i + 1) + self.num_glyph_sprites : 4 * (i + 2) + self.num_glyph_sprites],
                                  rotation=self.rotation)
                 self.tiles.append(tile)
 
