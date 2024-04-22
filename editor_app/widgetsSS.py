@@ -188,6 +188,7 @@ class SettingsTab(QWidget):
         dummy_o = obj.newEmpty(cts.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
         dummy_o['properties']['height'] = int(self.o['properties']['height'])
+        dummy_o.rotation = int(self.o.rotation)
 
         return dummy_o
 
