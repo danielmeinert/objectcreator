@@ -676,7 +676,8 @@ class SmallScenery(RCTObject):
         if not new_has_preview == self.has_preview:
             self.has_preview = new_has_preview
             if self.has_preview:
-                previews = [{'path': f'pre{i}', 'x': 0, 'y': 0} for i in [0, 1, 2, 3]]
+                previews = [{'path': f'pre{i}', 'x': 0, 'y': 0}
+                            for i in [0, 1, 2, 3]]
                 self['images'] = previews + self['images']
                 for im in previews:
                     self.sprites[im['path']] = self.preview_backup.get(
@@ -800,11 +801,28 @@ class LargeScenery(RCTObject):
             for i, tile_dict in enumerate(self['properties']['tiles']):
                 tile = self.Tile(o=self, dict_entry=tile_dict,
                                  images=self['images']
-                                 [4 * (i + 1) + self.num_glyph_sprites : 4 * (i + 2) + self.num_glyph_sprites],
+                                 [4 * (i + 1) + self.num_glyph_sprites: 4 * (i + 2) + self.num_glyph_sprites],
                                  rotation=self.rotation)
                 self.tiles.append(tile)
 
             self.updateImageList()
+
+    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False):
+        tile_list = []
+        for tile in self.tiles:
+            tile_entry = {}
+            tile_entry['x'] = tile.x*32
+            tile_entry['y'] = tile.y*32
+            tile_entry['z'] = tile.z*8
+            tile_entry['clearance'] = tile.clearance*8
+            tile_entry['walls'] = tile.giveWalls()
+            tile_entry['corners'] = tile.giveCorners()
+
+            tile_list.append(tile_entry)
+
+        self['properties']['tiles'] = tile_list
+
+        super().save(path, name, no_zip, include_originalId)
 
     def size(self):
         max_x = 0
@@ -971,10 +989,10 @@ class LargeScenery(RCTObject):
             self.o = o
 
             self.dict_entry = dict_entry
-            self.x = int(dict_entry['x']/32)
-            self.y = int(dict_entry['y']/32)
-            self.z = int(dict_entry.get('z', 0)/8)
-            self.clearance = int(dict_entry['clearance']/8)
+            self.x = dict_entry['x']//32
+            self.y = dict_entry['y']//32
+            self.z = dict_entry.get('z', 0)//8
+            self.clearance = dict_entry['clearance']//8
 
             self.images = images
 
@@ -1006,8 +1024,14 @@ class LargeScenery(RCTObject):
 
             return self.o.sprites[self.images[rotation]['path']]
 
+        def giveWalls(self):
+            pass
 
-# Wrapper to load any object type and instantiate is as the correct subclass
+        def giveCorners(self):
+            pass
+
+
+# Wrapper to load any object type and instantiate it as the correct subclass
 
 def load(filepath: str, openpath=OPENRCTPATH):
     """Instantiates a new object from a .parkobj  or .dat file."""
