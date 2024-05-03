@@ -648,14 +648,13 @@ class SmallScenery(RCTObject):
             self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
 
         if len(self.data['images']) < (value+shift)*multiplier:
-            for i in range(len(self.data['images']), (value+shift)*multiplier):
-                index = multiplier*(i+shift)
-                entries = [{'path': f'images/{index+k}.png', 'x': 0, 'y': 0}
-                           for k in range(multiplier)]
-                self.data['images'][index:index+4] = entries
-                for im in entries:
-                    if not self.sprites.get(im['path'], False):
-                        self.sprites[im['path']] = spr.Sprite(None)
+            index = len(self.data['images'])
+            while index < (value+shift)*multiplier:
+                im = {'path': f'images/{index}.png', 'x': 0, 'y': 0}
+                self.data['images'].append(im)
+                if not self.sprites.get(im['path'], False):
+                    self.sprites[im['path']] = spr.Sprite(None)
+                index += 1
         else:
             self.data['images'] = self.data['images'][:(
                 value+shift)*multiplier]

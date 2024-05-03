@@ -150,22 +150,22 @@ data_template_small = {
     },
     "images": [
         {
-            "path": "images/00.png",
+            "path": "images/0.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/01.png",
+            "path": "images/1.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/02.png",
+            "path": "images/2.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/03.png",
+            "path": "images/3.png",
             "x": 0,
             "y": 0
         }
@@ -190,27 +190,27 @@ data_template_large = {
         }]},
     "images": [
         {
-            "path": "images/00.png",
+            "path": "images/0.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/01.png",
+            "path": "images/1.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/02.png",
+            "path": "images/2.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/03.png",
+            "path": "images/3.png",
             "x": 0,
             "y": 0
         },
         {
-            "path": "images/04.png",
+            "path": "images/4.png",
             "x": 0,
             "y": 0
         }
