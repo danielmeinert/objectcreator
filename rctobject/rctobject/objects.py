@@ -81,9 +81,17 @@ class RCTObject:
             elif isinstance(data['images'][0], dict):
                 sprites = {}
                 for i, im in enumerate(data['images']):
-                    sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
+                    if isinstance(im, dict):
+                        sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
+                            f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
+                    elif im == '\"\"':
+                        im = {}
+                        im['x'] = 0
+                        im['y'] = 0
+                        sprites[f'images/{i}.png'] = spr.Sprite(None)
+
                     im['path'] = f'images/{i}.png'
+
             else:
                 raise RuntimeError('Cannot extract images.')
 
@@ -167,15 +175,22 @@ class RCTObject:
             filename = f'{path}/{self.data["id"]}'
             name = self.data["id"]
 
+        data_save = copy.deepcopy(self.data)
+
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
 
-            for im in self['images']:
+            for i, im in enumerate(self['images']):
                 sprite = self.sprites[im['path']]
-                sprite.save(f"{temp}/{im['path']}")
+
+                # we don't save empty sprites and replace their list entry with an empty string
+                if sprite.isEmpty():
+                    data_save['images'][i] = ""
+                else:
+                    sprite.save(f"{temp}/{im['path']}")
 
             with open(f'{temp}/object.json', mode='w') as file:
-                dump(obj=self.data, fp=file, indent=2)
+                dump(obj=data_save, fp=file, indent=2)
 
             make_archive(base_name=f'{filename}',
                          root_dir=temp, format='zip')
@@ -184,7 +199,6 @@ class RCTObject:
             if no_zip:
                 rmtree(filename, ignore_errors=True)
                 makedirs(filename, exist_ok=True)
-               # mkdir(f'{filename}/images')
                 move(f'{temp}/images', filename)
                 move(f'{temp}/object.json', filename)
 

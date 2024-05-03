@@ -334,7 +334,10 @@ class SettingsTab(QWidget):
         dialog = EditAnimationSequenceUI(self.o)
 
         if dialog.exec():
-            self.o.data['properties']['frameOffsets'] = dialog.sequence
+            self.o['properties']['frameOffsets'] = dialog.sequence
+            self.o['properties']['numFrames'] = len(dialog.sequence)
+            self.o['properties']['animationMask'] = len(
+                dialog.sequence) * 2**self.spinbox_anim_delay.value() - 1
             self.spinbox_anim_num_image_sets.setValue(dialog.num_image_sets)
 
     def animationTypeChanged(self, value):

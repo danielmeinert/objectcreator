@@ -15,7 +15,7 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
 
         if image:
             image = pal.addPalette(
@@ -39,18 +39,21 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            include_sparkles = False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
+            include_sparkles=False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
         if not keep_palette and self.palette is not pal.orct:
             self.switchPalette(pal.orct)
         self.image.save(path)
+
+    def isEmpty(self):
+        return spriteIsEmpty(self)
 
     def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
         return colorRemaps(self.image, first_remap, second_remap, third_remap)
@@ -503,3 +506,9 @@ def protectColorMask(image: Image.Image, color: str or list, palette: pal.Palett
             mask = mask & ~((red == r1) & (green == g1) & (blue == b1))
 
     return Image.fromarray(~mask)
+
+
+def spriteIsEmpty(sprite):
+    if sprite.image.getbbox() is None:
+        return True
+    return False
