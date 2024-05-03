@@ -37,6 +37,10 @@ import rctobject.constants as cts
 OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 
 
+def is_power_of_two(n):
+    return (n != 0) and (n & (n-1) == 0)
+
+
 class RCTObject:
     """Base class for all editable objects; loads from .parkobj or .DAT files."""
 
@@ -283,6 +287,12 @@ class SmallScenery(RCTObject):
                     self.num_image_sets = 16
                 else:
                     self.animation_type = self.AnimationType.REGULAR
+
+                    while not is_power_of_two(len(data['properties']['frameOffsets'])):
+                        data['properties']['frameOffsets'].append(0)
+
+                    data['properties']['numFrames'] = len(
+                        data['properties']['frameOffsets'])
                     self.num_image_sets = int(
                         len(data['images'])/4) - int(self.has_preview)
 

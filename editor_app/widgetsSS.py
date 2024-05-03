@@ -156,7 +156,7 @@ class SettingsTab(QWidget):
             QSpinBox, "spinBox_numSprites")
 
         self.spinbox_frame_delay.valueChanged.connect(
-            lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
+            lambda value, name='animationDelay': self.spinBoxChanged(value, name))
         self.spinbox_anim_delay.valueChanged.connect(
             self.animationDelayChanged)
         self.spinbox_anim_num_image_sets.valueChanged.connect(
@@ -199,7 +199,7 @@ class SettingsTab(QWidget):
 
         self.o.changeSubtype(subtype)
 
-        self.sprites_tab.slider_sprite_index.setEnabled(
+        self.sprites_tab.widget_frame_controls.setEnabled(
             subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
         self.sprites_tab.widget_animation_controls.setEnabled(
             subtype == obj.SmallScenery.Subtype.ANIMATED)
@@ -209,14 +209,18 @@ class SettingsTab(QWidget):
 
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
+            self.sprites_tab.spinbox_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
             self.sprites_tab.slider_sprite_index.setMaximum(
+                self.o.num_image_sets-1+int(self.o.has_preview))
+            self.sprites_tab.spinbox_sprite_index.setMaximum(
                 self.o.num_image_sets-1+int(self.o.has_preview))
             self.animation_widget.setEnabled(True)
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
+            self.sprites_tab.spinbox_sprite_index.setMaximum(0)
 
         self.loadObjectSettings()
         self.sprites_tab.updateLockedSpriteLayersModel()
@@ -373,6 +377,8 @@ class SettingsTab(QWidget):
     def animationNumImageSetsChanged(self, value):
         self.sprites_tab.slider_sprite_index.setMaximum(
             value-1+int(self.o.has_preview))
+        self.sprites_tab.spinbox_sprite_index.setMaximum(
+            value-1+int(self.o.has_preview))
         if self.o.num_image_sets == value:
             return
 
@@ -384,6 +390,8 @@ class SettingsTab(QWidget):
         self.o.updateAnimPreviewImage()
 
         self.sprites_tab.slider_sprite_index.setMaximum(
+            self.o.num_image_sets-1+int(self.o.has_preview))
+        self.sprites_tab.spinbox_sprite_index.setMaximum(
             self.o.num_image_sets-1+int(self.o.has_preview))
 
         self.sprites_tab.updateLockedSpriteLayersModel()
@@ -544,6 +552,10 @@ class SpritesTab(QWidget):
         self.slider_sprite_index.valueChanged.connect(
             self.updateLockedSpriteLayersModel)
 
+        self.widget_frame_controls = self.findChild(
+            QWidget, "groupBox_frame_controls")
+        self.widget_frame_controls.setEnabled(False)
+
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
             QPushButton, 'pushButton_firstRemap')
@@ -632,6 +644,9 @@ class SpritesTab(QWidget):
             f"View {(rot + 3 )%4+1}", lambda view=(rot + 3) % 4: self.copySpriteToView(view))
         submenu_copy.addAction("All Views", self.copySpriteToAllViews)
 
+        # submenu_copy.addAction("All Frames of View",
+        #                        self.copySpriteToAllFramesView)
+
         menu.addMenu(submenu_copy)
 
         menu.addAction("Delete Sprite", self.deleteSprite)
@@ -686,6 +701,9 @@ class SpritesTab(QWidget):
 
         for view in range(3):
             self.copySpriteToView(view=(view+rot + 1) % 4)
+
+    def copySpriteToAllFramesView(self):
+        pass
 
     def deleteSprite(self):
         for layer in self.giveCurrentMainViewLayers():
