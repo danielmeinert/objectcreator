@@ -251,9 +251,8 @@ class RCTObject:
         self.sprites = new_dict
 
     def setSpriteFromIndex(self, sprite_in: spr.Sprite, sprite_index: int):
-        print("setSpriteFromIndex",sprite_in, sprite_index, self.sprites[self.data['images'][sprite_index]['path']])
         self.sprites[self.data['images'][sprite_index]
-                     ['path']].setFromSprite(sprite_in.image)
+                     ['path']].setFromSprite(sprite_in)
 
 
 ###### Small scenery subclass ######

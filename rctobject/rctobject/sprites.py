@@ -70,7 +70,6 @@ class Sprite:
         self.x, self.y, self.x_base, self.y_base = 0, 0, 0, 0
 
     def setFromSprite(self, sprite_in):
-        print("setFromSprite",sprite_in)
         self.image = copy(sprite_in.image)
         self.x = int(sprite_in.x)
         self.y = int(sprite_in.y)

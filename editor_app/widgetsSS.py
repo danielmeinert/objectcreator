@@ -619,12 +619,12 @@ class SpritesTab(QWidget):
         else:
             startFrame = self.slider_sprite_index.value()
             startView = self.o.rotation
-            for i in range(startFrame, min(self.o.num_image_sets,len(filepaths))):
-                sprite = spr.Sprite.fromFile(filepaths[i-startFrame], palette=self.main_window.current_palette,
+            for i in range(min(self.o.num_image_sets+int(self.o.has_preview)-startFrame,len(filepaths))):
+                sprite = spr.Sprite.fromFile(filepaths[i], palette=self.main_window.current_palette,
                                              transparent_color=self.main_window.current_import_color,
                                              include_sparkles=False, selected_colors=selected_colors,
                                              alpha_threshold=0)
-                self.o.setSprite(sprite, startView, i)
+                self.o.setSprite(sprite, startView, i+startFrame)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
