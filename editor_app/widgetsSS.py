@@ -597,9 +597,12 @@ class SpritesTab(QWidget):
         self.updateAllViews()
 
     def loadImage(self):
-        filepath, _ = QFileDialog.getOpenFileName(
+        filepaths, _ = QFileDialog.getOpenFileNames(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
+        print(filepaths)
+        return
+        # implement slotting each image into the appropriate frame for the selected view
         if filepath:
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 
