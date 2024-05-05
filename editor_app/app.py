@@ -175,6 +175,9 @@ class MainWindowUi(QMainWindow):
 
         self.sprite_tabs.currentChanged.connect(self.layer_widget.updateList)
 
+        # Right bar
+        self.import_offset = (0,0)
+
         # function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
         self.giveBrush = self.tool_widget.toolbox.giveBrush

@@ -606,7 +606,7 @@ class SpritesTab(QWidget):
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color,
                                          include_sparkles=False, selected_colors=selected_colors,
-                                         alpha_threshold=0)
+                                         alpha_threshold=0, offset=self.main_window.import_offset)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
