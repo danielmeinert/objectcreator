@@ -73,33 +73,9 @@ class RCTObject:
         with TemporaryDirectory() as temp:
             unpack_archive(filename=filepath, extract_dir=temp, format='zip')
             # Raises error on incorrect object structure or missing json:
-            data = jload(fp=open(f'{temp}/object.json', encoding='utf-8'))
-            dat_id = data.get('originalId', None)
-            # If an original Id was given and the sprites are supposed to be loaded from the dat file we do so (aka "official" openRCT objects).
-            if isinstance(data['images'][0], str) and dat_id:
-                dat_id = dat_id.split('|')[1].replace(' ', '')
-                data['images'], sprites = dat.import_sprites(dat_id, openpath)
+            o = cls.fromJson(f'{temp}/object.json', openpath)
 
-            # If no original dat is given, the images are assumed to lie in the relative path given in the json (zipped parkobj).
-            # We change the data structure to "images/i.png" for i = image index.
-            elif isinstance(data['images'][0], dict):
-                sprites = {}
-                for i, im in enumerate(data['images']):
-                    if isinstance(im, dict):
-                        sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                            f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
-                    elif im == '\"\"':
-                        im = {}
-                        im['x'] = 0
-                        im['y'] = 0
-                        sprites[f'images/{i}.png'] = spr.Sprite(None)
-
-                    im['path'] = f'images/{i}.png'
-
-            else:
-                raise RuntimeError('Cannot extract images.')
-
-        return cls(data=data, sprites=sprites, old_id=dat_id)
+        return o
 
     @classmethod
     def fromJson(cls, filepath: str, openpath: str = OPENRCTPATH):
@@ -118,9 +94,18 @@ class RCTObject:
             sprites = {}
             filename_len = len(filepath.split('/')[-1])
             for i, im in enumerate(data['images']):
-                sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                    f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
-                im['path'] = f'images/{i}.png'
+                if isinstance(im, dict):
+                    sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
+                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
+                    im['path'] = f'images/{i}.png'
+                elif isinstance(im, str) and im == '':
+                    im = {}
+                    im['x'] = 0
+                    im['y'] = 0
+                    sprites[f'images/{i}.png'] = spr.Sprite(None)
+                    im['path'] = f'images/{i}.png'
+                    data['images'][i] = im
+
         else:
             raise RuntimeError('Cannot extract images.')
 
@@ -270,7 +255,8 @@ class SmallScenery(RCTObject):
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED
                 self.has_preview = data['properties'].get(
-                    'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get('SMALL_SCENERY_FLAG17', False)
+                    'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or data['properties'].get(
+                    'SMALL_SCENERY_FLAG17', False)
                 self.preview_backup = {}
 
                 if data['properties'].get('SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1'):
@@ -644,7 +630,8 @@ class SmallScenery(RCTObject):
             self.changeNumImagesSets(16)
         else:
             self.has_preview = self.data['properties'].get(
-                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+                'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get(
+                'SMALL_SCENERY_FLAG17', False)
             self.changeNumImagesSets(
                 int(len(self.data['images'])/4) - int(self.has_preview))
 
@@ -679,7 +666,8 @@ class SmallScenery(RCTObject):
 
     def updateAnimPreviewImage(self):
         new_has_preview = self.data['properties'].get(
-            'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get('SMALL_SCENERY_FLAG17', False)
+            'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED', False) or self.data['properties'].get(
+            'SMALL_SCENERY_FLAG17', False)
         if not new_has_preview == self.has_preview:
             self.has_preview = new_has_preview
             if self.has_preview:
