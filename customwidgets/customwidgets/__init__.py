@@ -340,7 +340,7 @@ class ShadeButton(QPushButton):
 
 
 class ColorSelectWidget(QWidget):
-    def __init__(self, palette, first_remap: bool = False, second_remap: bool = False, third_remap: bool = False):
+    def __init__(self, palette):
         super().__init__()
         container = QVBoxLayout()
         container.setContentsMargins(5, 5, 5, 5)
@@ -351,24 +351,24 @@ class ColorSelectWidget(QWidget):
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(3, 3, 3, 0)
+        layout.addStretch()
 
         self.color_widget.setLayout(layout)
-        self.color_widget.setFixedSize(QtCore.QSize(
-            240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
+        # self.color_widget.setFixedSize(QtCore.QSize(
+        #    240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
 
         self.active_color_button = None
 
         self.bars = {}
         for colorname in palette.color_dict:
             if colorname == '1st Remap':
-                if first_remap:
-                    bar = ColorBar(palette, colorname,
-                                   self.shadeButtonClicked, 3)
-                    layout.insertWidget(-1, bar)
-            elif second_remap and colorname == '2nd Remap':
+                bar = ColorBar(palette, colorname,
+                               self.shadeButtonClicked, 3)
+                layout.insertWidget(-1, bar)
+            elif colorname == '2nd Remap':
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
-            elif third_remap and colorname == '3rd Remap':
+            elif colorname == '3rd Remap':
                 bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
                 layout.insertWidget(-1, bar)
             else:
@@ -376,6 +376,12 @@ class ColorSelectWidget(QWidget):
                 layout.insertWidget(0, bar)
 
             self.bars[colorname] = bar
+
+        bar = ColorBar(palette, 'Sparkles',
+                       self.shadeButtonClicked, 3)
+        layout.insertWidget(-1, bar)
+        bar.setVisible(False)
+        self.bars['Sparkles'] = bar
 
         container.addWidget(self.color_widget)
 
@@ -387,12 +393,17 @@ class ColorSelectWidget(QWidget):
 
         self.select_all = QPushButton(text='Select All')
         self.invert_all = QPushButton(text='Invert')
+        self.activate_sparkles = QPushButton(text='Sparkles')
+        self.activate_sparkles.setCheckable(True)
 
         self.select_all.clicked.connect(self.clickSelectAll)
         self.invert_all.clicked.connect(self.clickInvert)
+        self.activate_sparkles.clicked.connect(self.clickActivateSparkles)
 
         button_layout.addWidget(self.select_all, 0, QtCore.Qt.AlignLeft)
         button_layout.addWidget(self.invert_all, 0, QtCore.Qt.AlignLeft)
+        button_layout.addStretch()
+        button_layout.addWidget(self.activate_sparkles, 0, QtCore.Qt.AlignRight)
 
         container.addWidget(button_widget, 0, QtCore.Qt.AlignLeft)
 
@@ -414,6 +425,9 @@ class ColorSelectWidget(QWidget):
         for name, bar in self.bars.items():
             bar.checkbox.setChecked(not bar.checkbox.isChecked())
 
+    def clickActivateSparkles(self, value):
+        self.bars['Sparkles'].setVisible(value)
+
     def setColor(self, color: str, shade_index: int):
         bar = self.bars[color]
 
@@ -431,7 +445,7 @@ class ColorSelectWidget(QWidget):
     def selectedColors(self):
         ret = []
         for name, bar in self.bars.items():
-            if bar.checkbox.isChecked():
+            if bar.checkbox.isChecked() and bar.isVisible():
                 ret.append(name)
 
         return ret
@@ -450,18 +464,41 @@ class ColorSelectWidget(QWidget):
         else:
             return None
 
-    def switchPaletteFirstRemap(self, palette):
+    def switchPalette(self, palette):
         layout = self.color_widget.layout()
 
-        if self.active_color_button and self.active_color_button.color_name == '1st Remap':
-            self.active_color_button = None
+        self.active_color_button = None
 
-        old_bar = self.bars.pop('1st Remap')
-        layout.removeWidget(old_bar)
-        bar = ColorBar(palette, '1st Remap', self.shadeButtonClicked, 3)
+        # self.color_widget.setFixedSize(QtCore.QSize(
+        #    240+int(first_remap)*16 + (int(second_remap) + int(third_remap))*3, 186))
+
+        self.active_color_button = None
+
+        for _, bar in self.bars.items():
+            layout.removeWidget(bar)
+
+        for colorname in palette.color_dict:
+            if colorname == '1st Remap':
+                bar = ColorBar(palette, colorname,
+                               self.shadeButtonClicked, 3)
+                layout.insertWidget(-1, bar)
+            elif colorname == '2nd Remap':
+                bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
+                layout.insertWidget(-1, bar)
+            elif colorname == '3rd Remap':
+                bar = ColorBar(palette, colorname, self.shadeButtonClicked, 3)
+                layout.insertWidget(-1, bar)
+            else:
+                bar = ColorBar(palette, colorname, self.shadeButtonClicked, 0)
+                layout.insertWidget(0, bar)
+
+            self.bars[colorname] = bar
+
+        bar = ColorBar(palette, 'Sparkles',
+                       self.shadeButtonClicked, 3)
         layout.insertWidget(-1, bar)
-
-        self.bars['1st Remap'] = bar
+        bar.setVisible(self.activate_sparkles.isChecked())
+        self.bars['Sparkles'] = bar
 
 
 class RemapColorSelectButton(QPushButton):

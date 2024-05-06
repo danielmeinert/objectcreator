@@ -15,7 +15,7 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
 
         if image:
             image = pal.addPalette(
@@ -39,12 +39,12 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles = False, selected_colors = None, alpha_threshold = 0):
+                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            include_sparkles = False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
+            include_sparkles=False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -171,15 +171,21 @@ class Sprite:
         if a == 0:
             return None
 
-        arr = self.palette.arr()
-        red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
-        truth_arr = (red == r) & (green == g) & (blue == b)
+        try:
+            arr = self.palette.arr()
+            red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+            truth_arr = (red == r) & (green == g) & (blue == b)
+            index = list(truth_arr.flatten()).index(True)
+            color = list(self.palette.color_dict.keys())[index//12]
+            index = index % 12
+        except ValueError:
+            arr = self.palette.sparkles
+            red, green, blue = arr[:, 0], arr[:, 1], arr[:, 2]
+            truth_arr = (red == r) & (green == g) & (blue == b)
+            index = list(truth_arr.flatten()).index(True)
+            color = 'Sparkles'
 
-        index = list(truth_arr.flatten()).index(True)
-
-        color = list(self.palette.color_dict.keys())[int(index/12)]
-
-        return (color, index % 12)
+        return (color, index)
 
 
 def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
@@ -238,6 +244,9 @@ def checkColor(image: Image.Image, color_name: str,  palette: pal.Palette = pal.
 def remapColor(image: Image.Image, color_name_old: str, color_name_new: str,  palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
+
+    if 'Sparkles' in [color_name_old, color_name_new]:
+        raise RuntimeError('Remapping of water sparkles not supported.')
 
     color_old = palette.getColor(color_name_old)
     color_new = palette.getColor(color_name_new)
@@ -366,38 +375,6 @@ def colorAllInRemap(image: Image.Image, color_name: str,  palette: pal.Palette =
     return Image.fromarray(data_out)
 
 
-def _decrBr(data_in, color):
-    data_out = np.array(data_in)
-
-    for i in range(12):
-        j = i
-        if (i > 0):
-            j -= 1
-        r1, g1, b1 = color[i]  # Original value
-        r2, g2, b2 = color[j]  # Value that we want to replace it with
-        red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
-        mask = (red == r1) & (green == g1) & (blue == b1)
-        data_out[:, :, :3][mask] = [r2, g2, b2]
-
-    return data_out
-
-
-def _incrBr(data_in, color):
-    data_out = np.array(data_in)
-
-    for i in range(12):
-        j = i
-        if (i < 11):
-            j += 1
-        r1, g1, b1 = color[i]  # Original value
-        r2, g2, b2 = color[j]  # Value that we want to replace it with
-        red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]
-        mask = (red == r1) & (green == g1) & (blue == b1)
-        data_out[:, :, :3][mask] = [r2, g2, b2]
-
-    return data_out
-
-
 def changeBrightnessColor(image: Image.Image, value: int, color: str or list, palette: pal.Palette = pal.orct):
     data_in = np.array(image)
     data_out = np.array(data_in)
@@ -414,7 +391,7 @@ def changeBrightnessColor(image: Image.Image, value: int, color: str or list, pa
 
         if (value < 0):
             for step in range(-value):
-                for i in range(12):
+                for i in range(len(color)):
                     j = i
                     if (i > 0):
                         j -= 1
@@ -427,9 +404,9 @@ def changeBrightnessColor(image: Image.Image, value: int, color: str or list, pa
                     data_out[:, :, :3][mask] = [r2, g2, b2]
         else:
             for step in range(value):
-                for i in range(12):
+                for i in range(len(color)):
                     j = i
-                    if (i < 11):
+                    if (i < len(color) - 1):
                         j += 1
                     r1, g1, b1 = color[i]  # Original value
                     # Value that we want to replace it with

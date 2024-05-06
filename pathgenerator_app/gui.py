@@ -96,7 +96,7 @@ class PathGeneratorUi(QMainWindow):
         # Color Panel
         self.widgetColorPanel = self.findChild(
             QGroupBox, "groupBox_selectedColor")
-        self.colorSelectPanel = ColorSelectWidget(pal.orct, True, False, False)
+        self.colorSelectPanel = ColorSelectWidget(pal.orct)
         self.widgetColorPanel.layout().addWidget(self.colorSelectPanel)
 
         # Sprite control buttons
@@ -627,8 +627,11 @@ class ImportSpriteUi(QDialog):
         self.updateMainView()
 
     def updateMainView(self):
-        base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
-                                ).rotate(self.angle, resample=Image.BICUBIC, expand=1)
+        base = self.base.resize(
+            (int(self.base.size[0] * self.factor),
+             int(self.base.size[1] * self.factor)),
+            resample=Image.BICUBIC).rotate(
+            self.angle, resample=Image.BICUBIC, expand=1)
 
         x = self.x - int(base.size[0]/2)
         y = self.y - int(base.size[1]/2)
@@ -675,8 +678,11 @@ class ImportSpriteUi(QDialog):
         if self.base.size == (1, 1):
             super().reject()
         else:
-            base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
-                                    ).rotate(self.angle, resample=Image.BICUBIC, expand=1)
+            base = self.base.resize(
+                (int(self.base.size[0] * self.factor),
+                 int(self.base.size[1] * self.factor)),
+                resample=Image.BICUBIC).rotate(
+                self.angle, resample=Image.BICUBIC, expand=1)
 
             x = self.x - int(base.size[0]/2)
             y = self.y - int(base.size[1]/2)

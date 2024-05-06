@@ -557,7 +557,7 @@ border: 1px solid darkgrey;}
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Green Remap</string>
+    <string>Old Object Editor</string>
    </property>
   </action>
   <action name="actionUndo">

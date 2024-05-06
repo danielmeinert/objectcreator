@@ -333,12 +333,12 @@ class MainWindowUi(QMainWindow):
             self.actionPaletteOpenRCT.setChecked(True)
             self.actionPaletteOld.setChecked(False)
         elif palette == 1:
-            self.current_palette = pal.green_remap
+            self.current_palette = pal.old_objm
             self.actionPaletteOpenRCT.setChecked(False)
             self.actionPaletteOld.setChecked(True)
 
         if update_widgets:
-            self.tool_widget.color_select_panel.switchPaletteFirstRemap(
+            self.tool_widget.color_select_panel.switchPalette(
                 self.current_palette)
             for index in range(self.object_tabs.count()):
                 tab = self.object_tabs.widget(index)

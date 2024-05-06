@@ -896,6 +896,8 @@ class SpriteViewWidget(QGraphicsView):
         self.mouse_pressed = False
         self.space_pressed = False
 
+        self.stored_cursor = QtCore.Qt.ArrowCursor
+
         self.slider_zoom = None
         self.mousepos = QtCore.QPoint(0, 0)
 
@@ -1615,7 +1617,7 @@ class ToolWidgetSprite(QWidget):
             QGroupBox, "groupBox_selectedColor")
 
         self.color_select_panel = ColorSelectWidget(
-            self.main_window.current_palette, True, True, True)
+            self.main_window.current_palette)
 
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
 
