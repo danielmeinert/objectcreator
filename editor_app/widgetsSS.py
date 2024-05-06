@@ -890,9 +890,10 @@ class SpritesTab(QWidget):
                 if len(layers_incoming) == 0:
                     return
 
-                layer_top = layers_incoming[0]
+                layer_top = wdg.SpriteLayer.fromLayer(layers_incoming[0])
                 for i in range(len(layers_incoming)-1):
-                    layer_bottom = layers_incoming[i+1]
+                    layer_bottom = wdg.SpriteLayer.fromLayer(
+                        layers_incoming[i+1])
                     layer_bottom.merge(layer_top)
                     layer_top = layer_bottom
 

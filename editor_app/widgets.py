@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout,
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
-from copy import copy
+from copy import copy, deepcopy
 import io
 import os.path
 import sip
@@ -1233,7 +1233,7 @@ class SpriteLayer(QtGui.QStandardItem):
 
     @classmethod
     def fromLayer(cls, layer, new_name=None):
-        sprite = copy(layer.sprite)
+        sprite = deepcopy(layer.sprite)
         base_x = int(layer.base_x)
         base_y = int(layer.base_y)
         name = new_name if new_name else layer.text()
