@@ -37,32 +37,6 @@
      <property name="title">
       <string>Sprites</string>
      </property>
-     <widget class="QPushButton" name="pushButton_resetOffsets">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>100</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reset Offsets</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_resetImage">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>70</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reset Image</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushButton_loadImage">
       <property name="geometry">
        <rect>
@@ -589,8 +563,6 @@
      </widget>
      <zorder>groupBox_frame_controls</zorder>
      <zorder>widget_animation_controls</zorder>
-     <zorder>pushButton_resetOffsets</zorder>
-     <zorder>pushButton_resetImage</zorder>
      <zorder>pushButton_loadImage</zorder>
      <zorder>sprite_view_preview0</zorder>
      <zorder>label_activeView</zorder>
@@ -619,38 +591,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>horizontalSlider_spriteIndex</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>spinbox_sprite_index</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>119</x>
-     <y>533</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>119</x>
-     <y>559</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinbox_sprite_index</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>horizontalSlider_spriteIndex</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>104</x>
-     <y>564</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>101</x>
-     <y>544</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>toolButton</sender>
    <signal>clicked()</signal>
    <receiver>spinbox_sprite_index</receiver>
@@ -678,6 +618,38 @@
     </hint>
     <hint type="destinationlabel">
      <x>123</x>
+     <y>567</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinbox_sprite_index</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider_spriteIndex</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>112</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>112</x>
+     <y>537</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider_spriteIndex</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinbox_sprite_index</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>81</x>
+     <y>540</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>107</x>
      <y>567</y>
     </hint>
    </hints>

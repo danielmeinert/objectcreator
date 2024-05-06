@@ -251,6 +251,8 @@ class SmallScenery(RCTObject):
                 raise TypeError("Object is not small scenery.")
 
             self.object_type = cts.Type.SMALL
+            self.has_preview = False
+            self.num_image_sets = 1
 
             if data['properties'].get('isAnimated', False):
                 self.subtype = self.Subtype.ANIMATED

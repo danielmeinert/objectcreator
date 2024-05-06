@@ -503,14 +503,8 @@ class SpritesTab(QWidget):
         # Buttons load/reset
         self.button_load_image = self.findChild(
             QPushButton, "pushButton_loadImage")
-        self.button_reset_image = self.findChild(
-            QPushButton, "pushButton_resetImage")
-        self.button_reset_offsets = self.findChild(
-            QPushButton, "pushButton_resetOffsets")
 
         self.button_load_image.clicked.connect(self.loadImage)
-        self.button_reset_image.clicked.connect(self.resetImage)
-        self.button_reset_offsets.clicked.connect(self.resetOffsets)
 
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")

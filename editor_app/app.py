@@ -94,6 +94,7 @@ class MainWindowUi(QMainWindow):
         # Tab actions
         self.object_tabs.tabCloseRequested.connect(self.objectClose)
         self.object_tabs.currentChanged.connect(self.changeObjectTab)
+        self.sprite_tabs.tabCloseRequested.connect(self.spriteClose)
         self.sprite_tabs.currentChanged.connect(self.changeSpriteTab)
 
         self.button_lock = self.findChild(QToolButton, "toolButton_lock")
@@ -589,11 +590,25 @@ class MainWindowUi(QMainWindow):
 
     def objectClose(self, index):
         object_tab = self.object_tabs.widget(index)
+        if object_tab is not None:
+            object_tab.deleteLater()
+
         if object_tab.locked:
             self.sprite_tabs.removeTab(
                 self.sprite_tabs.indexOf(object_tab.locked_sprite_tab))
 
         self.object_tabs.removeTab(index)
+
+    def spriteClose(self, index):
+        sprite_tab = self.sprite_tabs.widget(index)
+        if sprite_tab is not None:
+            sprite_tab.deleteLater()
+
+        if sprite_tab.locked:
+            sprite_tab.object_tab.unlockSpriteTab()
+            self.button_lock.setChecked(False)
+
+        self.sprite_tabs.removeTab(index)
 
     def objectOpenFile(self):
         folder = self.last_open_folder
