@@ -1,0 +1,38 @@
+{
+  "id": ".scenery_small.sa",
+  "authors": [
+    "Tolsimir"
+  ],
+  "sourceGame": "custom",
+  "objectType": "scenery_small",
+  "properties": {
+    "height": 0,
+    "isRotatable": true,
+    "isStackable": true,
+    "hasNoSupports": true,
+    "cursor": "CURSOR_ARROW",
+    "isAnimated": true,
+    "frameOffsets": [
+      0
+    ],
+    "animationDelay": 0,
+    "animationMask": 0,
+    "numFrames": 1
+  },
+  "images": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "strings": {
+    "name": {
+      "en-GB": ""
+    }
+  },
+  "version": "1.1"
+}

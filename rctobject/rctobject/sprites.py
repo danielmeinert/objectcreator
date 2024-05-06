@@ -52,6 +52,9 @@ class Sprite:
             self.switchPalette(pal.orct)
         self.image.save(path)
 
+    def isEmpty(self):
+        return spriteIsEmpty(self)
+
     def show(self, first_remap: str = 'NoColor', second_remap: str = 'NoColor', third_remap: str = 'NoColor'):
         return colorRemaps(self.image, first_remap, second_remap, third_remap)
 
@@ -480,3 +483,9 @@ def protectColorMask(image: Image.Image, color: str or list, palette: pal.Palett
             mask = mask & ~((red == r1) & (green == g1) & (blue == b1))
 
     return Image.fromarray(~mask)
+
+
+def spriteIsEmpty(sprite):
+    if sprite.image.getbbox() is None:
+        return True
+    return False

@@ -947,6 +947,9 @@ QTabBar::tab:selected {
               <height>22</height>
              </rect>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of image sets of 4 views each you want to use. This does not correspond to the number of frames for the animation. Use the sequence editor for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
@@ -959,19 +962,19 @@ QTabBar::tab:selected {
              <rect>
               <x>70</x>
               <y>10</y>
-              <width>91</width>
+              <width>111</width>
               <height>16</height>
              </rect>
             </property>
             <property name="text">
-             <string>Number of sprites</string>
+             <string>Number of image sets</string>
             </property>
            </widget>
            <widget class="QPushButton" name="pushButton_editAnimSequence">
             <property name="geometry">
              <rect>
-              <x>170</x>
-              <y>10</y>
+              <x>182</x>
+              <y>8</y>
               <width>81</width>
               <height>23</height>
              </rect>

@@ -37,6 +37,10 @@ import rctobject.constants as cts
 OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 
 
+def is_power_of_two(n):
+    return (n != 0) and (n & (n-1) == 0)
+
+
 class RCTObject:
     """Base class for all editable objects; loads from .parkobj or .DAT files."""
 
@@ -81,9 +85,17 @@ class RCTObject:
             elif isinstance(data['images'][0], dict):
                 sprites = {}
                 for i, im in enumerate(data['images']):
-                    sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
+                    if isinstance(im, dict):
+                        sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
+                            f'{temp}/{im["path"]}', coords=(im['x'], im['y']))
+                    elif im == '\"\"':
+                        im = {}
+                        im['x'] = 0
+                        im['y'] = 0
+                        sprites[f'images/{i}.png'] = spr.Sprite(None)
+
                     im['path'] = f'images/{i}.png'
+
             else:
                 raise RuntimeError('Cannot extract images.')
 
@@ -167,15 +179,22 @@ class RCTObject:
             filename = f'{path}/{self.data["id"]}'
             name = self.data["id"]
 
+        data_save = copy.deepcopy(self.data)
+
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
 
-            for im in self['images']:
+            for i, im in enumerate(self['images']):
                 sprite = self.sprites[im['path']]
-                sprite.save(f"{temp}/{im['path']}")
+
+                # we don't save empty sprites and replace their list entry with an empty string
+                if sprite.isEmpty():
+                    data_save['images'][i] = ""
+                else:
+                    sprite.save(f"{temp}/{im['path']}")
 
             with open(f'{temp}/object.json', mode='w') as file:
-                dump(obj=self.data, fp=file, indent=2)
+                dump(obj=data_save, fp=file, indent=2)
 
             make_archive(base_name=f'{filename}',
                          root_dir=temp, format='zip')
@@ -184,7 +203,6 @@ class RCTObject:
             if no_zip:
                 rmtree(filename, ignore_errors=True)
                 makedirs(filename, exist_ok=True)
-               # mkdir(f'{filename}/images')
                 move(f'{temp}/images', filename)
                 move(f'{temp}/object.json', filename)
 
@@ -269,6 +287,12 @@ class SmallScenery(RCTObject):
                     self.num_image_sets = 16
                 else:
                     self.animation_type = self.AnimationType.REGULAR
+
+                    while not is_power_of_two(len(data['properties']['frameOffsets'])):
+                        data['properties']['frameOffsets'].append(0)
+
+                    data['properties']['numFrames'] = len(
+                        data['properties']['frameOffsets'])
                     self.num_image_sets = int(
                         len(data['images'])/4) - int(self.has_preview)
 
@@ -634,14 +658,13 @@ class SmallScenery(RCTObject):
             self.AnimationType.CLOCK, self.AnimationType.SINGLEVIEW] else 4
 
         if len(self.data['images']) < (value+shift)*multiplier:
-            for i in range(len(self.data['images']), (value+shift)*multiplier):
-                index = multiplier*(i+shift)
-                entries = [{'path': f'images/{index+k}.png', 'x': 0, 'y': 0}
-                           for k in range(multiplier)]
-                self.data['images'][index:index+4] = entries
-                for im in entries:
-                    if not self.sprites.get(im['path'], False):
-                        self.sprites[im['path']] = spr.Sprite(None)
+            index = len(self.data['images'])
+            while index < (value+shift)*multiplier:
+                im = {'path': f'images/{index}.png', 'x': 0, 'y': 0}
+                self.data['images'].append(im)
+                if not self.sprites.get(im['path'], False):
+                    self.sprites[im['path']] = spr.Sprite(None)
+                index += 1
         else:
             self.data['images'] = self.data['images'][:(
                 value+shift)*multiplier]
