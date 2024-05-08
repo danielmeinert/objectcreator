@@ -87,6 +87,8 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_objectName")
         self.object_name_lang_field = self.findChild(
             QLineEdit, "lineEdit_nameInput")
+        self.scenery_group_id_field = self.findChild(
+            QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
 
@@ -104,6 +106,8 @@ class SettingsTab(QWidget):
         self.object_id_field.textChanged.connect(self.idChanged)
         self.object_name_field.textChanged.connect(self.nameChanged)
         self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
+        self.scenery_group_id_field.textChanged.connect(
+            self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
 
         # Flags
@@ -293,6 +297,9 @@ class SettingsTab(QWidget):
         object_type = self.o.object_type.value
         self.o['id'] = f'{author_id}.{object_type}.{value}'
         self.object_tab.saved = False
+
+    def sceneryGroupIdChanged(self, value):
+        self.o['properties']['sceneryGroup'] = value
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value

@@ -1279,7 +1279,7 @@ QTabBar::tab:selected {
            </rect>
           </property>
           <property name="title">
-           <string>   Future Support</string>
+           <string>  Linking Options</string>
           </property>
           <property name="flat">
            <bool>true</bool>
@@ -1294,10 +1294,10 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="text">
-            <string>Mirror Object ID</string>
+            <string>Scenery Group ID</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="lineEdit_mirrorID">
+          <widget class="QLineEdit" name="lineEdit_sceneryGroupID">
            <property name="geometry">
             <rect>
              <x>10</x>
@@ -1307,7 +1307,33 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string>Enter Id of a mirror version of the current object for future support of correct mirroring behaviour.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter ID of a scenery group such that this object gets added to it automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_4">
+           <property name="geometry">
+            <rect>
+             <x>170</x>
+             <y>60</y>
+             <width>101</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Mirror Object ID</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="lineEdit_mirrorID">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>60</y>
+             <width>151</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="toolTip">
+            <string>Enter ID of a mirror version of the current object for future support of correct mirroring behaviour.</string>
            </property>
           </widget>
          </widget>

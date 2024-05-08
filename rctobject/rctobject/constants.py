@@ -125,6 +125,15 @@ Jsmall_flags = {
     'SMALL_SCENERY_FLAG27': (9, 0x08)
 }
 
+list_small_animation_flags = ['hasOverlayImage',
+                              'SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_1',
+                              'SMALL_SCENERY_FLAG_FOUNTAIN_SPRAY_4',
+                              'isClock',
+                              'SMALL_SCENERY_FLAG_SWAMP_GOO',
+                              'SMALL_SCENERY_FLAG17',
+                              'SMALL_SCENERY_FLAG_VISIBLE_WHEN_ZOOMED',
+                              'SMALL_SCENERY_FLAG_COG']
+
 Jlarge_flags = {
 
     'hasPrimaryColour': (7, 0x01),
