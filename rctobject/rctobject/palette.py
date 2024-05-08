@@ -78,7 +78,8 @@ class Palette(np.ndarray):
     def getReducedArray(self, colors: list):
         ret = []
         for color in colors:
-            ret.append(self.getColor(color))
+            if color != 'Sparkles':
+                ret.append(self.getColor(color))
 
         return np.array(ret)
 
@@ -182,7 +183,8 @@ complete_palette_array = palette_data.complete_palette_array
 green_remap = Palette(palette_data.rct_data, allColors(), 'green_remap',
                       sparkles_data=palette_data.original_sparkles_data)
 
-orct = Palette(palette_data.orct_data, allColors(), 'orct', sparkles_data=palette_data.orct_sparkles_data)
+orct = Palette(palette_data.orct_data, allColors(), 'orct',
+               sparkles_data=palette_data.orct_sparkles_data)
 
 old_objm = Palette(palette_data.old_objm_data, allColors(), 'old_objm',
                    sparkles_data=palette_data.original_sparkles_data)
@@ -201,10 +203,11 @@ save_colors_dict = {
     'Brown': 11
 
 }
-save_colors = Palette(palette_data.save_colors_data, save_colors_dict, 'save_colors')
+save_colors = Palette(palette_data.save_colors_data,
+                      save_colors_dict, 'save_colors')
 
 
-def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include_sparkles=True):
+def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette):
     """Function to switch between given palettes.
     Input: image;    PIL image file you want to convert
            pal_in;   palette in (20,12,3) shape from which you want to convert
@@ -214,9 +217,7 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
     data_in = np.array(image)
     data_out = np.array(data_in)
 
-    if include_sparkles and not (pal_in.has_sparkles and pal_out.has_sparkles):
-        raise ValueError(
-            'Asked to include sparkles but one of given palette has no sparkles.')
+    include_sparkles = pal_in.has_sparkles and pal_out.has_sparkles
 
     colors = allColors(include_sparkles).keys()
 
@@ -238,8 +239,7 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette, include
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0),
-               include_sparkles=False, selected_colors=None, alpha_threshold=0):
+def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), selected_colors=None, alpha_threshold=0):
     # If no transparent_color is given we choose the color from (0,0) pixel
     if not transparent_color:
         transparent_color = image.getpixel((0, 0))[:3]
@@ -251,15 +251,19 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
     if not selected_colors:
         selected_colors = palette.color_dict.keys()
 
-    if include_sparkles and palette.has_sparkles:
-        selected_colors.append('Sparkles')
-    elif include_sparkles:
-        raise TypeError(
-            'Asked to include sparkles but given palette has no sparkles.')
-
     pal_in = palette.getReducedArray(selected_colors)
 
-    pal_in = pal_in.reshape(-1, pal_in.shape[-1])
+    if pal_in.size > 0:
+        pal_in = pal_in.reshape(-1, pal_in.shape[-1])
+    else:
+        pal_in = np.array([])
+
+    if 'Sparkles' in selected_colors and palette.has_sparkles:
+        pal_in = np.concatenate((pal_in, palette.sparkles))
+    elif 'Sparkles' in selected_colors:
+        raise RuntimeError(
+            'Asked to include sparkles but given palette has no sparkles.')
+
     pal_in = np.append(np.zeros((256-len(pal_in), 3)), pal_in, axis=0)
     pal_in = np.uint8(pal_in.flatten()).tolist()
     p = Image.new("P", (1, 1))

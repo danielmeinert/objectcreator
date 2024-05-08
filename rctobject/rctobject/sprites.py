@@ -15,11 +15,11 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
+                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0):
 
         if image:
             image = pal.addPalette(
-                image, palette, dither, transparent_color, include_sparkles, selected_colors, alpha_threshold)
+                image, palette, dither, transparent_color, selected_colors, alpha_threshold)
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -39,12 +39,12 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), include_sparkles=False, selected_colors=None, alpha_threshold=0):
+                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            include_sparkles=False, selected_colors=selected_colors, alpha_threshold=alpha_threshold)
+            selected_colors=selected_colors, alpha_threshold=alpha_threshold)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
@@ -98,14 +98,14 @@ class Sprite:
     def checkColor(self, color_name: str):
         return checkColor(self.image, color_name, self.palette)
 
-    def switchPalette(self, palette_new: pal.Palette, include_sparkles=True):
+    def switchPalette(self, palette_new: pal.Palette):
         self.image = pal.switchPalette(
-            self.image, self.palette, palette_new, include_sparkles)
+            self.image, self.palette, palette_new)
         self.palette = palette_new
 
-    def changeBrightness(self, step: int, include_sparkles: bool = False):
+    def changeBrightness(self, step: int):
         self.image = changeBrightness(
-            self.image, step, self.palette, include_sparkles)
+            self.image, step, self.palette)
 
     def changeBrightnessColor(self, step: int, color):
         self.image = changeBrightnessColor(
@@ -422,13 +422,10 @@ def changeBrightnessColor(image: Image.Image, value: int, color: str or list, pa
     return Image.fromarray(data_out)
 
 
-def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.orct, include_sparkles=False):
+def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.orct):
 
-    if include_sparkles and palette.has_sparkles:
+    if palette.has_sparkles:
         image = changeBrightnessColor(image, step, 'Sparkles', palette)
-    elif include_sparkles:
-        raise TypeError(
-            'Asked to include sparkles but given palette has no sparkles.')
 
     image = changeBrightnessColor(
         image, step, list(palette.color_dict), palette)
