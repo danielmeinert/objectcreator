@@ -604,11 +604,14 @@ class SpritesTab(QWidget):
         self.updateAllViews()
 
     def loadImage(self):
-        filepath, _ = QFileDialog.getOpenFileName(
+        filepaths, _ = QFileDialog.getOpenFileNames(
             self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
 
-        if filepath:
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+        if len(filepaths) == 0:
+            return
+        selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+        if len(filepaths) == 0:
+            filepath = filepaths[0]
 
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color,
@@ -620,6 +623,15 @@ class SpritesTab(QWidget):
             layers.insertRow(0, layer)
 
             self.setCurrentLayers(layers)
+        else:
+            startFrame = self.slider_sprite_index.value()
+            startView = self.o.rotation
+            for i in range(min(self.o.num_image_sets+int(self.o.has_preview)-startFrame,len(filepaths))):
+                sprite = spr.Sprite.fromFile(filepaths[i], palette=self.main_window.current_palette,
+                                             transparent_color=self.main_window.current_import_color,
+                                             include_sparkles=False, selected_colors=selected_colors,
+                                             alpha_threshold=0)
+                self.o.setSprite(sprite, startView, i+startFrame)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
