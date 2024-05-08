@@ -594,6 +594,11 @@ class SmallScenery(RCTObject):
                         self.sprites[path] = spr.Sprite(
                             None, (0, 0), self.palette)
 
+        if subtype == self.Subtype.SIMPLE:
+            self.data['images'] = self.data['images'][:4]
+
+        self.updateImageList()
+
     def changeShape(self, shape):
         self.shape = shape
         self.data['properties']['shape'] = shape.fullname

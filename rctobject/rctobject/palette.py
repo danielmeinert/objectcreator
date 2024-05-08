@@ -249,7 +249,9 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
 
     # If no selected_colors is given we use the entire palette
     if not selected_colors:
-        selected_colors = palette.color_dict.keys()
+        selected_colors = list(palette.color_dict.keys())
+        if palette.has_sparkles:
+            selected_colors.append('Sparkles')
 
     pal_in = palette.getReducedArray(selected_colors)
 
