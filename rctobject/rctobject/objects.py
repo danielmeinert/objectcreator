@@ -560,7 +560,16 @@ class SmallScenery(RCTObject):
             self.preview_backup = {}
 
             self.num_image_sets = int(len(self.data['images'])/4)
-        elif subtype == self.Subtype.GLASS:
+        else:
+            self.data['properties'].pop('frameOffsets')
+            self.data['properties'].pop('animationDelay')
+            self.data['properties'].pop('animationMask')
+            self.data['properties'].pop('numFrames')
+            for flag in cts.list_small_animation_flags:
+                self.data['properties'].pop(flag, None)
+            self.has_preview = False
+
+        if subtype == self.Subtype.GLASS:
             if len(self.data['images'])/4 > 1:
                 for rot in range(4):
                     sprite = self.giveSprite(rotation=rot, glass=True)
@@ -572,7 +581,8 @@ class SmallScenery(RCTObject):
                     im = {'path': path, 'x': 0, 'y': 0}
                     self.data['images'].append(im)
                     self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
-        elif subtype == self.Subtype.GARDENS:
+
+        if subtype == self.Subtype.GARDENS:
             if len(self.data['images'])/4 < 3:
                 num_spr = 3 - int(len(self.data['images'])/4)
                 start_index = len(self.data["images"])
@@ -583,6 +593,11 @@ class SmallScenery(RCTObject):
                         self.data['images'].append(im)
                         self.sprites[path] = spr.Sprite(
                             None, (0, 0), self.palette)
+
+        if subtype == self.Subtype.SIMPLE:
+            self.data['images'] = self.data['images'][:4]
+
+        self.updateImageList()
 
     def changeShape(self, shape):
         self.shape = shape

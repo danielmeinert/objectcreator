@@ -304,6 +304,8 @@ class ColorBar(QWidget):
             layout.insertWidget(0, b)
             self.buttons.append(b)
            # addWidget(b,-1)
+        else:
+            self.num_buttons = i+1
 
         self.checkbox = QCheckBox()
         self.checkbox.setToolTip(colorname)
@@ -403,7 +405,8 @@ class ColorSelectWidget(QWidget):
         button_layout.addWidget(self.select_all, 0, QtCore.Qt.AlignLeft)
         button_layout.addWidget(self.invert_all, 0, QtCore.Qt.AlignLeft)
         button_layout.addStretch()
-        button_layout.addWidget(self.activate_sparkles, 0, QtCore.Qt.AlignRight)
+        button_layout.addWidget(self.activate_sparkles,
+                                0, QtCore.Qt.AlignRight)
 
         container.addWidget(button_widget, 0, QtCore.Qt.AlignLeft)
 
@@ -431,10 +434,11 @@ class ColorSelectWidget(QWidget):
     def setColor(self, color: str, shade_index: int):
         bar = self.bars[color]
 
-        btn = bar.buttons[shade_index]
+        if shade_index < bar.num_buttons:
+            btn = bar.buttons[shade_index]
 
-        if not btn.isChecked():
-            btn.click()
+            if not btn.isChecked():
+                btn.click()
 
     def getColorIndices(self):
         if self.active_color_button:

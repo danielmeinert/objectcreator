@@ -87,6 +87,10 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_objectName")
         self.object_name_lang_field = self.findChild(
             QLineEdit, "lineEdit_nameInput")
+        self.scenery_group_id_field = self.findChild(
+            QLineEdit, "lineEdit_sceneryGroupID")
+        self.mirror_object_id_field = self.findChild(
+            QLineEdit, "lineEdit_mirrorID")
 
         self.name_lang_box = self.findChild(
             QComboBox, "comboBox_languageSelect")
@@ -102,6 +106,9 @@ class SettingsTab(QWidget):
         self.object_id_field.textChanged.connect(self.idChanged)
         self.object_name_field.textChanged.connect(self.nameChanged)
         self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
+        self.scenery_group_id_field.textChanged.connect(
+            self.sceneryGroupIdChanged)
+        self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -291,6 +298,12 @@ class SettingsTab(QWidget):
         self.o['id'] = f'{author_id}.{object_type}.{value}'
         self.object_tab.saved = False
 
+    def sceneryGroupIdChanged(self, value):
+        self.o['properties']['sceneryGroup'] = value
+
+    def mirrorIdChanged(self, value):
+        self.o['properties']['mirrorObjectId'] = value
+
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
@@ -437,6 +450,7 @@ class SettingsTab(QWidget):
 
         obj_id = self.o.data.get('id', False)
         if obj_id:
+            print(obj_id)
             if len(obj_id.split('.')) > 2:
                 self.author_id_field.setText(obj_id.split('.')[0])
                 self.object_id_field.setText(obj_id.split('.', 2)[2])
@@ -599,8 +613,8 @@ class SpritesTab(QWidget):
 
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color,
-                                         include_sparkles=False, selected_colors=selected_colors,
-                                         alpha_threshold=0)
+                                         selected_colors=selected_colors, alpha_threshold=0,
+                                         offset=self.main_window.import_offset)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
@@ -655,14 +669,14 @@ class SpritesTab(QWidget):
             except:
                 return
 
-        image = image.convert('RGBA')
-
         if image:
+            image = image.convert('RGBA')
+
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color,
-                                include_sparkles=False, selected_colors=selected_colors,
+                                selected_colors=selected_colors,
                                 alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
