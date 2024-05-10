@@ -430,6 +430,15 @@ class SpriteTab(QWidget):
 
         self.updateView()
 
+    def colorInvertShading(self, selected_colors):
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
+        sprite = layer.sprite
+
+        sprite.invertShadingColor(selected_colors)
+
+        self.updateView()
+
     def changeSpriteOffset(self, direction: str):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
@@ -1641,6 +1650,8 @@ class ToolWidgetSprite(QWidget):
             QPushButton, "pushButton_decrBrightness")
         self.button_remove_color = self.findChild(
             QPushButton, "pushButton_deleteColor")
+        self.button_invert_shading = self.findChild(
+            QPushButton, "pushButton_invertShading")
 
         self.button_remap_to.clicked.connect(self.colorRemapTo)
         self.button_incr_brightness.clicked.connect(
@@ -1648,6 +1659,8 @@ class ToolWidgetSprite(QWidget):
         self.button_decr_brightness.clicked.connect(
             lambda x, step=-1: self.colorChangeBrightness(step))
         self.button_remove_color.clicked.connect(self.colorRemove)
+        self.button_invert_shading.clicked.connect(self.colorInvertShading
+                                                   )
 
     # Color manipulations
 
@@ -1697,8 +1710,23 @@ class ToolWidgetSprite(QWidget):
 
             widget.colorRemove(selected_colors)
 
+    def colorInvertShading(self):
+        selected_colors = self.color_select_panel.selectedColors()
 
-# Settings window
+        if self.checkbox_all_views.isChecked():
+            widget = self.main_window.object_tabs.currentWidget()
+
+            index = self.main_window.layer_widget.layers_list.model().rowCount(
+            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
+            widget.colorInvertShadingAll(index, selected_colors)
+
+        else:
+            widget = self.main_window.sprite_tabs.currentWidget()
+
+            widget.colorInvertShading(selected_colors)
+
+        # Settings window
+
 
 class ChangeSettingsUi(QDialog):
     def __init__(self, settings):
