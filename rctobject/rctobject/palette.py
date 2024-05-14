@@ -83,6 +83,29 @@ class Palette(np.ndarray):
 
         return np.array(ret)
 
+    def getColorNearest(self, target_color):
+        """Get the nearest color in the palette to a given target color.
+
+        Args:
+            target_color (array-like): The target color values.
+
+        Returns:
+            array-like: The color values from the palette.
+        """
+        # Reshape the palette to a 2D array
+        palette_flat = self.reshape(-1, 3)
+
+        # Calculate the Euclidean distance between the target color and all colors in the palette
+        distances = np.linalg.norm(palette_flat - target_color, axis=1)
+
+        # Find the index of the color with the minimum distance
+        nearest_index = np.argmin(distances)
+
+        # Get the nearest color from the palette
+        nearest_color = tuple(palette_flat[nearest_index])
+
+        return nearest_color
+
     def arr(self):
         return np.array(self)
 
@@ -341,3 +364,54 @@ def removeColorOnMask(image: Image.Image, mask: np.array):
     data[:, :, :][mask] = [0, 0, 0, 0]
 
     return Image.fromarray(data)
+
+
+def floydSteinbergDithering(image: Image.Image, palette: Palette):
+    """Apply Floyd-Steinberg dithering to a color image using a specified palette.
+
+    Args:
+        image (PIL.Image.Image): The input color image.
+        palette (Palette): The palette to use for dithering.
+
+    Returns:
+        PIL.Image.Image: The dithered color image.
+    """
+    # Convert the image to RGB mode if not already
+    image = image.convert("RGB")
+    # Convert the image to numpy array
+    input_array = np.array(image)
+    # Create an empty output array to store the dithered image
+    output_array = np.zeros_like(input_array, dtype=np.uint8)
+
+    # Iterate over each pixel in the image
+    for y in range(input_array.shape[0]):
+        for x in range(input_array.shape[1]):
+            # Get the original pixel values
+            old_pixel = input_array[y, x]
+            # Get the nearest color from the palette
+            new_pixel = palette.getColorNearest(old_pixel)
+            # Set the output pixel value
+            output_array[y, x] = new_pixel
+            # Calculate the quantization error
+            error = old_pixel - new_pixel
+            # Ensure error has the same dtype as input_array
+            error = error.astype(input_array.dtype)
+            # Diffuse the error to neighboring pixels
+            if x < input_array.shape[1] - 1:
+                # Ensure the diffusion operation also has the same dtype as input_array
+                input_array[y, x + 1] += (error * np.array([7/16,
+                                          7/16, 7/16])).astype(input_array.dtype)
+            if y < input_array.shape[0] - 1:
+                if x > 0:
+                    input_array[y + 1, x - 1] += (error * np.array(
+                        [3/16, 3/16, 3/16])).astype(input_array.dtype)
+                input_array[y + 1, x] += (error * np.array([5/16,
+                                          5/16, 5/16])).astype(input_array.dtype)
+                if x < input_array.shape[1] - 1:
+                    input_array[y + 1, x + 1] += (error * np.array(
+                        [1/16, 1/16, 1/16])).astype(input_array.dtype)
+
+    # Convert the output array back to an image
+    dithered_image = Image.fromarray(output_array, mode="RGB")
+
+    return dithered_image
