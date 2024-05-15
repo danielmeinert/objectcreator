@@ -90,7 +90,7 @@ class RCTObject:
 
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
-        elif isinstance(data['images'][0], dict):
+        elif isinstance(data['images'], list):
             sprites = {}
             filename_len = len(filepath.split('/')[-1])
             for i, im in enumerate(data['images']):
@@ -105,6 +105,8 @@ class RCTObject:
                     sprites[f'images/{i}.png'] = spr.Sprite(None)
                     im['path'] = f'images/{i}.png'
                     data['images'][i] = im
+                else:
+                    raise RuntimeError('Image was not a valid type. G1, G2, CSG, LGX not supported')
 
         else:
             raise RuntimeError('Cannot extract images.')
