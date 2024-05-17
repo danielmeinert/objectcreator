@@ -244,7 +244,7 @@ class RCTObject:
         new_dict = {}
 
         for i, im in enumerate(self['images']):
-            sprite = self.sprites.pop(im['path'])
+            sprite = self.sprites[im['path']]
             im['path'] = f'images/{i}.png'
             new_dict[im['path']] = sprite
 
@@ -812,6 +812,8 @@ class LargeScenery(RCTObject):
                 raise TypeError("Object is not large scenery.")
 
             self.object_type = Type.LARGE
+            
+            
 
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
@@ -855,39 +857,55 @@ class LargeScenery(RCTObject):
         max_x = 0
         max_y = 0
         max_z = 0
+        min_x = 0
+        min_y = 0
+        min_z = 0
+        
         for tile in self.tiles:
-            max_x = max(abs(tile.x), max_x)
-            max_y = max(abs(tile.y), max_y)
-            max_z = max(abs(tile.z + tile.clearance), max_z)
-
-        x = max_x + 1
-        y = max_y + 1
-        z = max_z
+            max_x = max(tile.x, max_x)
+            max_y = max(tile.y, max_y)
+            max_z = max(tile.z + tile.clearance, max_z)
+        
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            min_z = min(tile.z, min_z)
+    
+        x = max_x - min_x + 1
+        y = max_y - min_y + 1
+        z = max_z - min_z
 
         return (int(x), int(y), int(z))
+    
+    def baseOffset(self):
+        # Coordinates  of (0,0) tile according to rotation
+        max_x = 0
+        max_y = 0
+        max_z = 0
+        min_x = 0
+        min_y = 0
+        min_z = 0
+        
+        for tile in self.tiles:
+            max_x = max(tile.x, max_x)
+            max_y = max(tile.y, max_y)
+            max_z = max(tile.z + tile.clearance, max_z)
+        
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            min_z = min(tile.z, min_z)
+        
+        x = (max_x-min_y)*32+32
+        y = (-min_x-min_y)*16+max_z*8
+
+        return x,y
 
     def show(self):
-        x_size, y_size, z_size = self.size()
-        canvas = Image.new('RGBA', self.spriteBoundingBox())
+        canvas = Image.new('RGBA', self.spriteBoundingBox(), (55,55,55))
 
+        x_baseline, y_baseline = self.baseOffset()
+        
         tile_index = 0
-
         drawing_order = self.getDrawingOrder()
-
-        view = self.rotation
-        # Set base point of (0,0) tile according to rotation
-        if view == 0:
-            y_baseline = z_size*8
-            x_baseline = x_size*32
-        elif view == 1:
-            y_baseline = z_size*8+(x_size-1)*16
-            x_baseline = x_size*32+(y_size-1)*32
-        elif view == 2:
-            y_baseline = z_size*8+(x_size-1)*16+(y_size-1)*16
-            x_baseline = y_size*32
-        elif view == 3:
-            y_baseline = z_size*8+(y_size-1)*16
-            x_baseline = 32
 
         for tile_index in drawing_order:
             tile = self.tiles[tile_index]
@@ -961,6 +979,9 @@ class LargeScenery(RCTObject):
                 new_dict[im['path']] = sprite
 
         self.sprites = new_dict
+        
+    def projectSpriteToTiles(self, sprite):
+        pass
 
     def addTile(self, coords):
         # we expect that the image list is ordered
