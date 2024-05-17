@@ -22,7 +22,8 @@ import resources_rc
 from rctobject import palette as pal
 from rctobject import sprites as spr
 
-#om.rotate(-45, Image.NEAREST).resize((64,31),Image.NEAREST)
+# om.rotate(-45, Image.NEAREST).resize((64,31),Image.NEAREST)
+
 
 class PathGeneratorUi(QMainWindow):
     def __init__(self):
@@ -65,6 +66,8 @@ class PathGeneratorUi(QMainWindow):
             QCheckBox, "checkBox_allViews")
         self.checkboxAutoNaming = self.findChild(
             QCheckBox, "checkBox_autoNaming")
+        self.checkbox_raised = self.findChild(
+            QCheckBox, "checkBox_raised")
 
         self.comboboxRotation = self.findChild(
             QComboBox, "comboBox_rotation")
@@ -79,7 +82,6 @@ class PathGeneratorUi(QMainWindow):
         self.labelGenerateReturn = self.findChild(
             QLabel, "label_GenerateReturn")
 
-
         self.comboboxRemapToColor = self.findChild(
             QComboBox, "comboBox_remapToColor")
 
@@ -92,8 +94,9 @@ class PathGeneratorUi(QMainWindow):
             QLineEdit, "lineEdit_outputFolder")
 
         # Color Panel
-        self.widgetColorPanel = self.findChild(QGroupBox, "groupBox_selectedColor")
-        self.colorSelectPanel = ColorSelectWidget(pal.orct, True, False, False)
+        self.widgetColorPanel = self.findChild(
+            QGroupBox, "groupBox_selectedColor")
+        self.colorSelectPanel = ColorSelectWidget(pal.orct)
         self.widgetColorPanel.layout().addWidget(self.colorSelectPanel)
 
         # Sprite control buttons
@@ -111,10 +114,12 @@ class PathGeneratorUi(QMainWindow):
             QToolButton, "toolButton_updown")
 
         # Rotation buttons
-        self.sprite_preview = [self.sprite_view_preview0,self.sprite_view_preview1,self.sprite_view_preview2,self.sprite_view_preview3]
+        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
+                               self.sprite_view_preview2, self.sprite_view_preview3]
 
         for rot, widget in enumerate(self.sprite_preview):
-            widget.mousePressEvent= (lambda e, rot=rot: self.previewClicked(rot))
+            widget.mousePressEvent = (
+                lambda e, rot=rot: self.previewClicked(rot))
             widget.hide()
 
             self.updatePreview(rot)
@@ -123,7 +128,6 @@ class PathGeneratorUi(QMainWindow):
 
         self.listwidgetTemplateList = self.findChild(
             QListWidget, "listWidget_templateList")
-
 
         # Set defaults
         self.lineeditAuthor.setText(self.generator.settings['author'])
@@ -182,12 +186,13 @@ class PathGeneratorUi(QMainWindow):
         self.buttonSpriteRight.setAutoRepeat(True)
         self.buttonSpriteUp.setAutoRepeat(True)
 
-        self.buttonAutoRotate1.clicked.connect(lambda x: self.clickGenerateRotations(0))
-        self.buttonAutoRotate2.clicked.connect(lambda x: self.clickGenerateRotations(1))
+        self.buttonAutoRotate1.clicked.connect(
+            lambda x: self.clickGenerateRotations(0))
+        self.buttonAutoRotate2.clicked.connect(
+            lambda x: self.clickGenerateRotations(1))
 
         self.actionDeleteAll.triggered.connect(self.resetAllBases)
         self.actionImportBase.triggered.connect(self.importBase)
-
 
         self.show()
 
@@ -207,7 +212,7 @@ class PathGeneratorUi(QMainWindow):
         self.generator.fixBaseToMask()
         self.updateMainView()
 
-    #def clickResetBase(self):
+    # def clickResetBase(self):
 
     #    self.generator.base.resetSprite()
     #    self.updateMainView()
@@ -244,6 +249,7 @@ class PathGeneratorUi(QMainWindow):
             auth.strip() for auth in self.lineeditAuthor.text().split(',')]
         self.generator.settings['author_id'] = self.lineeditAuthorID.text()
         self.generator.settings['object_id'] = self.lineeditObjectID.text()
+        self.generator.settings['raised'] = self.checkbox_raised.isChecked()
         self.generator.selected_templates = [
             sel.text() for sel in self.listwidgetTemplateList.selectedItems()]
 
@@ -265,7 +271,6 @@ class PathGeneratorUi(QMainWindow):
             for widget in self.sprite_preview:
                 widget.hide()
 
-
         else:
 
             self.buttonAutoRotate1.setEnabled(True)
@@ -279,8 +284,6 @@ class PathGeneratorUi(QMainWindow):
         self.updatePreview(1)
         self.updatePreview(2)
         self.updatePreview(3)
-
-
 
     def clickGenerateRotations(self, direction):
         self.generator.fixBaseToMask()
@@ -304,8 +307,6 @@ class PathGeneratorUi(QMainWindow):
             else:
                 pass
 
-
-
     def clickRemapTo(self):
         color_remap = self.comboboxRemapToColor.currentText()
 
@@ -325,7 +326,6 @@ class PathGeneratorUi(QMainWindow):
 
         self.updateMainView()
 
-
     def clickIncrBrightness(self):
         if self.checkboxAllViews.isChecked():
             for base in self.generator.bases:
@@ -340,7 +340,6 @@ class PathGeneratorUi(QMainWindow):
         else:
             for color in self.colorSelectPanel.selectedColors():
                 self.generator.base.changeBrightnessColor(1, color)
-
 
         self.updateMainView()
 
@@ -379,16 +378,16 @@ class PathGeneratorUi(QMainWindow):
 
         self.updateMainView()
 
-
     def previewClicked(self, rot):
         old_rot = self.generator.current_rotation
-        self.sprite_preview[old_rot].setStyleSheet("background-color :  black; border:none;")
-        self.sprite_preview[rot].setStyleSheet("background-color :  black; border:2px outset green;")
+        self.sprite_preview[old_rot].setStyleSheet(
+            "background-color :  black; border:none;")
+        self.sprite_preview[rot].setStyleSheet(
+            "background-color :  black; border:2px outset green;")
 
         self.generator.rotationChanged(rot)
 
         self.updateMainView()
-
 
     def resetAllBases(self):
         self.generator.resetAllBases()
@@ -416,11 +415,7 @@ class PathGeneratorUi(QMainWindow):
             self.updatePreview(2)
             self.updatePreview(3)
 
-
-
-
     # Auxiliary functions
-
 
     def updateMainView(self):
         canvas = Image.new('RGBA', (172, 132))
@@ -438,11 +433,11 @@ class PathGeneratorUi(QMainWindow):
 
         im = self.generator.bases[rot].show()
 
-        coords = (0,2)
+        coords = (0, 2)
 
         canvas = Image.new('RGBA', (68, 34))
         canvas.paste(im, coords, im)
-        #canvas.paste(self.frame_image, self.frame_image)
+        # canvas.paste(self.frame_image, self.frame_image)
 
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -454,7 +449,6 @@ class PathGeneratorUi(QMainWindow):
                 self.lineeditPrefix.text() + ' Fulltile ' + self.lineeditSuffix.text())
         else:
             self.labelDisplayName.setText(self.lineeditPrefix.text())
-
 
     def loadFrame(self):
         img = QtGui.QImage(":/images/res/frame.png")
@@ -477,7 +471,6 @@ class PathGeneratorUi(QMainWindow):
     def loadTemplates(self):
         for name in self.generator.templates.keys():
             self.listwidgetTemplateList.addItem(name)
-
 
     # Events
 
@@ -603,8 +596,6 @@ class ImportSpriteUi(QDialog):
             self.sliderBrightness.setValue(100)
             self.sliderSharpness.setValue(100)
 
-
-
         self.updateMainView()
 
     def angleChanged(self, val):
@@ -635,13 +626,15 @@ class ImportSpriteUi(QDialog):
 
         self.updateMainView()
 
-
     def updateMainView(self):
-        base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
-                                      ).rotate(self.angle, resample= Image.BICUBIC, expand=1)
+        base = self.base.resize(
+            (int(self.base.size[0] * self.factor),
+             int(self.base.size[1] * self.factor)),
+            resample=Image.BICUBIC).rotate(
+            self.angle, resample=Image.BICUBIC, expand=1)
 
-        x = self.x -int(base.size[0]/2)
-        y = self.y -int(base.size[1]/2)
+        x = self.x - int(base.size[0]/2)
+        y = self.y - int(base.size[1]/2)
 
         canvas = Image.new('RGBA', (172, 132))
         canvas.paste(
@@ -655,13 +648,13 @@ class ImportSpriteUi(QDialog):
         self.updatePreview(base)
 
     def updatePreview(self, base):
-        if self.base.size == (1,1):
+        if self.base.size == (1, 1):
             return
 
         else:
 
-            x = self.x -int(base.size[0]/2)
-            y = self.y -int(base.size[1]/2)
+            x = self.x - int(base.size[0]/2)
+            y = self.y - int(base.size[1]/2)
 
             im = self.fixToMask(base, x, y)
 
@@ -680,18 +673,19 @@ class ImportSpriteUi(QDialog):
             pixmap = QtGui.QPixmap.fromImage(image)
             self.spritePreviewLabel.setPixmap(pixmap)
 
-
-
     def accept(self):
 
-        if self.base.size == (1,1):
+        if self.base.size == (1, 1):
             super().reject()
         else:
-            base = self.base.resize((int(self.base.size[0]*self.factor), int(self.base.size[1]*self.factor)), resample=Image.BICUBIC
-                                          ).rotate(self.angle, resample= Image.BICUBIC, expand=1)
+            base = self.base.resize(
+                (int(self.base.size[0] * self.factor),
+                 int(self.base.size[1] * self.factor)),
+                resample=Image.BICUBIC).rotate(
+                self.angle, resample=Image.BICUBIC, expand=1)
 
-            x = self.x -int(base.size[0]/2)
-            y = self.y -int(base.size[1]/2)
+            x = self.x - int(base.size[0]/2)
+            y = self.y - int(base.size[1]/2)
 
             if self.checkBox_rotations.isChecked():
                 self.ret = []
@@ -701,12 +695,12 @@ class ImportSpriteUi(QDialog):
                     if self.contrast != 1:
                         im = ImageEnhance.Contrast(im).enhance(self.contrast)
                     if self.brightness != 1:
-                        im = ImageEnhance.Brightness(im).enhance(self.brightness)
+                        im = ImageEnhance.Brightness(
+                            im).enhance(self.brightness)
                     if self.sharpness != 1:
                         im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
 
                     self.ret.append(im)
-
 
             else:
                 im = self.fixToMask(base, x, y)
@@ -717,7 +711,6 @@ class ImportSpriteUi(QDialog):
                     im = ImageEnhance.Brightness(im).enhance(self.brightness)
                 if self.sharpness != 1:
                     im = ImageEnhance.Sharpness(im).enhance(self.sharpness)
-
 
                 self.ret = im
 
@@ -730,8 +723,4 @@ class ImportSpriteUi(QDialog):
         image = image.rotate(rot*90, Image.BICUBIC)
         mask.paste(image, mask)
 
-
-        return mask.rotate(-45, Image.NEAREST, expand=1).crop((1,2,65,64)).resize((64,31),Image.NEAREST)
-
-
-
+        return mask.rotate(-45, Image.NEAREST, expand=1).crop((1, 2, 65, 64)).resize((64, 31), Image.NEAREST)

@@ -75,6 +75,8 @@ class SettingsTab(QWidget):
         for cursor in cts.cursors:
             self.cursor_box.addItem(cursor.replace('_', ' '))
 
+        self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
+
         # Names
         self.author_field = self.findChild(QLineEdit, "lineEdit_author")
         self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
@@ -85,6 +87,10 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_objectName")
         self.object_name_lang_field = self.findChild(
             QLineEdit, "lineEdit_nameInput")
+        self.scenery_group_id_field = self.findChild(
+            QLineEdit, "lineEdit_sceneryGroupID")
+        self.mirror_object_id_field = self.findChild(
+            QLineEdit, "lineEdit_mirrorID")
 
         self.name_lang_box = self.findChild(
             QComboBox, "comboBox_languageSelect")
@@ -100,6 +106,9 @@ class SettingsTab(QWidget):
         self.object_id_field.textChanged.connect(self.idChanged)
         self.object_name_field.textChanged.connect(self.nameChanged)
         self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
+        self.scenery_group_id_field.textChanged.connect(
+            self.sceneryGroupIdChanged)
+        self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -154,7 +163,7 @@ class SettingsTab(QWidget):
             QSpinBox, "spinBox_numSprites")
 
         self.spinbox_frame_delay.valueChanged.connect(
-            lambda value, name='animationDelay ': self.spinBoxChanged(value, name))
+            lambda value, name='animationDelay': self.spinBoxChanged(value, name))
         self.spinbox_anim_delay.valueChanged.connect(
             self.animationDelayChanged)
         self.spinbox_anim_num_image_sets.valueChanged.connect(
@@ -186,6 +195,7 @@ class SettingsTab(QWidget):
         dummy_o = obj.newEmpty(obj.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
         dummy_o['properties']['height'] = int(self.o['properties']['height'])
+        dummy_o.rotation = int(self.o.rotation)
 
         return dummy_o
 
@@ -196,7 +206,7 @@ class SettingsTab(QWidget):
 
         self.o.changeSubtype(subtype)
 
-        self.sprites_tab.slider_sprite_index.setEnabled(
+        self.sprites_tab.widget_frame_controls.setEnabled(
             subtype == obj.SmallScenery.Subtype.GARDENS or subtype == obj.SmallScenery.Subtype.ANIMATED)
         self.sprites_tab.widget_animation_controls.setEnabled(
             subtype == obj.SmallScenery.Subtype.ANIMATED)
@@ -206,14 +216,18 @@ class SettingsTab(QWidget):
 
         if subtype == obj.SmallScenery.Subtype.GARDENS:
             self.sprites_tab.slider_sprite_index.setMaximum(2)
+            self.sprites_tab.spinbox_sprite_index.setMaximum(2)
         elif subtype == obj.SmallScenery.Subtype.ANIMATED:
             self.sprites_tab.slider_sprite_index.setMaximum(
+                self.o.num_image_sets-1+int(self.o.has_preview))
+            self.sprites_tab.spinbox_sprite_index.setMaximum(
                 self.o.num_image_sets-1+int(self.o.has_preview))
             self.animation_widget.setEnabled(True)
 
             self.anim_subtype_box.setCurrentIndex(self.o.animation_type.value)
         else:
             self.sprites_tab.slider_sprite_index.setMaximum(0)
+            self.sprites_tab.spinbox_sprite_index.setMaximum(0)
 
         self.loadObjectSettings()
         self.sprites_tab.updateLockedSpriteLayersModel()
@@ -264,6 +278,11 @@ class SettingsTab(QWidget):
 
         self.sprites_tab.updateMainView()
 
+    def cursorChanged(self):
+        value = self.cursor_box.currentIndex()
+
+        self.o['properties']['cursor'] = cts.cursors[value]
+
     def authorChanged(self, value):
         self.o['authors'] = value.split(',')
 
@@ -278,6 +297,12 @@ class SettingsTab(QWidget):
         object_type = self.o.object_type.value
         self.o['id'] = f'{author_id}.{object_type}.{value}'
         self.object_tab.saved = False
+
+    def sceneryGroupIdChanged(self, value):
+        self.o['properties']['sceneryGroup'] = value
+
+    def mirrorIdChanged(self, value):
+        self.o['properties']['mirrorObjectId'] = value
 
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
@@ -326,7 +351,10 @@ class SettingsTab(QWidget):
         dialog = EditAnimationSequenceUI(self.o)
 
         if dialog.exec():
-            self.o.data['properties']['frameOffsets'] = dialog.sequence
+            self.o['properties']['frameOffsets'] = dialog.sequence
+            self.o['properties']['numFrames'] = len(dialog.sequence)
+            self.o['properties']['animationMask'] = len(
+                dialog.sequence) * 2**self.spinbox_anim_delay.value() - 1
             self.spinbox_anim_num_image_sets.setValue(dialog.num_image_sets)
 
     def animationTypeChanged(self, value):
@@ -362,6 +390,8 @@ class SettingsTab(QWidget):
     def animationNumImageSetsChanged(self, value):
         self.sprites_tab.slider_sprite_index.setMaximum(
             value-1+int(self.o.has_preview))
+        self.sprites_tab.spinbox_sprite_index.setMaximum(
+            value-1+int(self.o.has_preview))
         if self.o.num_image_sets == value:
             return
 
@@ -373,6 +403,8 @@ class SettingsTab(QWidget):
         self.o.updateAnimPreviewImage()
 
         self.sprites_tab.slider_sprite_index.setMaximum(
+            self.o.num_image_sets-1+int(self.o.has_preview))
+        self.sprites_tab.spinbox_sprite_index.setMaximum(
             self.o.num_image_sets-1+int(self.o.has_preview))
 
         self.sprites_tab.updateLockedSpriteLayersModel()
@@ -418,6 +450,7 @@ class SettingsTab(QWidget):
 
         obj_id = self.o.data.get('id', False)
         if obj_id:
+            print(obj_id)
             if len(obj_id.split('.')) > 2:
                 self.author_id_field.setText(obj_id.split('.')[0])
                 self.object_id_field.setText(obj_id.split('.', 2)[2])
@@ -484,14 +517,8 @@ class SpritesTab(QWidget):
         # Buttons load/reset
         self.button_load_image = self.findChild(
             QPushButton, "pushButton_loadImage")
-        self.button_reset_image = self.findChild(
-            QPushButton, "pushButton_resetImage")
-        self.button_reset_offsets = self.findChild(
-            QPushButton, "pushButton_resetOffsets")
 
         self.button_load_image.clicked.connect(self.loadImage)
-        self.button_reset_image.clicked.connect(self.resetImage)
-        self.button_reset_offsets.clicked.connect(self.resetOffsets)
 
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
@@ -532,6 +559,10 @@ class SpritesTab(QWidget):
             QSlider, "horizontalSlider_spriteIndex")
         self.slider_sprite_index.valueChanged.connect(
             self.updateLockedSpriteLayersModel)
+
+        self.widget_frame_controls = self.findChild(
+            QWidget, "groupBox_frame_controls")
+        self.widget_frame_controls.setEnabled(False)
 
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
@@ -582,8 +613,8 @@ class SpritesTab(QWidget):
 
             sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
                                          transparent_color=self.main_window.current_import_color,
-                                         include_sparkles=False, selected_colors=selected_colors,
-                                         alpha_threshold=0)
+                                         selected_colors=selected_colors, alpha_threshold=0,
+                                         offset=self.main_window.import_offset)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
             layers = QtGui.QStandardItemModel()
@@ -621,6 +652,9 @@ class SpritesTab(QWidget):
             f"View {(rot + 3 )%4+1}", lambda view=(rot + 3) % 4: self.copySpriteToView(view))
         submenu_copy.addAction("All Views", self.copySpriteToAllViews)
 
+        # submenu_copy.addAction("All Frames of View",
+        #                        self.copySpriteToAllFramesView)
+
         menu.addMenu(submenu_copy)
 
         menu.addAction("Delete Sprite", self.deleteSprite)
@@ -635,14 +669,14 @@ class SpritesTab(QWidget):
             except:
                 return
 
-        image = image.convert('RGBA')
-
         if image:
+            image = image.convert('RGBA')
+
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color,
-                                include_sparkles=False, selected_colors=selected_colors,
+                                selected_colors=selected_colors,
                                 alpha_threshold=0)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
@@ -675,6 +709,9 @@ class SpritesTab(QWidget):
 
         for view in range(3):
             self.copySpriteToView(view=(view+rot + 1) % 4)
+
+    def copySpriteToAllFramesView(self):
+        pass
 
     def deleteSprite(self):
         for layer in self.giveCurrentMainViewLayers():
@@ -861,9 +898,10 @@ class SpritesTab(QWidget):
                 if len(layers_incoming) == 0:
                     return
 
-                layer_top = layers_incoming[0]
+                layer_top = wdg.SpriteLayer.fromLayer(layers_incoming[0])
                 for i in range(len(layers_incoming)-1):
-                    layer_bottom = layers_incoming[i+1]
+                    layer_bottom = wdg.SpriteLayer.fromLayer(
+                        layers_incoming[i+1])
                     layer_bottom.merge(layer_top)
                     layer_top = layer_bottom
 

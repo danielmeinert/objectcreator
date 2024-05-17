@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout,
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
-from copy import copy
+from copy import copy, deepcopy
 import io
 import os.path
 import sip
@@ -427,6 +427,15 @@ class SpriteTab(QWidget):
         sprite = layer.sprite
 
         sprite.removeColor(selected_colors)
+
+        self.updateView()
+
+    def colorInvertShading(self, selected_colors):
+        layer = self.currentActiveLayer()
+        layer.addSpriteToHistory()
+        sprite = layer.sprite
+
+        sprite.invertShadingColor(selected_colors)
 
         self.updateView()
 
@@ -853,7 +862,7 @@ class SpriteTab(QWidget):
                     spr.Sprite(
                         image, palette=self.main_window.current_palette,
                         transparent_color=self.main_window.current_import_color,
-                        include_sparkles=False, selected_colors=selected_colors,
+                        selected_colors=selected_colors,
                         alpha_threshold=0),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
@@ -895,6 +904,8 @@ class SpriteViewWidget(QGraphicsView):
         self.is_panning = False
         self.mouse_pressed = False
         self.space_pressed = False
+
+        self.stored_cursor = QtCore.Qt.ArrowCursor
 
         self.slider_zoom = None
         self.mousepos = QtCore.QPoint(0, 0)
@@ -1233,7 +1244,7 @@ class SpriteLayer(QtGui.QStandardItem):
 
     @classmethod
     def fromLayer(cls, layer, new_name=None):
-        sprite = copy(layer.sprite)
+        sprite = deepcopy(layer.sprite)
         base_x = int(layer.base_x)
         base_y = int(layer.base_y)
         name = new_name if new_name else layer.text()
@@ -1615,7 +1626,7 @@ class ToolWidgetSprite(QWidget):
             QGroupBox, "groupBox_selectedColor")
 
         self.color_select_panel = ColorSelectWidget(
-            self.main_window.current_palette, True, True, True)
+            self.main_window.current_palette)
 
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
 
@@ -1639,6 +1650,8 @@ class ToolWidgetSprite(QWidget):
             QPushButton, "pushButton_decrBrightness")
         self.button_remove_color = self.findChild(
             QPushButton, "pushButton_deleteColor")
+        self.button_invert_shading = self.findChild(
+            QPushButton, "pushButton_invertShading")
 
         self.button_remap_to.clicked.connect(self.colorRemapTo)
         self.button_incr_brightness.clicked.connect(
@@ -1646,6 +1659,8 @@ class ToolWidgetSprite(QWidget):
         self.button_decr_brightness.clicked.connect(
             lambda x, step=-1: self.colorChangeBrightness(step))
         self.button_remove_color.clicked.connect(self.colorRemove)
+        self.button_invert_shading.clicked.connect(self.colorInvertShading
+                                                   )
 
     # Color manipulations
 
@@ -1695,8 +1710,23 @@ class ToolWidgetSprite(QWidget):
 
             widget.colorRemove(selected_colors)
 
+    def colorInvertShading(self):
+        selected_colors = self.color_select_panel.selectedColors()
 
-# Settings window
+        if self.checkbox_all_views.isChecked():
+            widget = self.main_window.object_tabs.currentWidget()
+
+            index = self.main_window.layer_widget.layers_list.model().rowCount(
+            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
+            widget.colorInvertShadingAll(index, selected_colors)
+
+        else:
+            widget = self.main_window.sprite_tabs.currentWidget()
+
+            widget.colorInvertShading(selected_colors)
+
+        # Settings window
+
 
 class ChangeSettingsUi(QDialog):
     def __init__(self, settings):

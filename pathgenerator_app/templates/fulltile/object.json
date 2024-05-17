@@ -1,71 +1,71 @@
 {
-"template_type" : "path_tile",
-"json":{ 
+  "template_type": "path_tile",
+  "json": {
     "id": "full",
     "authors": "",
     "version": "1.0",
     "sourceGame": "custom",
     "objectType": "scenery_large",
     "properties": {
-        "price": 1,
-        "removalPrice": -1,
-	"cursor": "CURSOR_PATH_DOWN",
-        "tiles": [
-            {
-                "x": 0,
-                "y": 0,
-                "clearance": 8,
-                "hasSupports": false,
-                "walls": 15
-            }
-        ]
+      "price": 1,
+      "removalPrice": -1,
+      "cursor": "CURSOR_PATH_DOWN",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15
+        }
+      ]
     },
     "images": [
-  	{
-      "path": "images/00.png",
-      "x": -32,
-      "y": 31
-    },
-    {
-      "path": "images/01.png",
-      "x": -32,
-      "y": 31
-    },
-    {
-      "path": "images/02.png",
-      "x": -32,
-      "y": 31
-    },
-    {
-      "path": "images/03.png",
-      "x": -32,
-      "y": 31
-    },
-    {
-      "path": "images/00.png",
-      "x": -32,
-      "y": -8
-    },
-    {
-      "path": "images/01.png",
-      "x": -32,
-      "y": -8
-    },
-    {
-      "path": "images/02.png",
-      "x": -32,
-      "y": -8
-    },
-    {
-      "path": "images/03.png",
-      "x": -32,
-      "y": -8
-    }
+      {
+        "path": "images/0.png",
+        "x": -32,
+        "y": 31
+      },
+      {
+        "path": "images/1.png",
+        "x": -32,
+        "y": 31
+      },
+      {
+        "path": "images/2.png",
+        "x": -32,
+        "y": 31
+      },
+      {
+        "path": "images/3.png",
+        "x": -32,
+        "y": 31
+      },
+      {
+        "path": "images/0.png",
+        "x": -32,
+        "y": -8
+      },
+      {
+        "path": "images/1.png",
+        "x": -32,
+        "y": -8
+      },
+      {
+        "path": "images/2.png",
+        "x": -32,
+        "y": -8
+      },
+      {
+        "path": "images/3.png",
+        "x": -32,
+        "y": -8
+      }
     ],
     "strings": {
-        "name": {
-            "en-GB": "Fulltile"
-        }
+      "name": {
+        "en-GB": "Fulltile"
+      }
     }
-}
+  }
 }

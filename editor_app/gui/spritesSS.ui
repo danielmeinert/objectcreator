@@ -13,8 +13,8 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_spriteSS">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -37,32 +37,6 @@
      <property name="title">
       <string>Sprites</string>
      </property>
-     <widget class="QPushButton" name="pushButton_resetOffsets">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>100</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reset Offsets</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_resetImage">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>70</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reset Image</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushButton_loadImage">
       <property name="geometry">
        <rect>
@@ -140,34 +114,6 @@
       </property>
       <property name="text">
        <string>All Views</string>
-      </property>
-     </widget>
-     <widget class="QSlider" name="horizontalSlider_spriteIndex">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>11</x>
-        <y>506</y>
-        <width>151</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="maximum">
-       <number>0</number>
-      </property>
-      <property name="pageStep">
-       <number>1</number>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="tickPosition">
-       <enum>QSlider::NoTicks</enum>
-      </property>
-      <property name="tickInterval">
-       <number>21</number>
       </property>
      </widget>
      <widget class="QLabel" name="sprite_view_preview1">
@@ -489,56 +435,138 @@
        <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
-     <widget class="QWidget" name="widget_animation_controls" native="true">
+     <widget class="QGroupBox" name="widget_animation_controls">
       <property name="enabled">
        <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>470</y>
-        <width>101</width>
-        <height>111</height>
+        <y>500</y>
+        <width>95</width>
+        <height>79</height>
        </rect>
       </property>
-      <widget class="QPushButton" name="pushButton_cycleFrame">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>81</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Cycle Frame</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_allViewsCycleFrame">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>40</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Apply to all views</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <property name="title">
+       <string>Frame Controls</string>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="pushButton_cycleFrame">
+         <property name="text">
+          <string>Cycle Frame</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_allViewsCycleFrame">
+         <property name="text">
+          <string>All views</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
+     <widget class="QWidget" name="groupBox_frame_controls" native="true">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>510</y>
+        <width>151</width>
+        <height>70</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0" columnstretch="1,2,1,0">
+       <item row="0" column="0" colspan="4">
+        <widget class="QSlider" name="horizontalSlider_spriteIndex">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="maximum">
+          <number>0</number>
+         </property>
+         <property name="pageStep">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::NoTicks</enum>
+         </property>
+         <property name="tickInterval">
+          <number>21</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QToolButton" name="toolButton_2">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::RightArrow</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QSpinBox" name="spinbox_sprite_index">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="showGroupSeparator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="toolButton">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::LeftArrow</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <zorder>groupBox_frame_controls</zorder>
      <zorder>widget_animation_controls</zorder>
-     <zorder>pushButton_resetOffsets</zorder>
-     <zorder>pushButton_resetImage</zorder>
      <zorder>pushButton_loadImage</zorder>
      <zorder>sprite_view_preview0</zorder>
      <zorder>label_activeView</zorder>
      <zorder>label_2</zorder>
-     <zorder>horizontalSlider_spriteIndex</zorder>
      <zorder>sprite_view_preview1</zorder>
      <zorder>sprite_view_preview2</zorder>
      <zorder>sprite_view_preview3</zorder>
@@ -561,5 +589,70 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>toolButton</sender>
+   <signal>clicked()</signal>
+   <receiver>spinbox_sprite_index</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>77</x>
+     <y>568</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>568</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>spinbox_sprite_index</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>144</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>567</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinbox_sprite_index</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>horizontalSlider_spriteIndex</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>112</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>112</x>
+     <y>537</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider_spriteIndex</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spinbox_sprite_index</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>81</x>
+     <y>540</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>107</x>
+     <y>567</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

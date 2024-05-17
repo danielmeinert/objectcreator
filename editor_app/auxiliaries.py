@@ -179,7 +179,7 @@ class SymmetryAxes():
 
         image_0 = Image.open(resource_path("res/symm_full_0.png"))
         image_1 = Image.open(resource_path("res/symm_full_1.png"))
-        self.symm_full = [[image_0, (-32, -15)], [image_0, (-32, -15)]]
+        self.symm_full = [[image_0, (-32, -15)], [image_1, (-32, -15)]]
 
         image_0 = Image.open(resource_path("res/symm_half_0.png"))
         image_1 = Image.open(resource_path("res/symm_half_1.png"))

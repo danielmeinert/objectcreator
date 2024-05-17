@@ -1,100 +1,100 @@
 {
-"template_type" : "path_tile",
-"json":{  
+  "template_type": "path_tile",
+  "json": {
     "id": "round2x1inright",
     "authors": "",
     "version": "1.0",
     "sourceGame": "custom",
     "objectType": "scenery_large",
     "properties": {
-        "price": 1,
-        "removalPrice": -1,
-	"cursor": "CURSOR_PATH_DOWN",
-        "tiles": [
-            {
-                "x": 0,
-                "y": 0,
-                "clearance": 8,
-                "hasSupports": false,
-                "walls": 15,
-		"corners": 8
-            },
-	    {
-                "x": 0,
-                "y": 32,
-                "clearance": 8,
-                "hasSupports": false,
-                "corners": 13,
-		"walls": 13
-            }
-        ]
+      "price": 1,
+      "removalPrice": -1,
+      "cursor": "CURSOR_PATH_DOWN",
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15,
+          "corners": 8
+        },
+        {
+          "x": 0,
+          "y": 32,
+          "clearance": 8,
+          "hasSupports": false,
+          "corners": 13,
+          "walls": 13
+        }
+      ]
     },
     "images": [
-	{
-      "path": "images/00.png",
-      "x": -32,
-      "y": 37
-    },
-    {
-      "path": "images/01.png",
-      "x": -32,
-      "y": 37
-    },
-    {
-      "path": "images/02.png",
-      "x": -32,
-      "y": 37
-    },
-    {
-      "path": "images/03.png",
-      "x": -32,
-      "y": 37
-    },
-    {
-      "path": "images/04.png",
-      "x": 1,
-      "y": -8
-    },
-    {
-      "path": "images/05.png",
-      "x": -6,
-      "y": 10
-    },
-    {
-      "path": "images/06.png",
-      "x": -32,
-      "y": 3
-    },
-    {
-      "path": "images/07.png",
-      "x": -26,
-      "y": -8
-    },
-    {
-      "path": "images/08.png",
-      "x": -9,
-      "y": -8
-    },
-    {
-      "path": "images/09.png",
-      "x": -30,
-      "y": 4
-    },
-    {
-      "path": "images/10.png",
-      "x": -32,
-      "y": -8
-    },
-    {
-      "path": "images/11.png",
-      "x": -32,
-      "y": -8
-    }
+      {
+        "path": "images/0.png",
+        "x": -32,
+        "y": 37
+      },
+      {
+        "path": "images/1.png",
+        "x": -32,
+        "y": 37
+      },
+      {
+        "path": "images/2.png",
+        "x": -32,
+        "y": 37
+      },
+      {
+        "path": "images/3.png",
+        "x": -32,
+        "y": 37
+      },
+      {
+        "path": "images/4.png",
+        "x": 1,
+        "y": -8
+      },
+      {
+        "path": "images/5.png",
+        "x": -6,
+        "y": 10
+      },
+      {
+        "path": "images/6.png",
+        "x": -32,
+        "y": 3
+      },
+      {
+        "path": "images/7.png",
+        "x": -26,
+        "y": -8
+      },
+      {
+        "path": "images/8.png",
+        "x": -9,
+        "y": -8
+      },
+      {
+        "path": "images/9.png",
+        "x": -30,
+        "y": 4
+      },
+      {
+        "path": "images/10.png",
+        "x": -32,
+        "y": -8
+      },
+      {
+        "path": "images/11.png",
+        "x": -32,
+        "y": -8
+      }
     ],
     "strings": {
-        "name": {
-            "en-GB": "Round 2x1 Inside Right"
-        }
+      "name": {
+        "en-GB": "Round 2x1 Inside Right"
+      }
     }
-}
+  }
 }
