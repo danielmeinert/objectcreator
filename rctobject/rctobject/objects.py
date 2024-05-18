@@ -839,15 +839,7 @@ class LargeScenery(RCTObject):
     def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False):
         tile_list = []
         for tile in self.tiles:
-            tile_entry = {}
-            tile_entry['x'] = tile.x*32
-            tile_entry['y'] = tile.y*32
-            tile_entry['z'] = tile.z*8
-            tile_entry['clearance'] = tile.clearance*8
-            tile_entry['walls'] = tile.giveWalls()
-            tile_entry['corners'] = tile.giveCorners()
-
-            tile_list.append(tile_entry)
+            tile_list.append(tile.giveDictEntry)
 
         self['properties']['tiles'] = tile_list
 
@@ -877,7 +869,7 @@ class LargeScenery(RCTObject):
         return (int(x), int(y), int(z))
     
     def baseOffset(self):
-        # Coordinates  of (0,0) tile according to rotation
+        # Coordinates  of (0,0) tile in screen space of the sprite bounding box according to rotation
         max_x = 0
         max_y = 0
         max_z = 0
@@ -983,7 +975,7 @@ class LargeScenery(RCTObject):
     def projectSpriteToTiles(self, sprite):
         pass
 
-    def addTile(self, coords):
+    def addTile(self, coords, dict_entry=None):
         # we expect that the image list is ordered
 
         index = len(self.tiles)
@@ -999,14 +991,19 @@ class LargeScenery(RCTObject):
 
             images.append(im)
 
-        dict_entry = {'x': coords[0]*32,
-                      'y': coords[1]*32,
-                      'z': 0,
-                      'clearance': 0,
-                      'hasSupports': False,
-                      'allowSupportsAbove': False,
-                      'walls': 0,
-                      'corners': 15}
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                        'y': coords[1]*32,
+                        'z': 0,
+                        'clearance': 0,
+                        'hasSupports': False,
+                        'allowSupportsAbove': False,
+                        'walls': 0,
+                        'corners': 15}
+        else:
+            #we adjust the coordinates of the diven dict
+            dict_entry['x'] =  coords[0]*32
+            dict_entry['y'] = coords[1]*32
 
         tile = self.Tile(self, dict_entry, images, self.rotation)
         self.tiles.append(tile)
@@ -1041,6 +1038,14 @@ class LargeScenery(RCTObject):
             self.y = dict_entry['y']//32
             self.z = dict_entry.get('z', 0)//8
             self.clearance = dict_entry['clearance']//8
+            self.walls = [bool(dict_entry['walls'] & 0x1),
+                          bool(dict_entry['walls'] & 0x2),
+                          bool(dict_entry['walls'] & 0x4),
+                          bool(dict_entry['walls'] & 0x8)]
+            self.corners = [bool(dict_entry['corners'] & 0x1),
+                            bool(dict_entry['corners'] & 0x2),
+                            bool(dict_entry['corners'] & 0x4),
+                            bool(dict_entry['corners'] & 0x8)]
 
             self.images = images
 
@@ -1071,12 +1076,32 @@ class LargeScenery(RCTObject):
                 rotation = self.rotation
 
             return self.o.sprites[self.images[rotation]['path']]
+        
+        def setSprite(self, sprite, rotation=None):
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+                
+            self.o.sprites[self.images[rotation]['path']].setFromSprite(sprite)
 
+        def giveDictEntry(self):
+            tile_entry = {}
+            tile_entry['x'] = self.x*32
+            tile_entry['y'] = self.y*32
+            tile_entry['z'] = self.z*8
+            tile_entry['clearance'] = self.clearance*8
+            tile_entry['walls'] = self.giveWalls()
+            tile_entry['corners'] = self.giveCorners()
+        
+            return tile_entry
+        
         def giveWalls(self):
-            pass
+            return int(self.walls[0])+int(self.walls[1])*2+ int(self.walls[2])*4 + int(self.walls[3])*8 
 
         def giveCorners(self):
-            pass
+            return int(self.corners[0])+int(self.corners[1])*2+ int(self.corners[2])*4 + int(self.corners[3])*8 
+
 
 
 # Wrapper to load any object type and instantiate it as the correct subclass
