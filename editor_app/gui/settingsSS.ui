@@ -72,7 +72,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_mainSettings">
          <attribute name="title">
@@ -1400,12 +1400,12 @@ QTabBar::tab:selected {
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>77</x>
-     <y>404</y>
+     <x>97</x>
+     <y>432</y>
     </hint>
     <hint type="destinationlabel">
-     <x>225</x>
-     <y>405</y>
+     <x>245</x>
+     <y>432</y>
     </hint>
    </hints>
   </connection>
@@ -1416,12 +1416,28 @@ QTabBar::tab:selected {
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>238</x>
-     <y>405</y>
+     <x>258</x>
+     <y>432</y>
     </hint>
     <hint type="destinationlabel">
-     <x>86</x>
-     <y>401</y>
+     <x>106</x>
+     <y>432</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hasNoSupports</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>supportsHavePrimaryColour</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>183</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>204</x>
+     <y>199</y>
     </hint>
    </hints>
   </connection>
