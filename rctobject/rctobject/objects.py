@@ -906,7 +906,9 @@ class LargeScenery(RCTObject):
             x_base = x_baseline - tile.x*32 + tile.y*32
 
             sprite = tile.giveSprite()
-            canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+            canvas.paste(sprite.show(self.current_first_remap, 
+                                     self.current_second_remap, 
+                                     self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
         return canvas

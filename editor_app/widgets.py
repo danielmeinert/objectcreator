@@ -1752,6 +1752,7 @@ class ChangeSettingsUi(QDialog):
         self.loadObjectSettings(settings)
         self.loadSpriteSettings(settings)
         self.loadSSSettings(settings)
+        self.loadLSSettings(settings)
 
     def loadObjectSettings(self, settings):
         self.checkBox_nozip.setChecked(settings.get('no_zip', False))
@@ -1792,7 +1793,7 @@ class ChangeSettingsUi(QDialog):
 
     def loadSSSettings(self, settings):
         for flag in cts.Jsmall_flags:
-            checkbox = self.tab_SS_default.findChild(QCheckBox, flag+{'_SS'})
+            checkbox = self.tab_SS_default.findChild(QCheckBox, f'{flag}_SS')
             if checkbox:
                 checkbox.setChecked(settings.get(
                     'small_scenery_defaults', {}).get(flag, False))
@@ -1801,14 +1802,14 @@ class ChangeSettingsUi(QDialog):
         checkbox.setChecked(settings.get(
             'small_scenery_defaults', {}).get('isTree', False))
 
-        self.cursor_box = self.tab_SS_default.findChild(
+        cursor_box = self.tab_SS_default.findChild(
             QComboBox, "comboBox_cursor_SS")
 
         for cursor in cts.cursors:
-            self.cursor_box.addItem(cursor.replace('_', ' '))
+            cursor_box.addItem(cursor.replace('_', ' '))
 
-        self.cursor_box.setCurrentText(settings.get(
-            'small_scenery_defaults', {}).get('cursor', 'CURSOR BLANK'))
+        cursor_box.setCurrentText(settings.get(
+            'small_scenery_defaults', {}).get('cursor', 'CURSOR BLANK').replace('_', ' '))
 
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price_SS")
         spinbox.setValue(
@@ -1817,6 +1818,29 @@ class ChangeSettingsUi(QDialog):
             QSpinBox, "spinBox_removalPrice_SS")
         spinbox.setValue(
             int(settings.get('small_scenery_defaults', {}).get('removalPrice', 1)))
+
+    def loadLSSettings(self, settings):
+        for flag in ['hasNoSupports_LS', 'allowSupportsAbove_LS']:
+            checkbox = self.tab_LS_default.findChild(QCheckBox, flag)
+            checkbox.setChecked(settings.get(
+                                'large_scenery_defaults', {}).get(flag, False))
+
+        cursor_box = self.tab_LS_default.findChild(
+            QComboBox, "comboBox_cursor_LS")
+
+        for cursor in cts.cursors:
+            cursor_box.addItem(cursor.replace('_', ' '))
+
+        cursor_box.setCurrentText(settings.get(
+            'large_scenery_defaults', {}).get('cursor', 'CURSOR BLANK').replace('_', ' '))
+
+        spinbox = self.tab_LS_default.findChild(QSpinBox, "spinBox_price_LS")
+        spinbox.setValue(
+            int(settings.get('large_scenery_defaults', {}).get('price', 1)))
+        spinbox = self.tab_LS_default.findChild(
+            QSpinBox, "spinBox_removalPrice_LS")
+        spinbox.setValue(
+            int(settings.get('large_scenery_defaults', {}).get('removalPrice', 1)))
 
     def clickChangeFolder(self, sender):
 
@@ -1856,22 +1880,40 @@ class ChangeSettingsUi(QDialog):
 
         ss_defaults = {}
         for flag in cts.Jsmall_flags:
-            checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
+            checkbox = self.tab_SS_default.findChild(QCheckBox, f'{flag}_SS')
             if checkbox:
                 ss_defaults[flag] = checkbox.isChecked()
 
-        ss_defaults['isTree'] = self.isTree.isChecked()
+        ss_defaults['isTree'] = self.isTree_SS.isChecked()
 
-        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price")
+        spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price_SS")
         ss_defaults['price'] = spinbox.value()
         spinbox = self.tab_SS_default.findChild(
-            QSpinBox, "spinBox_removalPrice")
+            QSpinBox, "spinBox_removalPrice_SS")
         ss_defaults['removalPrice'] = spinbox.value()
 
         ss_defaults['cursor'] = self.tab_SS_default.findChild(
-            QComboBox, "comboBox_cursor").currentText().replace(' ', '_')
+            QComboBox, "comboBox_cursor_SS").currentText().replace(' ', '_')
 
         settings['small_scenery_defaults'] = ss_defaults
+
+        ls_defaults = {}
+        for flag in ['hasNoSupports_LS', 'allowSupportsAbove_LS']:
+            checkbox = self.tab_LS_default.findChild(QCheckBox, flag)
+            if checkbox:
+                ls_defaults[flag] = checkbox.isChecked()
+
+        spinbox = self.tab_LS_default.findChild(QSpinBox, "spinBox_price_LS")
+        ls_defaults['price'] = spinbox.value()
+        spinbox = self.tab_LS_default.findChild(
+            QSpinBox, "spinBox_removalPrice_LS")
+        ls_defaults['removalPrice'] = spinbox.value()
+
+        ls_defaults['cursor'] = self.tab_LS_default.findChild(
+            QComboBox, "comboBox_cursor_LS").currentText().replace(' ', '_')
+
+        settings['large_scenery_defaults'] = ls_defaults
+
 
         return settings
 
