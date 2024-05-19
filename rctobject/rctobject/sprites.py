@@ -39,6 +39,7 @@ class Sprite:
                 self.y += offset[1]
 
         self.crop()
+
         self.palette = palette
 
     @classmethod

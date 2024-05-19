@@ -21,8 +21,9 @@ from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd
 from os.path import splitext, exists
+from pkgutil import get_data
 import copy
-from PIL import Image
+from PIL import Image, ImageDraw
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
 from subprocess import run
@@ -813,8 +814,6 @@ class LargeScenery(RCTObject):
 
             self.object_type = Type.LARGE
             
-            
-
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
                 self.font = self.data['properties']['3dFont']
@@ -839,7 +838,7 @@ class LargeScenery(RCTObject):
     def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False):
         tile_list = []
         for tile in self.tiles:
-            tile_list.append(tile.giveDictEntry)
+            tile_list.append(tile.giveDictEntry())
 
         self['properties']['tiles'] = tile_list
 
@@ -856,7 +855,7 @@ class LargeScenery(RCTObject):
         for tile in self.tiles:
             max_x = max(tile.x, max_x)
             max_y = max(tile.y, max_y)
-            max_z = max(tile.z + tile.clearance, max_z)
+            max_z = max(tile.z + tile.h, max_z)
         
             min_x = min(tile.x, min_x)
             min_y = min(tile.y, min_y)
@@ -880,7 +879,7 @@ class LargeScenery(RCTObject):
         for tile in self.tiles:
             max_x = max(tile.x, max_x)
             max_y = max(tile.y, max_y)
-            max_z = max(tile.z + tile.clearance, max_z)
+            max_z = max(tile.z + tile.h, max_z)
         
             min_x = min(tile.x, min_x)
             min_y = min(tile.y, min_y)
@@ -911,7 +910,7 @@ class LargeScenery(RCTObject):
                                      self.current_third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
-        return canvas
+        return canvas, (x_baseline,y_baseline)
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
@@ -958,12 +957,14 @@ class LargeScenery(RCTObject):
     # Override base class method
     def updateImageList(self):
         new_dict = {}
+        new_list = []
 
         for view in range(4):
             im = self['images'][view]
             sprite = self.sprites.pop(im['path'])
             im['path'] = f'images/preview_{view}.png'
             new_dict[im['path']] = sprite
+            new_list.append(im)
 
         for i, tile in enumerate(self.tiles):
             for view in range(4):
@@ -971,13 +972,47 @@ class LargeScenery(RCTObject):
                 sprite = self.sprites.pop(im['path'])
                 im['path'] = f'images/tile_{i}_im_{view}.png'
                 new_dict[im['path']] = sprite
+                new_list.append(im)
 
+        self['images'] = new_list
         self.sprites = new_dict
         
     def projectSpriteToTiles(self, sprite):
-        pass
+        x_baseline, y_baseline = self.baseOffset()
+        
+        if not sprite.palette == self.palette:
+            sprite.switchPalette(self.palette)
+            
+        im_paste = Image.new('RGBA', self.spriteBoundingBox())
+        im_paste.paste(sprite.image, (sprite.x+x_baseline,sprite.y+y_baseline))
+        
+        for tile in self.tiles:
+            im = Image.new('RGBA', self.spriteBoundingBox())
+            mask = Image.new('1', self.spriteBoundingBox())
+            draw = ImageDraw.Draw(mask)
 
-    def addTile(self, coords, dict_entry=None):
+            x = x_baseline - tile.x*32+tile.y*32-32
+            y = y_baseline + tile.x*16+tile.y*16-tile.z*8+15
+            
+            for i in range(64):
+                if i < 32:
+                    draw.line([(x+i, y-i//2-tile.h*8), 
+                               (x+i, y+i//2)], 
+                              fill=1, width=1)
+                else:
+                    draw.line([(x+i, y-(63-i)//2-tile.h*8),
+                               (x+i, y+(63-i)//2)], 
+                              fill=1, width=1)
+            
+            im.paste(im_paste, mask=mask)
+            bbox = mask.getbbox()
+            
+            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8),palette = self.palette)
+            tile.setSprite(sprite_tile)
+            
+                      
+
+    def addTile(self, coords, height=0, dict_entry=None):
         # we expect that the image list is ordered
 
         index = len(self.tiles)
@@ -997,7 +1032,7 @@ class LargeScenery(RCTObject):
             dict_entry = {'x': coords[0]*32,
                         'y': coords[1]*32,
                         'z': 0,
-                        'clearance': 0,
+                        'clearance': height*8,
                         'hasSupports': False,
                         'allowSupportsAbove': False,
                         'walls': 0,
@@ -1039,15 +1074,15 @@ class LargeScenery(RCTObject):
             self.x = dict_entry['x']//32
             self.y = dict_entry['y']//32
             self.z = dict_entry.get('z', 0)//8
-            self.clearance = dict_entry['clearance']//8
-            self.walls = [bool(dict_entry['walls'] & 0x1),
-                          bool(dict_entry['walls'] & 0x2),
-                          bool(dict_entry['walls'] & 0x4),
-                          bool(dict_entry['walls'] & 0x8)]
-            self.corners = [bool(dict_entry['corners'] & 0x1),
-                            bool(dict_entry['corners'] & 0x2),
-                            bool(dict_entry['corners'] & 0x4),
-                            bool(dict_entry['corners'] & 0x8)]
+            self.h = dict_entry['clearance']//8
+            self.walls = [bool(dict_entry.get('walls',0) & 0x1),
+                          bool(dict_entry.get('walls',0) & 0x2),
+                          bool(dict_entry.get('walls',0) & 0x4),
+                          bool(dict_entry.get('walls',0) & 0x8)]
+            self.corners = [bool(dict_entry.get('corners',15) & 0x1),
+                            bool(dict_entry.get('corners',15) & 0x2),
+                            bool(dict_entry.get('corners',15) & 0x4),
+                            bool(dict_entry.get('corners',15) & 0x8)]
 
             self.images = images
 
@@ -1092,7 +1127,7 @@ class LargeScenery(RCTObject):
             tile_entry['x'] = self.x*32
             tile_entry['y'] = self.y*32
             tile_entry['z'] = self.z*8
-            tile_entry['clearance'] = self.clearance*8
+            tile_entry['clearance'] = self.h*8
             tile_entry['walls'] = self.giveWalls()
             tile_entry['corners'] = self.giveCorners()
         
