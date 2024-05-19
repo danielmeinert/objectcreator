@@ -450,7 +450,6 @@ class SettingsTab(QWidget):
 
         obj_id = self.o.data.get('id', False)
         if obj_id:
-            print(obj_id)
             if len(obj_id.split('.')) > 2:
                 self.author_id_field.setText(obj_id.split('.')[0])
                 self.object_id_field.setText(obj_id.split('.', 2)[2])
