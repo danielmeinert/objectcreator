@@ -465,6 +465,11 @@ class SettingsTab(QWidget):
             self.o['strings']['name'].get('en-GB', ''))
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get('en-GB', ''))
+        
+        self.scenery_group_id_field.setText(
+            self.o['properties'].get('sceneryGroup',''))
+        self.mirror_object_id_field.setText(
+            self.o['properties'].get('mirrorObjectId','')) 
 
         self.spinbox_price.setValue(self.o['properties'].get('price', 1))
         self.spinbox_removal_price.setValue(
