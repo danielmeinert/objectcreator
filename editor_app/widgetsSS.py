@@ -284,7 +284,7 @@ class SettingsTab(QWidget):
         self.o['properties']['cursor'] = cts.cursors[value]
 
     def authorChanged(self, value):
-        self.o['authors'] = value.split(',')
+        self.o['authors'] = value.replace(' ','').split(',')
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
