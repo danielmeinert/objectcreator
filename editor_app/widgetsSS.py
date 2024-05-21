@@ -517,6 +517,7 @@ class SpritesTab(QWidget):
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
+        self.last_image_path = ''
 
         # Buttons load/reset
         self.button_load_image = self.findChild(
@@ -608,9 +609,9 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):
+    def loadImage(self):        
         filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
+            self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
@@ -625,6 +626,8 @@ class SpritesTab(QWidget):
             layers.insertRow(0, layer)
 
             self.setCurrentLayers(layers)
+            
+            self.last_image_path, _ = os.path.split(filepath)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()

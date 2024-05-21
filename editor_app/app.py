@@ -616,6 +616,8 @@ class MainWindowUi(QMainWindow):
     def objectOpenFile(self):
         folder = self.last_open_folder
         if not folder:
+            folder = self.settings.get('opendefault', None)        
+        if not folder:
             folder = getcwd()
         filepaths, _ = QFileDialog.getOpenFileNames(
             self, "Open Object", folder,
