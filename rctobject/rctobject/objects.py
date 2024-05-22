@@ -577,10 +577,10 @@ class SmallScenery(RCTObject):
 
             self.num_image_sets = int(len(self.data['images'])/4)
         else:
-            self.data['properties'].pop('frameOffsets')
-            self.data['properties'].pop('animationDelay')
-            self.data['properties'].pop('animationMask')
-            self.data['properties'].pop('numFrames')
+            self.data['properties'].pop('frameOffsets', None)
+            self.data['properties'].pop('animationDelay', None)
+            self.data['properties'].pop('animationMask', None)
+            self.data['properties'].pop('numFrames', None)
             for flag in cts.list_small_animation_flags:
                 self.data['properties'].pop(flag, None)
             self.has_preview = False
