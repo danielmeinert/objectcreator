@@ -34,7 +34,7 @@ from rctobject import palette as pal
 from rctobject import objects as obj
 
 
-class SettingsTab(QWidget):
+class SettingsTab(wdg.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
@@ -59,38 +59,6 @@ class SettingsTab(QWidget):
         # disactivate 3d sign and scrolling sign for now
         for i in [1, 2]:
             self.subtype_box.model().item(i).setEnabled(False)
-
-        # Curser combobox
-        self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
-
-        for cursor in cts.cursors:
-            self.cursor_box.addItem(cursor.replace('_', ' '))
-
-        # Names
-        self.author_field = self.findChild(QLineEdit, "lineEdit_author")
-        self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
-        self.object_id_field = self.findChild(QLineEdit, "lineEdit_objectID")
-        self.object_original_id_field = self.findChild(
-            QLineEdit, "lineEdit_originalID")
-        self.object_name_field = self.findChild(
-            QLineEdit, "lineEdit_objectName")
-        self.object_name_lang_field = self.findChild(
-            QLineEdit, "lineEdit_nameInput")
-
-        self.name_lang_box = self.findChild(
-            QComboBox, "comboBox_languageSelect")
-        self.name_lang_box.currentIndexChanged.connect(self.languageChanged)
-        self.language_index = 0
-
-        self.button_clear_all_languages = self.findChild(
-            QPushButton, "pushButton_clearAllLang")
-        self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
-
-        self.author_field.textEdited.connect(self.authorChanged)
-        self.author_id_field.textEdited.connect(self.authorIdChanged)
-        self.object_id_field.textEdited.connect(self.idChanged)
-        self.object_name_field.textEdited.connect(self.nameChanged)
-        self.object_name_lang_field.textEdited.connect(self.nameChangedLang)
 
         # Flags
         for flag in cts.Jlarge_flags:
@@ -118,21 +86,7 @@ class SettingsTab(QWidget):
         self.spinbox_version.valueChanged.connect(
             lambda value, name='version': self.spinBoxChanged(value, name))
 
-        # Remap check
-        checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
-        checkbox.stateChanged.connect(self.flagRemapChanged)
-
-        self.checkbox_keep_dat_id = self.findChild(
-            QCheckBox, "checkBox_keepOrginalId")
-
         self.loadObjectSettings(author=author, author_id=author_id)
-
-    def tabChanged(self, index):
-        if index == 0:
-            self.object_name_field.setText(self.o['strings']['name']['en-GB'])
-        elif index == 2 and self.language_index == 0:
-            self.object_name_lang_field.setText(
-                self.o['strings']['name']['en-GB'])
 
     def giveDummy(self):
         dummy_o = obj.newEmpty(obj.Type.LARGE)
@@ -144,63 +98,6 @@ class SettingsTab(QWidget):
         value = self.subtype_box.currentIndex()
 
         pass
-
-    def authorChanged(self, value):
-        self.o['authors'] = value.split(',')
-
-    def authorIdChanged(self, value):
-        object_id = self.object_id_field.text()
-        object_type = self.o.object_type.value
-        self.o['id'] = f'{value}.{object_type}.{object_id}'
-        self.object_tab.saved = False
-
-    def idChanged(self, value):
-        author_id = self.author_id_field.text()
-        object_type = self.o.object_type.value
-        self.o['id'] = f'{author_id}.{object_type}.{value}'
-        self.object_tab.saved = False
-
-    def nameChanged(self, value):
-        self.o['strings']['name']['en-GB'] = value
-
-    def clearAllLanguages(self):
-        for lang in self.o['strings']['name'].keys():
-            if lang != 'en-GB':
-                self.o['strings']['name'][lang] = ''
-        self.object_name_lang_field.setText('')
-
-    def spinBoxChanged(self, value, name):
-        if name == 'version':
-            self.o['version'] = str(value)
-        else:
-            self.o['properties'][name] = value
-
-    def nameChangedLang(self, value):
-        if self.language_index == 0:
-            self.o['strings']['name']['en-GB'] = value
-            self.object_name_field.setText(value)
-        else:
-            lang = list(cts.languages)[self.language_index]
-            self.o['strings']['name'][lang] = value
-
-    def languageChanged(self, value):
-        lang = list(cts.languages)[self.language_index]
-        self.o['strings']['name'][lang] = self.object_name_lang_field.text()
-
-        self.language_index = value
-        lang = list(cts.languages)[value]
-        self.object_name_lang_field.setText(
-            self.o['strings']['name'].get(lang, ''))
-
-    def flagChanged(self, value, flag):
-        self.o.changeFlag(flag, bool(value))
-
-        self.sprites_tab.updateMainView()
-
-    def flagRemapChanged(self, value):
-        self.hasPrimaryColour.setEnabled(not bool(value))
-        self.hasSecondaryColour.setEnabled(not bool(value))
-        self.hasTertiaryColour.setEnabled(not bool(value))
 
     def loadObjectSettings(self, author=None, author_id=None):
 

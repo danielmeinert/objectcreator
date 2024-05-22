@@ -65,7 +65,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="tabBarAutoHide">
          <bool>false</bool>
@@ -242,6 +242,22 @@ QTabBar::tab:selected {
            </property>
            <property name="text">
             <string>Clear All Other Languages</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_copyID">
+           <property name="geometry">
+            <rect>
+             <x>230</x>
+             <y>78</y>
+             <width>41</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="toolTip">
+            <string>Copy the entire identifier (author id + type + object id) to clipboard</string>
+           </property>
+           <property name="text">
+            <string>Copy</string>
            </property>
           </widget>
          </widget>
@@ -1216,138 +1232,6 @@ QTabBar::tab:selected {
           </property>
          </widget>
         </widget>
-        <widget class="QWidget" name="tab_names">
-         <property name="toolTip">
-          <string>Naming</string>
-         </property>
-         <attribute name="title">
-          <string>Names</string>
-         </attribute>
-         <widget class="QLabel" name="label_nameExplanation">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>271</width>
-            <height>61</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Specify additional ingame names for other languages. For languages without name the english name will always be taken. English corresponds to 'Object Ingame Name' from Main Settings.</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_languageSelect">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>80</y>
-            <width>131</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <item>
-           <property name="text">
-            <string>English - UK</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>English - US</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>French</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>German</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Spanish</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Italian</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Dutch</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Swedish</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Japanese</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Korean</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Chinese - China</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Chinese - Taiwan</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Polish</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Portuguese</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Czech</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Russian</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Esperanto</string>
-           </property>
-          </item>
-         </widget>
-         <widget class="QLineEdit" name="lineEdit_nameInput">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>110</y>
-            <width>271</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="toolTip">
-           <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The name your object will appear ingame. Consider the naming guide.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-         </widget>
-        </widget>
        </widget>
       </item>
       <item>
@@ -1377,8 +1261,6 @@ QTabBar::tab:selected {
   <tabstop>lineEdit_originalID</tabstop>
   <tabstop>pushButton_clearAllLang</tabstop>
   <tabstop>pushButton_applyDefaultSettings</tabstop>
-  <tabstop>comboBox_languageSelect</tabstop>
-  <tabstop>lineEdit_nameInput</tabstop>
  </tabstops>
  <resources/>
  <connections/>
