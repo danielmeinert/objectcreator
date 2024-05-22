@@ -450,33 +450,7 @@
       <property name="flat">
        <bool>true</bool>
       </property>
-      <widget class="QPushButton" name="pushButton_resetOffsets">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>20</y>
-         <width>81</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Reset Offsets</string>
-       </property>
-      </widget>
       <widget class="QPushButton" name="pushButton_loadImage_2">
-       <property name="geometry">
-        <rect>
-         <x>80</x>
-         <y>20</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Load Image</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_resetImage_2">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -486,7 +460,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Reset Image</string>
+        <string>Load Image</string>
        </property>
       </widget>
      </widget>
@@ -500,32 +474,35 @@
        </rect>
       </property>
       <property name="title">
-       <string>Drawing Layer</string>
+       <string>Drawing Mode</string>
       </property>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QRadioButton" name="radioButton_projection">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>81</width>
-         <height>23</height>
+         <width>82</width>
+         <height>17</height>
         </rect>
        </property>
        <property name="text">
-        <string>Activate</string>
+        <string>Projection</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QRadioButton" name="radioButton_tiles">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>50</y>
-         <width>81</width>
-         <height>23</height>
+         <y>40</y>
+         <width>82</width>
+         <height>17</height>
         </rect>
        </property>
        <property name="text">
-        <string>Project to Tiles</string>
+        <string>Tiles</string>
        </property>
       </widget>
      </widget>

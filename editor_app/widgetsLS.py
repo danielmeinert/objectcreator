@@ -145,15 +145,6 @@ class SettingsTab(QWidget):
 
         pass
 
-    def clearanceChanged(self, value):
-        self.o['properties']['height'] = value*8
-
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
-
-        self.sprites_tab.updateMainView()
-
     def authorChanged(self, value):
         self.o['authors'] = value.split(',')
 
