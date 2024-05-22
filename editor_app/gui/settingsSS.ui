@@ -235,25 +235,6 @@ QTabBar::tab:selected {
             <string/>
            </property>
           </widget>
-          <widget class="QCheckBox" name="checkBox_keepOrginalId">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="geometry">
-            <rect>
-             <x>110</x>
-             <y>110</y>
-             <width>51</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tick if you like to keep the original ID of the loaded object. If you do so, this object will be loaded ingame instead of the orginal. Feature disabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Keep</string>
-           </property>
-          </widget>
           <widget class="QPushButton" name="pushButton_clearAllLang">
            <property name="geometry">
             <rect>
@@ -265,6 +246,22 @@ QTabBar::tab:selected {
            </property>
            <property name="text">
             <string>Clear All Other Languages</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_copyID">
+           <property name="geometry">
+            <rect>
+             <x>230</x>
+             <y>78</y>
+             <width>41</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="toolTip">
+            <string>Copy the entire identifier (author id + type + object id) to clipboard</string>
+           </property>
+           <property name="text">
+            <string>Copy</string>
            </property>
           </widget>
          </widget>
@@ -1333,7 +1330,7 @@ QTabBar::tab:selected {
             </rect>
            </property>
            <property name="toolTip">
-            <string>Enter ID of a mirror version of the current object for future support of correct mirroring behaviour.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter ID of a mirror version of the current object for future support of correct mirroring behaviour.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </widget>
@@ -1364,7 +1361,6 @@ QTabBar::tab:selected {
   <tabstop>lineEdit_objectID</tabstop>
   <tabstop>lineEdit_objectName</tabstop>
   <tabstop>tabWidget_settingsSS</tabstop>
-  <tabstop>checkBox_keepOrginalId</tabstop>
   <tabstop>lineEdit_originalID</tabstop>
   <tabstop>pushButton_clearAllLang</tabstop>
   <tabstop>pushButton_applyDefaultSettings</tabstop>

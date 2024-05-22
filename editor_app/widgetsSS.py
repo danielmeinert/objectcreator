@@ -91,6 +91,8 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
+        
+        self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
 
         self.name_lang_box = self.findChild(
             QComboBox, "comboBox_languageSelect")
@@ -109,6 +111,8 @@ class SettingsTab(QWidget):
         self.scenery_group_id_field.textChanged.connect(
             self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
+        
+        self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -303,7 +307,10 @@ class SettingsTab(QWidget):
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value
-
+        
+    def copyIdToClipboard(self):
+        QApplication.clipboard().setText(self.o['id'])
+        
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
