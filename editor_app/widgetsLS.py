@@ -11,7 +11,8 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
-    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider, QTableWidgetItem
+    QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider, QTableWidgetItem, \
+    QRadioButton
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -46,6 +47,9 @@ class SettingsTab(wdg.SettingsTabAll):
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsLS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
+        
+        super().initializeWidgets()
+
 
         self.button_set_defaults = self.findChild(
             QPushButton, "pushButton_applyDefaultSettings")
@@ -89,8 +93,7 @@ class SettingsTab(wdg.SettingsTabAll):
         self.loadObjectSettings(author=author, author_id=author_id)
 
     def giveDummy(self):
-        dummy_o = obj.newEmpty(obj.Type.LARGE)
-        dummy_o.changeShape(self.o.shape)
+        dummy_o = obj.newEmpty(obj.Type.SMALL)
 
         return dummy_o
 
@@ -174,28 +177,21 @@ class SpritesTab(QWidget):
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
+        
+        self.viewing_mode = 0 #projection
 
         # Buttons load/reset
         self.button_load_image = self.findChild(
             QPushButton, "pushButton_loadImage")
-        self.button_reset_image = self.findChild(
-            QPushButton, "pushButton_resetImage")
-        self.button_reset_offsets = self.findChild(
-            QPushButton, "pushButton_resetOffsets")
+        
 
         self.button_load_image.clicked.connect(self.loadImage)
-        self.button_reset_image.clicked.connect(self.resetImage)
-        self.button_reset_offsets.clicked.connect(self.resetOffsets)
+        
 
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
 
         self.button_cycle_rotation.clicked.connect(self.cycleRotation)
-
-        self.button_cycle_animation_frame = self.findChild(
-            QPushButton, "pushButton_cycleFrame")
-
-        self.button_cycle_animation_frame.clicked.connect(self.cycleAnimationFrame)
 
         self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sprite_view_main.customContextMenuRequested.connect(
@@ -210,7 +206,7 @@ class SpritesTab(QWidget):
         self.sprite_view_main_item = QGraphicsPixmapItem()
         self.sprite_view_main_scene = QGraphicsScene()
         self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
-        self.sprite_view_main_scene.setSceneRect(0, 0, 151, 268)
+        self.sprite_view_main_scene.setSceneRect(0, 0, 261, 268)
         self.sprite_view_main.setScene(self.sprite_view_main_scene)
 
         self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
@@ -220,11 +216,6 @@ class SpritesTab(QWidget):
                 lambda e, rot=rot: self.previewClicked(rot))
             self.sprite_preview[rot].setStyleSheet(
                 f"background-color :  rgb{self.main_window.current_background_color};")
-
-        self.slider_sprite_index = self.findChild(
-            QSlider, "horizontalSlider_spriteIndex")
-        self.slider_sprite_index.valueChanged.connect(
-            self.updateLockedSpriteLayersModel)
 
         # Remap Color Buttons
         self.button_first_remap = self.findChild(
@@ -262,6 +253,12 @@ class SpritesTab(QWidget):
             self.button_second_remap.hidePanel)
         self.button_third_remap.panelOpened.connect(
             self.button_first_remap.hidePanel)
+        
+        self.button_projection_mode = self.findChild(QRadioButton, "radioButton_projection")
+        self.button_tiles_mode = self.findChild(QRadioButton, "radioButton_tiles")
+        
+        self.button_projection_mode.clicked.connect(lambda: self.changeViewMode('projection'))
+        self.button_tiles_mode.clicked.connect(lambda: self.changeViewMode('tiles'))
 
         self.previewClicked(0)
         self.updateAllViews()
@@ -281,18 +278,6 @@ class SpritesTab(QWidget):
             self.setCurrentLayers(layers)
 
         self.updateLockedSpriteLayersModel()
-        self.updateMainView()
-
-    def resetImage(self):
-        for layer in self.giveCurrentMainViewLayers():
-            layer.sprite.resetSprite()
-
-        self.updateMainView()
-
-    def resetOffsets(self):
-        for layer in self.giveCurrentMainViewLayers():
-            layer.sprite.resetOffsets()
-
         self.updateMainView()
 
     def showSpriteMenu(self, pos):
@@ -325,6 +310,8 @@ class SpritesTab(QWidget):
                 return
 
         if image:
+            image = image.convert('RGBA')
+            
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
@@ -372,14 +359,6 @@ class SpritesTab(QWidget):
         self.updateLockedSpriteLayersModel()
         self.updateAllViews()
 
-    def cycleAnimationFrame(self):
-        view = -1 if self.checkBox_allViewsCycleFrame.isChecked() else self.o.rotation
-
-        self.o.cycleAnimationFrame(view=view)
-
-        self.updateLockedSpriteLayersModel()
-        self.updateAllViews()
-
     def previewClicked(self, rot):
         old_rot = self.o.rotation
         self.sprite_preview[old_rot].setStyleSheet(
@@ -416,91 +395,12 @@ class SpritesTab(QWidget):
 
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
-
-        if self.o.subtype == obj.SmallScenery.Subtype.GLASS:
+        
+        
+        if self.viewing_mode == 0: # projection mode
             for rot in range(4):
-                sprite = self.o.giveSprite(rotation=rot)
-                layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, name=f'Structure View {rot+1}')
-                self.layers[rot].append(layer)
-            for rot in range(4):
-                sprite = self.o.giveSprite(rotation=rot, glass=True)
-                layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, name=f'Glass View {rot+1}')
-                self.layers[rot].append(layer)
-        elif self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
-            if self.slider_sprite_index.value() == 0:
-                for rot in range(4):
-                    sprite = self.o.giveSprite(rotation=rot, wither=0)
-                    layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Watered View {rot+1}')
-                    self.layers[rot].append(layer)
-            elif self.slider_sprite_index.value() == 1:
-                for rot in range(4):
-                    sprite = self.o.giveSprite(rotation=rot, wither=1)
-                    layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Wither 1 View {rot+1}')
-                    self.layers[rot].append(layer)
-            elif self.slider_sprite_index.value() == 2:
-                for rot in range(4):
-                    sprite = self.o.giveSprite(rotation=rot, wither=2)
-                    layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Wither 2 View {rot+1}')
-                    self.layers[rot].append(layer)
-        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
-            animation_frame = self.slider_sprite_index.value()
-            if self.o.animation_type in [
-                    obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
-                for rot in range(4):
-                    base_index = rot
-                    foutain_index = rot+4*(animation_frame+1)
-                    foutain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
-
-                    sprite = self.o.sprites[self.o.data['images']
-                                            [base_index]['path']]
-                    layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, name=f'Base 1 View {rot+1}')
-                    self.layers[rot].append(layer)
-
-                    sprite = self.o.sprites[self.o.data['images']
-                                            [foutain_index]['path']]
-                    layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y,
-                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
-                    self.layers[rot].append(layer)
-
-                    if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
-                        sprite = self.o.sprites[self.o.data['images']
-                                                [base_index+4]['path']]
-                        layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
-                        self.layers[rot].append(layer)
-                        sprite = self.o.sprites[self.o.data['images']
-                                                [foutain_index+16]['path']]
-                        layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y,
-                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
-                        self.layers[rot].append(layer)
-            else:
-                if animation_frame == 0 and self.o.has_preview:
-                    for rot in range(4):
-                        sprite = self.o.giveSprite(
-                            rotation=rot, animation_frame=animation_frame)
-                        layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, name=f'Preview Image View {rot+1}')
-                        self.layers[rot].append(layer)
-                else:
-                    for rot in range(4):
-                        sprite = self.o.giveSprite(
-                            rotation=rot, animation_frame=animation_frame)
-
-                        layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y,
-                            name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
-                        self.layers[rot].append(layer)
-        else:
-            for rot in range(4):
-                sprite = self.o.giveSprite(rotation=rot)
+                im, x, y = self.o.show(rotation=rot, no_remaps=True)
+                sprite = spr.Sprite(im, (x,y), palette = self.main_window.current_palette)
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
@@ -604,18 +504,12 @@ class SpritesTab(QWidget):
         self.updateAllViews()
 
     def updateMainView(self, emit_signal=True):
-        if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
-            im, x, y = self.o.show(wither=self.slider_sprite_index.value())
-        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
-            im, x, y = self.o.show(
-                animation_frame=self.slider_sprite_index.value())
-        else:
-            im, x, y = self.o.show()
+        im, x, y = self.o.show()
 
         height = -y + 90 if -y > 178 else 268
-        self.sprite_view_main_scene.setSceneRect(0, 0, 151, height)
+        self.sprite_view_main_scene.setSceneRect(0, 0, 261, height)
 
-        coords = (76+x, height-70+y)
+        coords = (261//2+x, height-70+y)
 
         image = ImageQt(im)
         pixmap = QtGui.QPixmap.fromImage(image)
@@ -628,14 +522,7 @@ class SpritesTab(QWidget):
             self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
-        if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
-            im, x, y = self.o.show(
-                rotation=rot, wither=self.slider_sprite_index.value())
-        elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
-            im, x, y = self.o.show(
-                rotation=rot, animation_frame=self.slider_sprite_index.value())
-        else:
-            im, x, y = self.o.show(rotation=rot)
+        im, x, y = self.o.show(rotation=rot)
 
         im = copy(im)
         im.thumbnail((72, 72), Image.NEAREST)

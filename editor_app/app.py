@@ -125,7 +125,9 @@ class MainWindowUi(QMainWindow):
 
         # Menubar
         self.actionSmallScenery.triggered.connect(
-            lambda x: self.objectNew(obj.Type.SMALL))
+            lambda: self.objectNew(obj.Type.SMALL))
+        self.actionLargeScenery.triggered.connect(
+            lambda: self.objectNew(obj.Type.LARGE))
         self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionDATIdentifier.triggered.connect(
             self.objectOpenFileFromIdentifier)

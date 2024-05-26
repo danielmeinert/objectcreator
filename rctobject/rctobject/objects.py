@@ -381,8 +381,17 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-    def show(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = True):
+    def show(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = True, no_remaps=False):
         """Still need to implement all possible animation cases and glass objects."""
+        
+        if no_remaps:
+            first_remap = 'NoColor'
+            second_remap = 'NoColor'
+            third_remap = 'NoColor'
+        else:
+            first_remap = self.current_first_remap
+            second_remap = self.current_second_remap
+            third_remap = self.current_third_remap
 
         if self.subtype == self.Subtype.GLASS and glass:
             if isinstance(rotation, int):
@@ -395,10 +404,10 @@ class SmallScenery(RCTObject):
             sprite = self.sprites[self.data['images'][sprite_index]['path']]
             mask = self.sprites[self.data['images'][mask_index]['path']]
 
-            color_remap = self.current_first_remap if self.current_first_remap != 'NoColor' else '1st Remap'
+            color_remap = first_remap if first_remap != 'NoColor' else '1st Remap'
             image_paste = spr.colorAllInRemap(
-                sprite.show('NoColor', self.current_second_remap,
-                            self.current_third_remap),
+                sprite.show('NoColor', second_remap,
+                            third_remap),
                 color_remap, sprite.palette)
 
             s1 = mask
@@ -421,7 +430,7 @@ class SmallScenery(RCTObject):
             canvas_top.paste(image_paste, (s2.x+canvas_size_x,
                              s2.y+canvas_size_y), mask=image_paste)
 
-            canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
+            canvas.paste(s2.show('NoColor', second_remap, third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
             canvas.paste((color[0], color[1], color[2], 124), (s1.x + canvas_size_x, s1.y + canvas_size_y),
                          mask=s1.image)
@@ -468,16 +477,16 @@ class SmallScenery(RCTObject):
 
             canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
 
-            canvas.paste(s1.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+            canvas.paste(s1.show(first_remap, second_remap, third_remap),
                          (s1.x+canvas_size_x, s1.y+canvas_size_y), mask=s1.image)
-            canvas.paste(s2.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+            canvas.paste(s2.show(first_remap, second_remap, third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
 
             if self.animation_type == self.AnimationType.FOUNTAIN4:
 
-                canvas.paste(s3.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                canvas.paste(s3.show(first_remap, second_remap, third_remap),
                              (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
-                canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                canvas.paste(s4.show(first_remap, second_remap, third_remap),
                              (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
 
             bbox = canvas.getbbox()
@@ -494,7 +503,7 @@ class SmallScenery(RCTObject):
         else:
             sprite = self.giveSprite(rotation, animation_frame, wither)
             return sprite.show(
-                self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
+                first_remap, second_remap, third_remap), sprite.x, sprite.y
 
     def giveIndex(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = False):
         if isinstance(rotation, int):
@@ -890,8 +899,23 @@ class LargeScenery(RCTObject):
 
         return x,y
 
-    def show(self):
-        canvas = Image.new('RGBA', self.spriteBoundingBox(), (55,55,55))
+    def show(self, rotation=None, no_remaps= False):
+        if isinstance(rotation, int):
+            rotation_save = int(self.rotation)
+            self.setRotation(rotation)
+        else:
+            rotation_save = None
+        
+        if no_remaps:
+            first_remap = 'NoColor'
+            second_remap = 'NoColor'
+            third_remap = 'NoColor'
+        else:
+            first_remap = self.current_first_remap
+            second_remap = self.current_second_remap
+            third_remap = self.current_third_remap
+        
+        canvas = Image.new('RGBA', self.spriteBoundingBox())
 
         x_baseline, y_baseline = self.baseOffset()
         
@@ -904,23 +928,29 @@ class LargeScenery(RCTObject):
                 tile.x*16 + tile.y*16 - tile.z*8
             x_base = x_baseline - tile.x*32 + tile.y*32
 
-            sprite = tile.giveSprite()
-            canvas.paste(sprite.show(self.current_first_remap, 
-                                     self.current_second_remap, 
-                                     self.current_third_remap),
+            sprite = tile.giveSprite(rotation)
+            canvas.paste(sprite.show(first_remap, 
+                                     second_remap, 
+                                     third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
+            
+        if rotation_save:
+            self.setRotation(rotation_save)
 
-        return canvas, (x_baseline,y_baseline)
+        return canvas, -x_baseline, -y_baseline
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
 
         for tile in self.tiles:
             tile.rotate(rot)
-
+    
+    def setRotation(self, rot):
+        self.rotateObject(rot-self.rotation)
+        
     def getDrawingOrder(self):
         order = {}
-
+        
         for tile_index, tile in enumerate(self.tiles):
             score = tile.x + tile.y
             order[tile_index] = score
@@ -1052,6 +1082,14 @@ class LargeScenery(RCTObject):
         self.tiles.pop(index)
 
         self.updateImageList()
+        
+    def copyTilesGeometry(self, tiles):
+        pass
+        #new_tiles = []
+
+        #for tile in tiles:
+       
+       #     new_tile = self.Tile(self, tile.give)
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'

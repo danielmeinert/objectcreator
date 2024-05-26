@@ -161,6 +161,8 @@ class BoundingBoxes():
                             self.backbox_three_quarter[rot][0], (0, i*8), self.backbox_three_quarter[rot][0])
 
                 return [canvas, (self.backbox_three_quarter[rot][1][0], self.backbox_three_quarter[rot][1][1] - 8*h)]
+        elif object_type == obj.Type.LARGE:
+            return [Image.new('RGBA', (1,1)), (0,0)]
 
 
 class SymmetryAxes():
@@ -210,3 +212,5 @@ class SymmetryAxes():
 
             elif shape == obj.SmallScenery.Shape.THREEQ or shape == obj.SmallScenery.Shape.FULLD:
                 return self.symm_diagonal[rot % 2]
+        elif object_type == obj.Type.LARGE:
+            return [Image.new('RGBA', (1,1)), (0,0)]

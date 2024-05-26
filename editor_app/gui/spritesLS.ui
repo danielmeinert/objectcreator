@@ -37,19 +37,6 @@
      <property name="title">
       <string>Sprites</string>
      </property>
-     <widget class="QPushButton" name="pushButton_resetImage">
-      <property name="geometry">
-       <rect>
-        <x>101</x>
-        <y>10</y>
-        <width>91</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reset All Images</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushButton_loadImage">
       <property name="geometry">
        <rect>
@@ -305,7 +292,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>340</y>
+        <y>330</y>
         <width>101</width>
         <height>80</height>
        </rect>
@@ -468,9 +455,9 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>420</y>
+        <y>440</y>
         <width>101</width>
-        <height>81</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="title">
@@ -493,6 +480,9 @@
        </property>
       </widget>
       <widget class="QRadioButton" name="radioButton_tiles">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -505,6 +495,19 @@
         <string>Tiles</string>
        </property>
       </widget>
+     </widget>
+     <widget class="QPushButton" name="pushButton_cycleRotation">
+      <property name="geometry">
+       <rect>
+        <x>171</x>
+        <y>413</y>
+        <width>81</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Cycle Rotation</string>
+      </property>
      </widget>
     </widget>
    </item>

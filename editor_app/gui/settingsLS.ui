@@ -467,7 +467,7 @@ QTabBar::tab:selected {
            <string>Price</string>
           </property>
          </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_removalPrice_2">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_removalPrice">
           <property name="geometry">
            <rect>
             <x>130</x>
@@ -495,7 +495,7 @@ QTabBar::tab:selected {
            <double>1.000000000000000</double>
           </property>
          </widget>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_price_2">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_price">
           <property name="geometry">
            <rect>
             <x>20</x>

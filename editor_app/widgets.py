@@ -89,6 +89,7 @@ class SettingsTabAll(QWidget):
 
         self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
         
+        
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
@@ -180,6 +181,7 @@ class TabNamingMisc(QWidget):
 
 
 import widgetsSS
+import widgetsLS
 
 # Object Tab
 class ObjectTab(QWidget):
@@ -204,6 +206,11 @@ class ObjectTab(QWidget):
         if o.object_type == obj.Type.SMALL:
             self.sprites_tab = widgetsSS.SpritesTab(o, self)
             self.settings_tab = widgetsSS.SettingsTab(
+                o, self, self.sprites_tab, author, author_id)
+        elif o.object_type == obj.Type.LARGE:
+            print('ter')
+            self.sprites_tab = widgetsLS.SpritesTab(o, self)
+            self.settings_tab = widgetsLS.SettingsTab(
                 o, self, self.sprites_tab, author, author_id)
         else:
             raise RuntimeError('Object type not supported.')
