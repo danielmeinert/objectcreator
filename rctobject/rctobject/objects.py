@@ -812,6 +812,10 @@ class LargeScenery(RCTObject):
             else:
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
+        
+        for _, sprite in self.sprites.items():
+            sprite.overwriteOffsets(
+                int(sprite.x), int(sprite.y) - 15)
 
         self.rotation_matrices = [
             np.array([[1, 0], [0, 1]]),      # R^0
@@ -911,11 +915,12 @@ class LargeScenery(RCTObject):
 
     # Override base class
     def updateImageOffsets(self):
+        offset = 15
         for i, im in enumerate(self.data['images']):
             # Update the non-preview sprites
             if i > 3:
                 im['x'] = self.sprites[im['path']].x
-                im['y'] = self.sprites[im['path']].y
+                im['y'] = self.sprites[im['path']].y + offset
             # preview sprites have different offsets
             else:
                 image = self.sprites[im['path']].show()
