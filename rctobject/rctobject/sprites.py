@@ -15,12 +15,13 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0,
-                 offset: tuple = None):
+                 transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
+                 offset: tuple = None, already_palettized: bool = False):
 
         if image:
-            image = pal.addPalette(
-                image, palette, dither, transparent_color, selected_colors, alpha_threshold)
+            if not already_palettized:
+                image = pal.addPalette(
+                    image, palette, dither, transparent_color, selected_colors, alpha_threshold)
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -43,8 +44,8 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0,
-                 offset: tuple = None):
+                 transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
+                 offset: tuple = None, already_palettized: bool = False):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(

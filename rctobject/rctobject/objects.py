@@ -96,7 +96,7 @@ class RCTObject:
             for i, im in enumerate(data['images']):
                 if isinstance(im, dict):
                     sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
+                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']), already_palettized=True)
                     im['path'] = f'images/{i}.png'
                 elif isinstance(im, str) and im == '':
                     im = {}
