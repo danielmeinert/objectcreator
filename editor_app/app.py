@@ -50,7 +50,7 @@ from rctobject import palette as pal
 # pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.1.8'
+VERSION = 'v0.1.9'
 
 myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string
@@ -615,6 +615,8 @@ class MainWindowUi(QMainWindow):
 
     def objectOpenFile(self):
         folder = self.last_open_folder
+        if not folder:
+            folder = self.settings.get('opendefault', None)        
         if not folder:
             folder = getcwd()
         filepaths, _ = QFileDialog.getOpenFileNames(

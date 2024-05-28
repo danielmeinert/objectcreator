@@ -117,6 +117,9 @@ class Sprite:
         self.image = changeBrightnessColor(
             self.image, step, color, self.palette)
 
+    def invertShadingColor(self, color: str or list):
+        self.image = invertShadingColor(self.image, color, self.palette)
+
     def removeColor(self, color: str or list):
         self.image = removeColor(self.image, color, self.palette)
         self.crop()
@@ -393,33 +396,33 @@ def changeBrightnessColor(image: Image.Image, value: int, color: str or list, pa
 
     for color_name in color:
 
-        color = palette.getColor(color_name)
+        color_arr = palette.getColor(color_name)
 
-        if not isinstance(color, np.ndarray):
+        if not isinstance(color_arr, np.ndarray):
             continue
 
         if (value < 0):
             for step in range(-value):
-                for i in range(len(color)):
+                for i in range(len(color_arr)):
                     j = i
                     if (i > 0):
                         j -= 1
-                    r1, g1, b1 = color[i]  # Original value
+                    r1, g1, b1 = color_arr[i]  # Original value
                     # Value that we want to replace it with
-                    r2, g2, b2 = color[j]
+                    r2, g2, b2 = color_arr[j]
                     red, green, blue = data_in[:, :,
                                                0], data_in[:, :, 1], data_in[:, :, 2]
                     mask = (red == r1) & (green == g1) & (blue == b1)
                     data_out[:, :, :3][mask] = [r2, g2, b2]
         else:
             for step in range(value):
-                for i in range(len(color)):
+                for i in range(len(color_arr)):
                     j = i
-                    if (i < len(color) - 1):
+                    if (i < len(color_arr) - 1):
                         j += 1
-                    r1, g1, b1 = color[i]  # Original value
+                    r1, g1, b1 = color_arr[i]  # Original value
                     # Value that we want to replace it with
-                    r2, g2, b2 = color[j]
+                    r2, g2, b2 = color_arr[j]
                     red, green, blue = data_in[:, :,
                                                0], data_in[:, :, 1], data_in[:, :, 2]
                     mask = (red == r1) & (green == g1) & (blue == b1)
@@ -437,6 +440,33 @@ def changeBrightness(image: Image.Image, step: int, palette: pal.Palette = pal.o
         image, step, list(palette.color_dict), palette)
 
     return image
+
+
+def invertShadingColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):
+    data_in = np.array(image)
+    data_out = np.array(data_in)
+
+    if isinstance(color, str):
+        color = [color]
+
+    for color_name in color:
+
+        color_arr = palette.getColor(color_name)
+
+        if not isinstance(color_arr, np.ndarray):
+            continue
+
+        for i in range(len(color_arr)):
+
+            r1, g1, b1 = color_arr[i]  # Original value
+            # Value that we want to replace it with
+            r2, g2, b2 = color_arr[len(color_arr)-1-i]
+            red, green, blue = data_in[:, :,
+                                       0], data_in[:, :, 1], data_in[:, :, 2]
+            mask = (red == r1) & (green == g1) & (blue == b1)
+            data_out[:, :, :][mask] = [r2, g2, b2, 255]
+
+    return Image.fromarray(data_out)
 
 
 def removeColor(image: Image.Image, color: str or list, palette: pal.Palette = pal.orct):

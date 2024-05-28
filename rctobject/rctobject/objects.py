@@ -90,7 +90,7 @@ class RCTObject:
 
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
-        elif isinstance(data['images'][0], dict):
+        elif isinstance(data['images'], list):
             sprites = {}
             filename_len = len(filepath.split('/')[-1])
             for i, im in enumerate(data['images']):
@@ -105,6 +105,8 @@ class RCTObject:
                     sprites[f'images/{i}.png'] = spr.Sprite(None)
                     im['path'] = f'images/{i}.png'
                     data['images'][i] = im
+                else:
+                    raise RuntimeError('Image was not a valid type. G1, G2, CSG, LGX not supported')
 
         else:
             raise RuntimeError('Cannot extract images.')
@@ -561,10 +563,10 @@ class SmallScenery(RCTObject):
 
             self.num_image_sets = int(len(self.data['images'])/4)
         else:
-            self.data['properties'].pop('frameOffsets')
-            self.data['properties'].pop('animationDelay')
-            self.data['properties'].pop('animationMask')
-            self.data['properties'].pop('numFrames')
+            self.data['properties'].pop('frameOffsets', None)
+            self.data['properties'].pop('animationDelay', None)
+            self.data['properties'].pop('animationMask', None)
+            self.data['properties'].pop('numFrames', None)
             for flag in cts.list_small_animation_flags:
                 self.data['properties'].pop(flag, None)
             self.has_preview = False
@@ -810,6 +812,10 @@ class LargeScenery(RCTObject):
             else:
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
+        
+        for _, sprite in self.sprites.items():
+            sprite.overwriteOffsets(
+                int(sprite.x), int(sprite.y) - 15)
 
         self.rotation_matrices = [
             np.array([[1, 0], [0, 1]]),      # R^0
@@ -909,11 +915,12 @@ class LargeScenery(RCTObject):
 
     # Override base class
     def updateImageOffsets(self):
+        offset = 15
         for i, im in enumerate(self.data['images']):
             # Update the non-preview sprites
             if i > 3:
                 im['x'] = self.sprites[im['path']].x
-                im['y'] = self.sprites[im['path']].y
+                im['y'] = self.sprites[im['path']].y + offset
             # preview sprites have different offsets
             else:
                 image = self.sprites[im['path']].show()

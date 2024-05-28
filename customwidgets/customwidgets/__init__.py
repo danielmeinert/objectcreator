@@ -397,6 +397,7 @@ class ColorSelectWidget(QWidget):
         self.invert_all = QPushButton(text='Invert')
         self.activate_sparkles = QPushButton(text='Sparkles')
         self.activate_sparkles.setCheckable(True)
+        self.activate_sparkles.setVisible(False)
 
         self.select_all.clicked.connect(self.clickSelectAll)
         self.invert_all.clicked.connect(self.clickInvert)

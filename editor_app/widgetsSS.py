@@ -91,6 +91,8 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
+        
+        self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
 
         self.name_lang_box = self.findChild(
             QComboBox, "comboBox_languageSelect")
@@ -109,6 +111,8 @@ class SettingsTab(QWidget):
         self.scenery_group_id_field.textChanged.connect(
             self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
+        
+        self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -284,7 +288,7 @@ class SettingsTab(QWidget):
         self.o['properties']['cursor'] = cts.cursors[value]
 
     def authorChanged(self, value):
-        self.o['authors'] = value.split(',')
+        self.o['authors'] = value.replace(' ','').split(',')
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
@@ -303,7 +307,10 @@ class SettingsTab(QWidget):
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value
-
+        
+    def copyIdToClipboard(self):
+        QApplication.clipboard().setText(self.o['id'])
+        
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
@@ -465,6 +472,11 @@ class SettingsTab(QWidget):
             self.o['strings']['name'].get('en-GB', ''))
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get('en-GB', ''))
+        
+        self.scenery_group_id_field.setText(
+            self.o['properties'].get('sceneryGroup',''))
+        self.mirror_object_id_field.setText(
+            self.o['properties'].get('mirrorObjectId','')) 
 
         self.spinbox_price.setValue(self.o['properties'].get('price', 1))
         self.spinbox_removal_price.setValue(
@@ -512,6 +524,7 @@ class SpritesTab(QWidget):
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
+        self.last_image_path = ''
 
         # Buttons load/reset
         self.button_load_image = self.findChild(
@@ -603,9 +616,9 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):
+    def loadImage(self):        
         filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
+            self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
             selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
@@ -620,6 +633,8 @@ class SpritesTab(QWidget):
             layers.insertRow(0, layer)
 
             self.setCurrentLayers(layers)
+            
+            self.last_image_path, _ = os.path.split(filepath)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
