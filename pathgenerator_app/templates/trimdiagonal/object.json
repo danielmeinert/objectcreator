@@ -16,7 +16,8 @@
           "y": 0,
           "clearance": 8,
           "hasSupports": false,
-          "walls": 15
+          "walls": 15,
+	  "corners":11
         }
       ]
     },
