@@ -110,7 +110,7 @@ class RCTObject:
             for i, im in enumerate(data['images']):
                 if isinstance(im, dict):
                     sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
+                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']), already_palettized=True)
                     im['path'] = f'images/{i}.png'
                 elif isinstance(im, str) and im == '':
                     im = {}
@@ -832,6 +832,10 @@ class LargeScenery(RCTObject):
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
 
+            for _, sprite in self.sprites.items():
+                sprite.overwriteOffsets(
+                    int(sprite.x), int(sprite.y) - 15)
+
             self.num_tiles = len(self.data['properties']['tiles'])
             self.tiles = []
             for i, tile_dict in enumerate(self['properties']['tiles']):
@@ -974,110 +978,16 @@ class LargeScenery(RCTObject):
             raise NotImplementedError(
                 "Creating thumbnails is not supported yet for 3d sign objects.")
 
-    # Override base class method
+    # Override base class
+    def updateImageOffsets(self):
+        offset = 15
+        for im in self.data['images']:
+            im['x'] = self.sprites[im['path']].x
+            im['y'] = self.sprites[im['path']].y + offset
+
+    # for now we override this method to do nothing
     def updateImageList(self):
-        new_dict = {}
-        new_list = []
-
-        for view in range(4):
-            im = self['images'][view]
-            sprite = self.sprites.pop(im['path'])
-            im['path'] = f'images/preview_{view}.png'
-            new_dict[im['path']] = sprite
-            new_list.append(im)
-
-        for i, tile in enumerate(self.tiles):
-            for view in range(4):
-                im = tile.images[view]
-                sprite = self.sprites.pop(im['path'])
-                im['path'] = f'images/tile_{i}_im_{view}.png'
-                new_dict[im['path']] = sprite
-                new_list.append(im)
-
-        self['images'] = new_list
-        self.sprites = new_dict
-
-    def projectSpriteToTiles(self, sprite):
-        x_baseline, y_baseline = self.baseOffset()
-
-        if not sprite.palette == self.palette:
-            sprite.switchPalette(self.palette)
-
-        im_paste = Image.new('RGBA', self.spriteBoundingBox())
-        im_paste.paste(sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
-
-        for tile in self.tiles:
-            im = Image.new('RGBA', self.spriteBoundingBox())
-            mask = Image.new('1', self.spriteBoundingBox())
-            draw = ImageDraw.Draw(mask)
-
-            x = x_baseline - tile.x*32+tile.y*32-32
-            y = y_baseline + tile.x*16+tile.y*16-tile.z*8+15
-
-            for i in range(64):
-                if i < 32:
-                    draw.line([(x+i, y-i//2-tile.h*8),
-                               (x+i, y+i//2)],
-                              fill=1, width=1)
-                else:
-                    draw.line([(x+i, y-(63-i)//2-tile.h*8),
-                               (x+i, y+(63-i)//2)],
-                              fill=1, width=1)
-
-            im.paste(im_paste, mask=mask)
-            bbox = mask.getbbox()
-
-            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8), palette=self.palette)
-            tile.setSprite(sprite_tile)
-
-    def addTile(self, coords, height=0, dict_entry=None):
-        # we expect that the image list is ordered
-
-        index = len(self.tiles)
-
-        images = []
-        for i in range(4):
-            path = f'images/tile_{index}_im_{i}.png'
-            try:
-                im = self['images'][4*(index+1)+i]
-            except IndexError:
-                im = {'path': path, 'x': 0, 'y': 0}
-                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
-
-            images.append(im)
-
-        if not dict_entry:
-            dict_entry = {'x': coords[0]*32,
-                          'y': coords[1]*32,
-                          'z': 0,
-                          'clearance': height*8,
-                          'hasSupports': False,
-                          'allowSupportsAbove': False,
-                          'walls': 0,
-                          'corners': 15}
-        else:
-            # we adjust the coordinates of the diven dict
-            dict_entry['x'] = coords[0]*32
-            dict_entry['y'] = coords[1]*32
-
-        tile = self.Tile(self, dict_entry, images, self.rotation)
-        self.tiles.append(tile)
-
-    def removeTile(self, index):
-        if index < 1:
-            raise RuntimeError('Cannot remove anchor tile.')
-
-        self.tiles.pop(index)
-
-        self.updateImageList()
-
-    def copyTilesGeometry(self, tiles):
-        pass
-        # new_tiles = []
-
-        # for tile in tiles:
-
-       #     new_tile = self.Tile(self, tile.give)
+        return
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
