@@ -394,13 +394,15 @@ def read_image_table(data, graphic_base):
 
     length = len(data)
     if graphic_base >= length-3:
-        raise RuntimeError(f'Length of graphic base {graphic_base} larger than length of image data {length}.')
+        raise RuntimeError(
+            f'Length of graphic base {graphic_base} larger than length of image data {length}.')
 
     num_images = int.from_bytes(data[graphic_base:graphic_base+4], 'little')
 
     bitmap_base = 8+graphic_base+16*num_images
     if bitmap_base > length:
-        raise RuntimeError(f'Length of bitmap base {bitmap_base} larger than length of image data {length}.')
+        raise RuntimeError(
+            f'Length of bitmap base {bitmap_base} larger than length of image data {length}.')
 
     # images is the list for the json with offset data, sprites is the dict with the sprites for the object
     images = []
@@ -432,13 +434,15 @@ def read_image_table(data, graphic_base):
                 last = 0
                 while True:
                     if row_data > length:
-                        raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
+                        raise RuntimeError(
+                            f'Length of row data {row_data} larger than length of image data {length}.')
 
                     seg_length = data[row_data] & 0x7F
                     last = data[row_data] & 0x80
                     row_data += 1
                     if row_data > length:
-                        raise RuntimeError(f'Length of row data {row_data} larger than length of image data {length}.')
+                        raise RuntimeError(
+                            f'Length of row data {row_data} larger than length of image data {length}.')
 
                     x_offset = data[row_data]
                     row_data += 1
@@ -464,14 +468,16 @@ def read_image_table(data, graphic_base):
                     pixel += 1
 
         images.append(im)
-        sprites[im['path']] = spr.Sprite(image, (im['x'], im['y']))
+        sprites[im['path']] = spr.Sprite(
+            image, (im['x'], im['y']), already_palettized=True)
 
     return images, sprites
 
 
-def import_sprites(dat_id, openpath):
+def import_sprites_with_open(dat_id, openpath):
     if not exists(f'{openpath}/bin/openrct2.exe'):
-        raise RuntimeError('Could not find openrct.exe in specified OpenRCT2 path.')
+        raise RuntimeError(
+            'Could not find openrct.exe in specified OpenRCT2 path.')
 
     with TemporaryDirectory() as temp:
         temp = temp.replace('\\', '/')
@@ -492,7 +498,15 @@ def import_sprites(dat_id, openpath):
         # images is the dict for the json with offset data, sprites is the dict with the sprites for the object
         images = loads(f'[{string[:i]}]')
         sprites = {im['path']: spr.Sprite.fromFile(
-            f'{temp}/{im["path"]}', coords=(im['x'], im['y'])) for im in images}
+            f'{temp}/{im["path"]}', coords=(im['x'], im['y']), already_palettized=True) for im in images}
+
+    return images, sprites
+
+
+def import_lgx(filename: str):
+    with open(filename, "rb") as f:
+        string = f.read()
+        images, sprites = read_image_table(string, 0)
 
     return images, sprites
 
