@@ -9,7 +9,7 @@
 """
 import numpy as np
 
-complete_palette_array = np.zeros((256, 3), dtype=int)
+complete_palette_array = np.zeros((256, 3), dtype=np.uint8)
 
 complete_palette_array[0] = np.array([0, 0, 0])
 complete_palette_array[1] = np.array([1, 1, 1])
