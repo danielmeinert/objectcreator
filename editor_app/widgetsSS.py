@@ -91,7 +91,7 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
-        
+
         self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
 
         self.name_lang_box = self.findChild(
@@ -111,7 +111,7 @@ class SettingsTab(QWidget):
         self.scenery_group_id_field.textChanged.connect(
             self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
-        
+
         self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Flags
@@ -288,7 +288,7 @@ class SettingsTab(QWidget):
         self.o['properties']['cursor'] = cts.cursors[value]
 
     def authorChanged(self, value):
-        self.o['authors'] = value.replace(' ','').split(',')
+        self.o['authors'] = value.replace(' ', '').split(',')
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
@@ -307,10 +307,10 @@ class SettingsTab(QWidget):
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value
-        
+
     def copyIdToClipboard(self):
         QApplication.clipboard().setText(self.o['id'])
-        
+
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
@@ -472,11 +472,11 @@ class SettingsTab(QWidget):
             self.o['strings']['name'].get('en-GB', ''))
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get('en-GB', ''))
-        
+
         self.scenery_group_id_field.setText(
-            self.o['properties'].get('sceneryGroup',''))
+            self.o['properties'].get('sceneryGroup', ''))
         self.mirror_object_id_field.setText(
-            self.o['properties'].get('mirrorObjectId','')) 
+            self.o['properties'].get('mirrorObjectId', ''))
 
         self.spinbox_price.setValue(self.o['properties'].get('price', 1))
         self.spinbox_removal_price.setValue(
@@ -616,7 +616,7 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):        
+    def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
@@ -633,7 +633,7 @@ class SpritesTab(QWidget):
             layers.insertRow(0, layer)
 
             self.setCurrentLayers(layers)
-            
+
             self.last_image_path, _ = os.path.split(filepath)
 
         self.updateLockedSpriteLayersModel()
@@ -821,8 +821,8 @@ class SpritesTab(QWidget):
                     obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
                 for rot in range(4):
                     base_index = rot
-                    foutain_index = rot+4*(animation_frame+1)
-                    foutain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
+                    fountain_index = rot+4*(animation_frame+1)
+                    fountain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
 
                     sprite = self.o.sprites[self.o.data['images']
                                             [base_index]['path']]
@@ -831,7 +831,7 @@ class SpritesTab(QWidget):
                     self.layers[rot].append(layer)
 
                     sprite = self.o.sprites[self.o.data['images']
-                                            [foutain_index]['path']]
+                                            [fountain_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, base_x, base_y,
                         name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
@@ -844,7 +844,7 @@ class SpritesTab(QWidget):
                             sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
                         self.layers[rot].append(layer)
                         sprite = self.o.sprites[self.o.data['images']
-                                                [foutain_index+16]['path']]
+                                                [fountain_index+16]['path']]
                         layer = wdg.SpriteLayer(
                             sprite, self.main_window, base_x, base_y,
                             name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')

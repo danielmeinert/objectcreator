@@ -699,12 +699,14 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
+        selected_row = self.layers.indexFromItem(self.active_layer).row()
         self.clearView()
 
         for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
-        else:
-            self.active_layer = layer
+
+        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(
+            self.layers.item(selected_row)))
 
         self.layersChanged.emit()
 
@@ -759,6 +761,7 @@ class SpriteTab(QWidget):
         self.layercount += 1
 
         self.addLayer(layer, pos)
+
         self.main_window.layer_widget.layers_list.setCurrentIndex(
             self.layers.indexFromItem(layer))
         self.active_layer = layer
