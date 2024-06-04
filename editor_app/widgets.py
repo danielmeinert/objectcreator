@@ -861,12 +861,21 @@ class SpriteTab(QWidget):
             if image:
                 selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 
+                if self.main_window.current_import_offset_mode == 'bottom':
+                    o = self.giveDummy()
+                    x, y, _ = o.size()
+                    offset_y = (16*x+16*y)//2
+                else:
+                    offset_y = 0
+
                 layer = SpriteLayer(
                     spr.Sprite(
                         image, palette=self.main_window.current_palette,
                         transparent_color=self.main_window.current_import_color,
                         selected_colors=selected_colors,
-                        alpha_threshold=0),
+                        alpha_threshold=0,
+                        offset=(0, offset_y),
+                        auto_offset_mode=self.main_window.current_import_offset_mode),
                     self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
                 self.layercount += 1
 
@@ -1793,6 +1802,9 @@ class ChangeSettingsUi(QDialog):
         self.spinBox_B_background.setValue(
             settings.get('background_color_custom', (0, 0, 0))[2])
 
+        self.comboBox_import_offset_mode.setCurrentIndex(
+            settings.get('import_offset_mode', 0))
+
     def loadSSSettings(self, settings):
         for flag in cts.Jsmall_flags:
             checkbox = self.tab_SS_default.findChild(QCheckBox, flag)
@@ -1856,6 +1868,7 @@ class ChangeSettingsUi(QDialog):
         ), self.spinBox_G_background.value(), self.spinBox_B_background.value())
         settings['palette'] = self.comboBox_palette.currentIndex()
         settings['history_maximum'] = self.spinBox_history_maximum.value()
+        settings['import_offset_mode'] = self.comboBox_import_offset_mode.currentIndex()
 
         ss_defaults = {}
         for flag in cts.Jsmall_flags:
