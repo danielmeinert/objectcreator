@@ -616,23 +616,40 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
+    def setImage(self, image):
+        image = image.convert('RGBA')
+
+        selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
+        if self.main_window.current_import_offset_mode == 'bottom':
+            x, y, _ = self.o.size()
+            offset_y = (16*x+16*y)//2
+        else:
+            offset_y = 0
+
+        sprite = spr.Sprite(image,
+                            palette=self.main_window.current_palette,
+                            transparent_color=self.main_window.current_import_color,
+                            selected_colors=selected_colors,
+                            alpha_threshold=0,
+                            offset=(0, offset_y),
+                            auto_offset_mode=self.main_window.current_import_offset_mode)
+
+        layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
+
+        layers = QtGui.QStandardItemModel()
+        layers.insertRow(0, layer)
+
+        self.setCurrentLayers(layers)
+
     def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+            image = Image.open(filepath)
 
-            sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         transparent_color=self.main_window.current_import_color,
-                                         selected_colors=selected_colors, alpha_threshold=0,
-                                         offset=self.main_window.import_offset)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
-
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
+            self.setImage(image)
 
             self.last_image_path, _ = os.path.split(filepath)
 
@@ -684,20 +701,7 @@ class SpritesTab(QWidget):
                 return
 
         if image:
-            image = image.convert('RGBA')
-
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-
-            sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color,
-                                selected_colors=selected_colors,
-                                alpha_threshold=0)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
-
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
+            self.setImage(image)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
