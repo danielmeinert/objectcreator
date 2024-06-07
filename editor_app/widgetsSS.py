@@ -27,14 +27,15 @@ import auxiliaries as aux
 
 import customwidgets as cwdg
 import widgets as wdg
+import widgetsGeneric
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
 from rctobject import palette as pal
-from rctobject import objects as obj 
+from rctobject import objects as obj
 
 
-class SettingsTab(wdg.SettingsTabAll):
+class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
 
@@ -47,7 +48,7 @@ class SettingsTab(wdg.SettingsTabAll):
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsSS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
-        
+
         super().initializeWidgets()
 
         self.button_set_defaults = self.findChild(
@@ -71,8 +72,6 @@ class SettingsTab(wdg.SettingsTabAll):
         # clearance Spinbox
         self.clearance_box = self.findChild(QSpinBox, "spinBox_clearance")
         self.clearance_box.valueChanged.connect(self.clearanceChanged)
-
-        
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -346,11 +345,11 @@ class SettingsTab(wdg.SettingsTabAll):
             self.o['strings']['name'].get('en-GB', ''))
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get('en-GB', ''))
-        
+
         self.scenery_group_id_field.setText(
-            self.o['properties'].get('sceneryGroup',''))
+            self.o['properties'].get('sceneryGroup', ''))
         self.mirror_object_id_field.setText(
-            self.o['properties'].get('mirrorObjectId','')) 
+            self.o['properties'].get('mirrorObjectId', ''))
 
         self.spinbox_price.setValue(self.o['properties'].get('price', 1))
         self.spinbox_removal_price.setValue(
@@ -490,7 +489,7 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):        
+    def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
@@ -507,7 +506,7 @@ class SpritesTab(QWidget):
             layers.insertRow(0, layer)
 
             self.setCurrentLayers(layers)
-            
+
             self.last_image_path, _ = os.path.split(filepath)
 
         self.updateLockedSpriteLayersModel()
