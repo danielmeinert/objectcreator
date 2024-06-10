@@ -11,7 +11,7 @@
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, \
     QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
-    QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog
+    QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog, qApp
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -71,6 +71,7 @@ class MainWindowUi(QMainWindow):
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
         self.setFocusPolicy(QtCore.Qt.NoFocus)
+        qApp.focusChanged.connect(self.onFocusChanged)
 
         self.app_data_path = app_data_path
         self.loadSettings()
@@ -778,6 +779,12 @@ class MainWindowUi(QMainWindow):
                 self.loadObjectFromPath(filepath)
         else:
             self.activateWindow()
+
+    @QtCore.pyqtSlot("QWidget*", "QWidget*")
+    def onFocusChanged(self, old, now):
+
+        if now == None:
+            self.tool_widget.toolbox.restoreTool()
 
 
 def excepthook(exc_type, exc_value, exc_tb):
