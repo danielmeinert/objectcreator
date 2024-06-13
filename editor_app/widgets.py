@@ -7,6 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
+
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
@@ -34,17 +35,19 @@ from rctobject import sprites as spr
 from rctobject import palette as pal
 from rctobject import objects as obj
 
+
 class SettingsTabAll(QWidget):
     """Proxy Class for all object types. initializeWidgets should be called after all members have been set."""
+
     def __init__(self):
         super().__init__()
 
-    def initializeWidgets(self): 
+    def initializeWidgets(self):
         tab_naming_misc = TabNamingMisc()
-        
+
         self.tab_widget.addTab(tab_naming_misc, 'Names and Misc.')
-        
-                # Names
+
+        # Names
         self.author_field = self.findChild(QLineEdit, "lineEdit_author")
         self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
         self.object_id_field = self.findChild(QLineEdit, "lineEdit_objectID")
@@ -58,7 +61,7 @@ class SettingsTabAll(QWidget):
             QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
-        
+
         self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
 
         self.name_lang_box = self.findChild(
@@ -78,9 +81,9 @@ class SettingsTabAll(QWidget):
         self.scenery_group_id_field.textChanged.connect(
             self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
-        
+
         self.button_copy_id.clicked.connect(self.copyIdToClipboard)
-        
+
         # Curser combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
 
@@ -88,19 +91,18 @@ class SettingsTabAll(QWidget):
             self.cursor_box.addItem(cursor.replace('_', ' '))
 
         self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
-        
-        
+
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
-    
+
     def tabChanged(self, index):
         if index == 0:
             self.object_name_field.setText(self.o['strings']['name']['en-GB'])
         elif index == 2 and self.language_index == 0:
             self.object_name_lang_field.setText(
                 self.o['strings']['name']['en-GB'])
-       
+
     def cursorChanged(self):
         value = self.cursor_box.currentIndex()
 
@@ -120,10 +122,10 @@ class SettingsTabAll(QWidget):
     def flagRemapChanged(self, value):
         self.hasPrimaryColour.setEnabled(not bool(value))
         self.hasSecondaryColour.setEnabled(not bool(value))
-        self.hasTertiaryColour.setEnabled(not bool(value))    
-    
+        self.hasTertiaryColour.setEnabled(not bool(value))
+
     def authorChanged(self, value):
-        self.o['authors'] = value.replace(' ','').split(',')
+        self.o['authors'] = value.replace(' ', '').split(',')
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
@@ -142,10 +144,10 @@ class SettingsTabAll(QWidget):
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value
-        
+
     def copyIdToClipboard(self):
         QApplication.clipboard().setText(self.o['id'])
-        
+
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
@@ -171,19 +173,19 @@ class SettingsTabAll(QWidget):
         self.language_index = value
         lang = list(cts.languages)[value]
         self.object_name_lang_field.setText(
-            self.o['strings']['name'].get(lang, ''))    
-        
-        
+            self.o['strings']['name'].get(lang, ''))
+
+
 class TabNamingMisc(QWidget):
     def __init__(self):
         super().__init__()
-        uic.loadUi(aux.resource_path('gui/tab_naming_misc.ui'), self) 
+        uic.loadUi(aux.resource_path('gui/tab_naming_misc.ui'), self)
 
-
-import widgetsSS
 import widgetsLS
+import widgetsSS
 
 # Object Tab
+
 class ObjectTab(QWidget):
     mainViewUpdated = QtCore.pyqtSignal()
     rotationChanged = QtCore.pyqtSignal(int)
@@ -261,8 +263,7 @@ class ObjectTab(QWidget):
 
         if filepath:
             self.lastpath = filepath
-            self.o.save(filepath, name=name, no_zip=self.main_window.settings['no_zip'],
-                        include_originalId=self.settings_tab.checkbox_keep_dat_id.isChecked())
+            self.o.save(filepath, name=name, no_zip=self.main_window.settings['no_zip'])
             self.saved = True
 
     def giveDummy(self):
@@ -320,8 +321,9 @@ class ObjectTab(QWidget):
     def colorRemoveAll(self, index, selected_colors):
         if self.locked:
             self.sprites_tab.colorRemoveAll(index, selected_colors)
- 
+
 # Sprites Tab
+
 
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
@@ -2062,7 +2064,6 @@ class ChangeSettingsUi(QDialog):
             QComboBox, "comboBox_cursor_LS").currentText().replace(' ', '_')
 
         settings['large_scenery_defaults'] = ls_defaults
-
 
         return settings
 
