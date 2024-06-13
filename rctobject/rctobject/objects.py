@@ -546,11 +546,11 @@ class SmallScenery(RCTObject):
 
         self.setSpriteFromIndex(sprite_in, sprite_index)
 
-    def rotateObject(self, rot=None):
-        if not isinstance(rot, int):
-            self.rotation = (self.rotation + 1) % 4
-        else:
-            self.rotation = rot % 4
+    def rotateObject(self, rot: int = 1):
+        self.rotation = (self.rotation + rot) % 4
+
+    def setRotation(self, rot):
+        self.rotateObject(rot-self.rotation)
 
     def cycleSpritesRotation(self, step: int = 1):
         for i in range(int(len(self.data['images'])/4)):
@@ -901,6 +901,16 @@ class LargeScenery(RCTObject):
         y = (-min_x-min_y)*16+max_z*8
 
         return x, y
+    
+    def centerOffset(self):
+        '''Coordinates of the center of ground base in screen space of the sprite bounding box according to rotation.'''
+
+        x_obj, y_obj, z_obj = self.size()
+
+        x = int(x_obj*8 + y_obj*8)
+        y = int(-1 + x_obj*8 + y_obj*8 + z_obj*8)
+
+        return -x, -y
 
     def show(self, rotation=None, no_remaps=False):
         if isinstance(rotation, int):
@@ -939,9 +949,11 @@ class LargeScenery(RCTObject):
 
         if rotation_save:
             self.setRotation(rotation_save)
+            
+        x, y = self.centerOffset()
 
-        return canvas, -x_baseline, -y_baseline
-
+        return canvas, x, y
+    
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
 

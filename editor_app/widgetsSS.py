@@ -628,7 +628,7 @@ class SpritesTab(QWidget):
         self.sprite_preview[rot].setStyleSheet(
             f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset green;")
 
-        self.o.rotateObject(rot)
+        self.o.setRotation(rot)
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
         self.object_tab.boundingBoxChanged.emit(
