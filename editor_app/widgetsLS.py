@@ -28,6 +28,7 @@ import auxiliaries as aux
 
 import customwidgets as cwdg
 import widgets as wdg
+import widgetsGeneric
 
 from rctobject import constants as cts
 from rctobject import sprites as spr
@@ -35,7 +36,7 @@ from rctobject import palette as pal
 from rctobject import objects as obj
 
 
-class SettingsTab(wdg.SettingsTabAll):
+class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
@@ -47,9 +48,8 @@ class SettingsTab(wdg.SettingsTabAll):
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsLS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
-        
-        super().initializeWidgets()
 
+        super().initializeWidgets()
 
         self.button_set_defaults = self.findChild(
             QPushButton, "pushButton_applyDefaultSettings")
@@ -154,7 +154,8 @@ class SettingsTab(wdg.SettingsTabAll):
 
     def setDefaults(self):
 
-        settings_LS = self.main_window.settings['large_scenery_defaults']
+        settings_LS = self.main_window.settings.get(
+            'large_scenery_defaults', {})
 
         for flag in settings_LS:
             checkbox = self.findChild(QCheckBox, flag)
@@ -177,16 +178,14 @@ class SpritesTab(QWidget):
         self.o = o
         self.object_tab = object_tab
         self.main_window = object_tab.main_window
-        
-        self.viewing_mode = 0 #projection
+
+        self.viewing_mode = 0  # projection
 
         # Buttons load/reset
         self.button_load_image = self.findChild(
             QPushButton, "pushButton_loadImage")
-        
 
         self.button_load_image.clicked.connect(self.loadImage)
-        
 
         self.button_cycle_rotation = self.findChild(
             QPushButton, "pushButton_cycleRotation")
@@ -253,12 +252,16 @@ class SpritesTab(QWidget):
             self.button_second_remap.hidePanel)
         self.button_third_remap.panelOpened.connect(
             self.button_first_remap.hidePanel)
-        
-        self.button_projection_mode = self.findChild(QRadioButton, "radioButton_projection")
-        self.button_tiles_mode = self.findChild(QRadioButton, "radioButton_tiles")
-        
-        self.button_projection_mode.clicked.connect(lambda: self.changeViewMode('projection'))
-        self.button_tiles_mode.clicked.connect(lambda: self.changeViewMode('tiles'))
+
+        self.button_projection_mode = self.findChild(
+            QRadioButton, "radioButton_projection")
+        self.button_tiles_mode = self.findChild(
+            QRadioButton, "radioButton_tiles")
+
+        self.button_projection_mode.clicked.connect(
+            lambda: self.changeViewMode('projection'))
+        self.button_tiles_mode.clicked.connect(
+            lambda: self.changeViewMode('tiles'))
 
         self.previewClicked(0)
         self.updateAllViews()
@@ -311,7 +314,7 @@ class SpritesTab(QWidget):
 
         if image:
             image = image.convert('RGBA')
-            
+
             sprite = spr.Sprite(image, palette=self.main_window.current_palette,
                                 transparent_color=self.main_window.current_import_color)
             layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
@@ -395,12 +398,12 @@ class SpritesTab(QWidget):
 
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
-        
-        
-        if self.viewing_mode == 0: # projection mode
+
+        if self.viewing_mode == 0:  # projection mode
             for rot in range(4):
                 im, x, y = self.o.show(rotation=rot, no_remaps=True)
-                sprite = spr.Sprite(im, (x,y), palette = self.main_window.current_palette)
+                sprite = spr.Sprite(
+                    im, (x, y), palette=self.main_window.current_palette)
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
