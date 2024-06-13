@@ -559,6 +559,47 @@ class SmallScenery(RCTObject):
                 image_list[:-step]
 
         self.updateImageList()
+        
+    def addTile(self, coords, dict_entry=None):
+        # we expect that the image list is ordered
+
+        index = len(self.tiles)
+
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+
+            images.append(im)
+
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                        'y': coords[1]*32,
+                        'z': 0,
+                        'clearance': 0,
+                        'hasSupports': False,
+                        'allowSupportsAbove': False,
+                        'walls': 0,
+                        'corners': 15}
+        else:
+            #we adjust the coordinates of the diven dict
+            dict_entry['x'] =  coords[0]*32
+            dict_entry['y'] = coords[1]*32
+
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+
+    def removeTile(self, index):
+        if index < 1:
+            raise RuntimeError('Cannot remove anchor tile.')
+
+        self.tiles.pop(index)
+
+        self.updateImageList()
 
     # tbf
     def changeSubtype(self, subtype):
@@ -907,7 +948,7 @@ class LargeScenery(RCTObject):
 
         x_obj, y_obj, z_obj = self.size()
 
-        x = int(x_obj*8 + y_obj*8)
+        x = int(x_obj*16 + y_obj*16)
         y = int(-1 + x_obj*8 + y_obj*8 + z_obj*8)
 
         return -x, -y
@@ -997,9 +1038,109 @@ class LargeScenery(RCTObject):
             im['x'] = self.sprites[im['path']].x
             im['y'] = self.sprites[im['path']].y + offset
 
-    # for now we override this method to do nothing
     def updateImageList(self):
-        return
+        new_dict = {}
+        new_list = []
+
+        for view in range(4):
+            im = self['images'][view]
+            sprite = self.sprites.pop(im['path'])
+            im['path'] = f'images/preview_{view}.png'
+            new_dict[im['path']] = sprite
+            new_list.append(im)
+
+        for i, tile in enumerate(self.tiles):
+            for view in range(4):
+                im = tile.images[view]
+                sprite = self.sprites.pop(im['path'])
+                im['path'] = f'images/tile_{i}_im_{view}.png'
+                new_dict[im['path']] = sprite
+                new_list.append(im)
+
+        self['images'] = new_list
+        self.sprites = new_dict
+    
+    def projectSpriteToTiles(self, sprite):
+        x_baseline, y_baseline = self.baseOffset()
+
+        if not sprite.palette == self.palette:
+            sprite.switchPalette(self.palette)
+
+        im_paste = Image.new('RGBA', self.spriteBoundingBox())
+        im_paste.paste(sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
+
+        for i, tile in enumerate(self.tiles):
+            print(i)
+            im = Image.new('RGBA', self.spriteBoundingBox())
+            mask = Image.new('1', self.spriteBoundingBox())
+            draw = ImageDraw.Draw(mask)
+
+            x = x_baseline - tile.x*32+tile.y*32-32
+            y = y_baseline + tile.x*16+tile.y*16-tile.z*8+15
+
+            for i in range(64):
+                if i < 32:
+                    draw.line([(x+i, y-i//2-tile.h*8),
+                               (x+i, y+i//2)],
+                              fill=1, width=1)
+                else:
+                    draw.line([(x+i, y-(63-i)//2-tile.h*8),
+                               (x+i, y+(63-i)//2)],
+                              fill=1, width=1)
+
+            im.paste(im_paste, mask=mask)
+            bbox = mask.getbbox()
+
+            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8), palette=self.palette)
+            tile.setSprite(sprite_tile)
+
+
+    
+    def addTile(self, coords, dict_entry=None, clearance=0):
+        # we expect that the image list is ordered
+
+        index = len(self.tiles)
+
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+
+            images.append(im)
+
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                        'y': coords[1]*32,
+                        'z': 0,
+                        'clearance': 0,
+                        'hasSupports': False,
+                        'allowSupportsAbove': False,
+                        'walls': 0,
+                        'corners': 15}
+        else:
+            #we adjust the coordinates of the diven dict
+            dict_entry['x'] =  coords[0]*32
+            dict_entry['y'] = coords[1]*32
+            
+        if clearance:
+            dict_entry['clearance'] = clearance
+
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+
+    def removeTile(self, index):
+        if index < 1:
+            raise RuntimeError('Cannot remove anchor tile.')
+
+        self.tiles.pop(index)
+
+        self.updateImageList()
+
+    
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
