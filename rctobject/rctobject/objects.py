@@ -992,7 +992,7 @@ class LargeScenery(RCTObject):
                                      third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
-        if rotation_save:
+        if rotation_save is not None:
             self.setRotation(rotation_save)
 
         x, y = self.centerOffset()

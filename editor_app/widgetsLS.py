@@ -403,7 +403,7 @@ class SpritesTab(QWidget):
             for rot in range(4):
                 im, x, y = self.o.show(rotation=rot, no_remaps=True)
                 sprite = spr.Sprite(
-                    im, (x, y), palette=self.main_window.current_palette, already_palletized=True)
+                    im, (x, y), palette=self.main_window.current_palette, already_palettized=True)
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
