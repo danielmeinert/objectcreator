@@ -110,7 +110,7 @@ class RCTObject:
             for i, im in enumerate(data['images']):
                 if isinstance(im, dict):
                     sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']))
+                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']), already_palettized=True)
                     im['path'] = f'images/{i}.png'
                 elif isinstance(im, str) and im == '':
                     im = {}
@@ -259,6 +259,8 @@ class RCTObject:
         self.sprites[self.data['images'][sprite_index]
                      ['path']].setFromSprite(sprite_in.image)
 
+    def changeFlag(self, flag, value):
+        self.data['properties'][flag] = value
 
 ###### Small scenery subclass ######
 
@@ -562,6 +564,47 @@ class SmallScenery(RCTObject):
 
         self.updateImageList()
 
+    def addTile(self, coords, dict_entry=None):
+        # we expect that the image list is ordered
+
+        index = len(self.tiles)
+
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+
+            images.append(im)
+
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                          'y': coords[1]*32,
+                          'z': 0,
+                          'clearance': 0,
+                          'hasSupports': False,
+                          'allowSupportsAbove': False,
+                          'walls': 0,
+                          'corners': 15}
+        else:
+            # we adjust the coordinates of the diven dict
+            dict_entry['x'] = coords[0]*32
+            dict_entry['y'] = coords[1]*32
+
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+
+    def removeTile(self, index):
+        if index < 1:
+            raise RuntimeError('Cannot remove anchor tile.')
+
+        self.tiles.pop(index)
+
+        self.updateImageList()
+
     # tbf
     def changeSubtype(self, subtype):
         if subtype == self.subtype:
@@ -834,6 +877,10 @@ class LargeScenery(RCTObject):
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
 
+            for _, sprite in self.sprites.items():
+                sprite.overwriteOffsets(
+                    int(sprite.x), int(sprite.y) - 15)
+
             self.num_tiles = len(self.data['properties']['tiles'])
             self.tiles = []
             for i, tile_dict in enumerate(self['properties']['tiles']):
@@ -905,7 +952,7 @@ class LargeScenery(RCTObject):
 
         x_obj, y_obj, z_obj = self.size()
 
-        x = int(x_obj*8 + y_obj*8)
+        x = int(x_obj*16 + y_obj*16)
         y = int(-1 + x_obj*8 + y_obj*8 + z_obj*8)
 
         return -x, -y
@@ -974,10 +1021,14 @@ class LargeScenery(RCTObject):
         if self.subtype != self.Subtype.SIGN:
             for rot in range(4):
                 im = self.data['images'][rot]
-                image = self.show()
-                image.thumbnail((64, 112), Image.NEAREST)
-                x = -int(image.size[0]/2)
-                y = image.size[1]
+                image = self.show()[0]
+                bbox = image.getbbox()
+                if bbox:
+                    image = image.crop(bbox)
+
+                image.thumbnail((64, 78), Image.NEAREST)
+                x = -image.size[0]//2
+                y = (78 - image.size[1])//2
                 self.sprites[im['path']] = spr.Sprite(image, (x, y))
                 self.rotateObject()
         else:
@@ -986,18 +1037,11 @@ class LargeScenery(RCTObject):
 
     # Override base class
     def updateImageOffsets(self):
-        for i, im in enumerate(self.data['images']):
-            # Update the non-preview sprites
-            if i > 3:
-                im['x'] = self.sprites[im['path']].x
-                im['y'] = self.sprites[im['path']].y
-            # preview sprites have different offsets
-            else:
-                image = self.sprites[im['path']].show()
-                im['x'] = -int(image.size[0]/2)
-                im['y'] = image.size[1]
+        offset = 15
+        for im in self.data['images']:
+            im['x'] = self.sprites[im['path']].x
+            im['y'] = self.sprites[im['path']].y + offset
 
-    # Override base class method
     def updateImageList(self):
         new_dict = {}
         new_list = []
@@ -1030,7 +1074,8 @@ class LargeScenery(RCTObject):
         im_paste.paste(
             sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
 
-        for tile in self.tiles:
+        for i, tile in enumerate(self.tiles):
+            print(i)
             im = Image.new('RGBA', self.spriteBoundingBox())
             mask = Image.new('1', self.spriteBoundingBox())
             draw = ImageDraw.Draw(mask)
@@ -1055,7 +1100,7 @@ class LargeScenery(RCTObject):
                 im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8), palette=self.palette)
             tile.setSprite(sprite_tile)
 
-    def addTile(self, coords, height=0, dict_entry=None):
+    def addTile(self, coords, dict_entry=None, clearance=0):
         # we expect that the image list is ordered
 
         index = len(self.tiles)
@@ -1075,7 +1120,7 @@ class LargeScenery(RCTObject):
             dict_entry = {'x': coords[0]*32,
                           'y': coords[1]*32,
                           'z': 0,
-                          'clearance': height*8,
+                          'clearance': 0,
                           'hasSupports': False,
                           'allowSupportsAbove': False,
                           'walls': 0,
@@ -1084,6 +1129,9 @@ class LargeScenery(RCTObject):
             # we adjust the coordinates of the diven dict
             dict_entry['x'] = coords[0]*32
             dict_entry['y'] = coords[1]*32
+
+        if clearance:
+            dict_entry['clearance'] = clearance
 
         tile = self.Tile(self, dict_entry, images, self.rotation)
         self.tiles.append(tile)

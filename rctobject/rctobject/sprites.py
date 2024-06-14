@@ -15,12 +15,13 @@ import rctobject.palette as pal
 
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0,
-                 offset: tuple = None):
+                 transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
+                 offset: tuple = None, already_palettized: bool = False):
 
         if image:
-            image = pal.addPalette(
-                image, palette, dither, transparent_color, selected_colors, alpha_threshold)
+            if not already_palettized:
+                image = pal.addPalette(
+                    image, palette, dither, transparent_color, selected_colors, alpha_threshold)
         else:
             image = Image.new('RGBA', (1, 1))
 
@@ -44,8 +45,8 @@ class Sprite:
 
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
-                 transparent_color: tuple = (0, 0, 0), selected_colors=None, alpha_threshold=0,
-                 offset: tuple = None):
+                 transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
+                 offset: tuple = None, already_palettized: bool = False):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
@@ -257,17 +258,17 @@ def remapColor(image: Image.Image, color_name_old: str, color_name_new: str,  pa
     data_in = np.array(image)
     data_out = np.array(data_in)
 
-    if 'Sparkles' in [color_name_old, color_name_new]:
-        raise RuntimeError('Remapping of water sparkles not supported.')
-
     color_old = palette.getColor(color_name_old)
     color_new = palette.getColor(color_name_new)
 
+    if color_name_old == 'Sparkles':
+        color_old = np.append(color_old, [color_old[-1], color_old[-1]], axis=0)
+    if color_name_new == 'Sparkles':
+        color_new = np.append(color_new, [color_new[-1], color_new[-1]], axis=0)
     # if color_new == 'NoColor':
     #     return image
 
     for i in range(12):
-
         r1, g1, b1 = color_old[i]  # Original value
         r2, g2, b2 = color_new[i]  # Value that we want to replace it with
         red, green, blue = data_in[:, :, 0], data_in[:, :, 1], data_in[:, :, 2]

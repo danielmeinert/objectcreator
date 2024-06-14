@@ -7,6 +7,7 @@
  * under the GNU General Public License version 3.
  *****************************************************************************
 """
+
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
@@ -39,6 +40,7 @@ import widgetsLS
 
 
 # Object Tab
+
 class ObjectTab(QWidget):
     mainViewUpdated = QtCore.pyqtSignal()
     rotationChanged = QtCore.pyqtSignal(int)
@@ -115,8 +117,7 @@ class ObjectTab(QWidget):
 
         if filepath:
             self.lastpath = filepath
-            self.o.save(filepath, name=name, no_zip=self.main_window.settings['no_zip'],
-                        include_originalId=self.settings_tab.checkbox_keep_dat_id.isChecked())
+            self.o.save(filepath, name=name, no_zip=self.main_window.settings['no_zip'])
             self.saved = True
 
     def giveDummy(self):

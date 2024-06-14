@@ -239,7 +239,8 @@ def switchPalette(image: Image.Image, pal_in: Palette, pal_out: Palette):
 # def generatePalette(image):
 
 
-def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0), selected_colors=None, alpha_threshold=0):
+def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0, 0, 0),
+               selected_colors=None, alpha_threshold=0):
     # If no transparent_color is given we choose the color from (0,0) pixel
     if not transparent_color:
         transparent_color = image.getpixel((0, 0))[:3]
@@ -258,7 +259,7 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
     if pal_in.size > 0:
         pal_in = pal_in.reshape(-1, pal_in.shape[-1])
     else:
-        pal_in = np.array([])
+        pal_in = np.array([[]])
 
     if 'Sparkles' in selected_colors and palette.has_sparkles:
         pal_in = np.concatenate((pal_in, palette.sparkles))
@@ -270,8 +271,10 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
     pal_in = np.uint8(pal_in.flatten()).tolist()
     p = Image.new("P", (1, 1))
     p.putpalette(pal_in)
+
+    dither_type = Image.Dither.FLOYDSTEINBERG if dither else Image.Dither.NONE
     image = image.quantize(method=3, palette=p,
-                           dither=int(dither)).convert('RGBA')
+                           dither=dither_type).convert('RGBA')
 
     return removeColorOnMask(image, mask)
 
