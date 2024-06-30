@@ -51,7 +51,7 @@ class Sprite:
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            selected_colors=selected_colors, alpha_threshold=alpha_threshold, offset=offset)
+            selected_colors=selected_colors, alpha_threshold=alpha_threshold, offset=offset, already_palettized=already_palettized)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game

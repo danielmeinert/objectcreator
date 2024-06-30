@@ -921,7 +921,7 @@ class LargeScenery(RCTObject):
         return (int(x), int(y), int(z))
 
     def baseOffset(self):
-        # Coordinates  of (0,0) tile in screen space of the sprite bounding box according to rotation
+        # Coordinates  of center of (0,0) tile in screen space of the sprite bounding box according to rotation
         max_x = 0
         max_y = 0
         max_z = 0
@@ -939,7 +939,7 @@ class LargeScenery(RCTObject):
             min_z = min(tile.z, min_z)
 
         x = (max_x-min_y)*32+32
-        y = (-min_x-min_y)*16+max_z*8
+        y = (-min_x-min_y)*16+max_z*8+15
 
         return x, y
     
@@ -1069,31 +1069,40 @@ class LargeScenery(RCTObject):
         im_paste = Image.new('RGBA', self.spriteBoundingBox())
         im_paste.paste(sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
 
+        self.projectImageToTiles(im_paste, already_palettized=True)
+
+    def projectImageToTiles(self, im_paste, already_palettized=False):
         for i, tile in enumerate(self.tiles):
             print(i)
             im = Image.new('RGBA', self.spriteBoundingBox())
-            mask = Image.new('1', self.spriteBoundingBox())
-            draw = ImageDraw.Draw(mask)
-
-            x = x_baseline - tile.x*32+tile.y*32-32
-            y = y_baseline + tile.x*16+tile.y*16-tile.z*8+15
-
-            for i in range(64):
-                if i < 32:
-                    draw.line([(x+i, y-i//2-tile.h*8),
-                               (x+i, y+i//2)],
-                              fill=1, width=1)
-                else:
-                    draw.line([(x+i, y-(63-i)//2-tile.h*8),
-                               (x+i, y+(63-i)//2)],
-                              fill=1, width=1)
+            mask = self.giveMask(tile)
 
             im.paste(im_paste, mask=mask)
             bbox = mask.getbbox()
 
-            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8), palette=self.palette)
+            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
             tile.setSprite(sprite_tile)
 
+    def giveMask(self, tile):
+        x_baseline, y_baseline = self.baseOffset()
+        
+        mask = Image.new('1', self.spriteBoundingBox())
+        draw = ImageDraw.Draw(mask)
+
+        x = x_baseline - tile.x*32+tile.y*32-32
+        y = y_baseline + tile.x*16+tile.y*16-tile.z*8
+
+        for i in range(64):
+            if i < 32:
+                draw.line([(x+i, y-i//2-tile.h*8),
+                               (x+i, y+i//2)],
+                              fill=1, width=1)
+            else:
+                draw.line([(x+i, y-(63-i)//2-tile.h*8),
+                               (x+i, y+(63-i)//2)],
+                              fill=1, width=1)
+                          
+        return mask
 
     
     def addTile(self, coords, dict_entry=None, clearance=0):
@@ -1127,7 +1136,7 @@ class LargeScenery(RCTObject):
             dict_entry['y'] = coords[1]*32
             
         if clearance:
-            dict_entry['clearance'] = clearance
+            dict_entry['clearance'] = clearance*8
 
         tile = self.Tile(self, dict_entry, images, self.rotation)
         self.tiles.append(tile)
