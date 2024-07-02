@@ -120,7 +120,8 @@ class RCTObject:
                     im['path'] = f'images/{i}.png'
                     data['images'][i] = im
                 else:
-                    raise RuntimeError('Image was not a valid type. G1, G2, CSG, LGX not supported')
+                    raise RuntimeError(
+                        'Image was not a valid type. G1, G2, CSG, LGX not supported')
 
         else:
             raise RuntimeError('Cannot extract images.')
@@ -235,6 +236,9 @@ class RCTObject:
                 self.current_second_remap = color
             elif remap == '3rd Remap':
                 self.current_third_remap = color
+
+    def changeFlag(self, flag, value):
+        self.data['properties'][flag] = value
 
     def updateImageOffsets(self):
         for im in self.data['images']:
@@ -559,7 +563,7 @@ class SmallScenery(RCTObject):
                 image_list[:-step]
 
         self.updateImageList()
-        
+
     def addTile(self, coords, dict_entry=None):
         # we expect that the image list is ordered
 
@@ -578,16 +582,16 @@ class SmallScenery(RCTObject):
 
         if not dict_entry:
             dict_entry = {'x': coords[0]*32,
-                        'y': coords[1]*32,
-                        'z': 0,
-                        'clearance': 0,
-                        'hasSupports': False,
-                        'allowSupportsAbove': False,
-                        'walls': 0,
-                        'corners': 15}
+                          'y': coords[1]*32,
+                          'z': 0,
+                          'clearance': 0,
+                          'hasSupports': False,
+                          'allowSupportsAbove': False,
+                          'walls': 0,
+                          'corners': 15}
         else:
-            #we adjust the coordinates of the diven dict
-            dict_entry['x'] =  coords[0]*32
+            # we adjust the coordinates of the diven dict
+            dict_entry['x'] = coords[0]*32
             dict_entry['y'] = coords[1]*32
 
         tile = self.Tile(self, dict_entry, images, self.rotation)
@@ -942,7 +946,7 @@ class LargeScenery(RCTObject):
         y = (-min_x-min_y)*16+max_z*8+15
 
         return x, y
-    
+
     def centerOffset(self):
         '''Coordinates of the center of ground base in screen space of the sprite bounding box according to rotation.'''
 
@@ -988,13 +992,13 @@ class LargeScenery(RCTObject):
                                      third_remap),
                          (x_base+sprite.x, y_base+sprite.y), sprite.image)
 
-        if rotation_save:
+        if rotation_save is not None:
             self.setRotation(rotation_save)
-            
+
         x, y = self.centerOffset()
 
         return canvas, x, y
-    
+
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
 
@@ -1059,7 +1063,7 @@ class LargeScenery(RCTObject):
 
         self['images'] = new_list
         self.sprites = new_dict
-    
+
     def projectSpriteToTiles(self, sprite):
         x_baseline, y_baseline = self.baseOffset()
 
@@ -1067,7 +1071,8 @@ class LargeScenery(RCTObject):
             sprite.switchPalette(self.palette)
 
         im_paste = Image.new('RGBA', self.spriteBoundingBox())
-        im_paste.paste(sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
+        im_paste.paste(
+            sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
 
         self.projectImageToTiles(im_paste, already_palettized=True)
 
@@ -1123,18 +1128,18 @@ class LargeScenery(RCTObject):
 
         if not dict_entry:
             dict_entry = {'x': coords[0]*32,
-                        'y': coords[1]*32,
-                        'z': 0,
-                        'clearance': 0,
-                        'hasSupports': False,
-                        'allowSupportsAbove': False,
-                        'walls': 0,
-                        'corners': 15}
+                          'y': coords[1]*32,
+                          'z': 0,
+                          'clearance': 0,
+                          'hasSupports': False,
+                          'allowSupportsAbove': False,
+                          'walls': 0,
+                          'corners': 15}
         else:
-            #we adjust the coordinates of the diven dict
-            dict_entry['x'] =  coords[0]*32
+            # we adjust the coordinates of the diven dict
+            dict_entry['x'] = coords[0]*32
             dict_entry['y'] = coords[1]*32
-            
+
         if clearance:
             dict_entry['clearance'] = clearance*8
 
@@ -1149,7 +1154,13 @@ class LargeScenery(RCTObject):
 
         self.updateImageList()
 
-    
+    def copyTilesGeometry(self, tiles):
+        pass
+        # new_tiles = []
+
+        # for tile in tiles:
+
+       #     new_tile = self.Tile(self, tile.give)
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
