@@ -1078,7 +1078,6 @@ class LargeScenery(RCTObject):
 
     def projectImageToTiles(self, im_paste, already_palettized=False):
         for i, tile in enumerate(self.tiles):
-            print(i)
             im = Image.new('RGBA', self.spriteBoundingBox())
             mask = self.giveMask(tile)
 
@@ -1153,6 +1152,23 @@ class LargeScenery(RCTObject):
         self.tiles.pop(index)
 
         self.updateImageList()
+        
+    def setShape(self, width, length, height):
+        #erase all tiles and set a rectangular shape
+        
+        for i in range(1,len(self.tiles)):
+            self.removeTile(i)
+            
+        for x in range(width):
+            for y in range(length):
+                if x == 0 and y == 0:
+                    continue
+                self.addTile((x,y), clearance=height)
+                
+        self.updateImageList()
+       
+                
+        
 
     def copyTilesGeometry(self, tiles):
         pass
