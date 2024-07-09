@@ -91,7 +91,7 @@ class SettingsTab(QWidget):
             QLineEdit, "lineEdit_sceneryGroupID")
         self.mirror_object_id_field = self.findChild(
             QLineEdit, "lineEdit_mirrorID")
-        
+
         self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
 
         self.name_lang_box = self.findChild(
@@ -111,7 +111,7 @@ class SettingsTab(QWidget):
         self.scenery_group_id_field.textChanged.connect(
             self.sceneryGroupIdChanged)
         self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
-        
+
         self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Flags
@@ -288,7 +288,7 @@ class SettingsTab(QWidget):
         self.o['properties']['cursor'] = cts.cursors[value]
 
     def authorChanged(self, value):
-        self.o['authors'] = value.replace(' ','').split(',')
+        self.o['authors'] = value.replace(' ', '').split(',')
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
@@ -307,10 +307,10 @@ class SettingsTab(QWidget):
 
     def mirrorIdChanged(self, value):
         self.o['properties']['mirrorObjectId'] = value
-        
+
     def copyIdToClipboard(self):
         QApplication.clipboard().setText(self.o['id'])
-        
+
     def nameChanged(self, value):
         self.o['strings']['name']['en-GB'] = value
 
@@ -472,11 +472,11 @@ class SettingsTab(QWidget):
             self.o['strings']['name'].get('en-GB', ''))
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get('en-GB', ''))
-        
+
         self.scenery_group_id_field.setText(
-            self.o['properties'].get('sceneryGroup',''))
+            self.o['properties'].get('sceneryGroup', ''))
         self.mirror_object_id_field.setText(
-            self.o['properties'].get('mirrorObjectId','')) 
+            self.o['properties'].get('mirrorObjectId', ''))
 
         self.spinbox_price.setValue(self.o['properties'].get('price', 1))
         self.spinbox_removal_price.setValue(
@@ -616,24 +616,41 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):        
+    def setImage(self, image):
+        image = image.convert('RGBA')
+
+        selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
+        if self.main_window.current_import_offset_mode == 'bottom':
+            x, y, _ = self.o.size()
+            offset_y = (16*x+16*y)//2
+        else:
+            offset_y = 0
+
+        sprite = spr.Sprite(image,
+                            palette=self.main_window.current_palette,
+                            transparent_color=self.main_window.current_import_color,
+                            selected_colors=selected_colors,
+                            alpha_threshold=0,
+                            offset=(0, offset_y),
+                            auto_offset_mode=self.main_window.current_import_offset_mode)
+
+        layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
+
+        layers = QtGui.QStandardItemModel()
+        layers.insertRow(0, layer)
+
+        self.setCurrentLayers(layers)
+
+    def loadImage(self):
         filepath, _ = QFileDialog.getOpenFileName(
             self, "Open Image", self.last_image_path, "PNG Images (*.png);; BMP Images (*.bmp)")
 
         if filepath:
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+            image = Image.open(filepath)
 
-            sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         transparent_color=self.main_window.current_import_color,
-                                         selected_colors=selected_colors, alpha_threshold=0,
-                                         offset=self.main_window.import_offset)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
+            self.setImage(image)
 
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
-            
             self.last_image_path, _ = os.path.split(filepath)
 
         self.updateLockedSpriteLayersModel()
@@ -684,20 +701,7 @@ class SpritesTab(QWidget):
                 return
 
         if image:
-            image = image.convert('RGBA')
-
-            selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-
-            sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color,
-                                selected_colors=selected_colors,
-                                alpha_threshold=0)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
-
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
+            self.setImage(image)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
@@ -821,8 +825,8 @@ class SpritesTab(QWidget):
                     obj.SmallScenery.AnimationType.FOUNTAIN1, obj.SmallScenery.AnimationType.FOUNTAIN4]:
                 for rot in range(4):
                     base_index = rot
-                    foutain_index = rot+4*(animation_frame+1)
-                    foutain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
+                    fountain_index = rot+4*(animation_frame+1)
+                    fountain_index += 4 if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4 else 0
 
                     sprite = self.o.sprites[self.o.data['images']
                                             [base_index]['path']]
@@ -831,7 +835,7 @@ class SpritesTab(QWidget):
                     self.layers[rot].append(layer)
 
                     sprite = self.o.sprites[self.o.data['images']
-                                            [foutain_index]['path']]
+                                            [fountain_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, base_x, base_y,
                         name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
@@ -844,7 +848,7 @@ class SpritesTab(QWidget):
                             sprite, self.main_window, base_x, base_y, name=f'Base 2 View {rot+1}')
                         self.layers[rot].append(layer)
                         sprite = self.o.sprites[self.o.data['images']
-                                                [foutain_index+16]['path']]
+                                                [fountain_index+16]['path']]
                         layer = wdg.SpriteLayer(
                             sprite, self.main_window, base_x, base_y,
                             name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')

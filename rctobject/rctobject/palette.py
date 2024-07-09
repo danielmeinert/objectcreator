@@ -44,6 +44,9 @@ class Palette(np.ndarray):
     def __eq__(self, other):
         return self.name == other.name
 
+    def __ne__(self, other):
+        return self.name != other.name
+
     # def __repr__(self):
     #     return str(self.name)
 
@@ -272,7 +275,7 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
     p = Image.new("P", (1, 1))
     p.putpalette(pal_in)
 
-    dither_type = Image.Dither.FLOYDSTEINBERG if dither else Image.Dither.NONE
+    dither_type = Image.FLOYDSTEINBERG if dither else Image.NONE
     image = image.quantize(method=3, palette=p,
                            dither=dither_type).convert('RGBA')
 
