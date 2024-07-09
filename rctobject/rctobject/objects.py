@@ -19,7 +19,7 @@ Created 09/26/2021; 16:58:33
 
 from json import dump, loads
 from json import load as jload
-from os import mkdir, makedirs, replace, getcwd
+from os import mkdir, makedirs, replace, getcwd, remove, walk
 from os.path import splitext, exists
 from pkgutil import get_data
 import copy
@@ -95,34 +95,67 @@ class RCTObject:
     def fromJson(cls, filepath: str, openpath: str = OPENRCTPATH):
         """Instantiates a new object from a .json file. openpath has to be according to the system's 
            openrct2 folder location if sprite refers to a dat-file."""
+
+        filename_len = len(filepath.split('/')[-1])
+        # trailing '/' included
+        folder_path = filepath[:-filename_len]
+
         data = jload(fp=open(filepath, encoding='utf8'))
         dat_id = data.get('originalId', None)
         # If an original Id was given we load the sprites from original DATs (aka "official" openRCT objects).
+
+        # check if any LGX sprites are in the object folder and pre-load them
+        lgx_buffer = {}
+        for file in next(walk(folder_path))[2]:
+            if file.endswith('.lgx'):
+                lgx_buffer[splitext(file)[0]] = dat.import_lgx(
+                    f'{folder_path}{file}')
+
+        # REWORK
         if isinstance(data['images'][0], str) and dat_id:
             dat_id = dat_id.split('|')[1].replace(' ', '')
-            data['images'], sprites = dat.import_sprites(dat_id, openpath)
+            data['images'], sprites = dat.import_sprites_with_open(
+                dat_id, openpath)
 
         # If no original dat is given, the images are assumed to lie in the relative path given in the json (unzipped parkobj).
         # The file is assumed to be called "object.json" in this case.
         elif isinstance(data['images'], list):
+            images = []
             sprites = {}
-            filename_len = len(filepath.split('/')[-1])
-            for i, im in enumerate(data['images']):
+            i = 0
+            for im in data['images']:
                 if isinstance(im, dict):
                     sprites[f'images/{i}.png'] = spr.Sprite.fromFile(
-                        f'{filepath[:-filename_len]}{im["path"]}', coords=(im['x'], im['y']), already_palettized=True)
+                        f'{folder_path}{im["path"]}', coords=(im['x'], im['y']), already_palettized=True)
                     im['path'] = f'images/{i}.png'
+                    images.append(im)
+                    i += 1
                 elif isinstance(im, str) and im == '':
                     im = {}
                     im['x'] = 0
                     im['y'] = 0
                     sprites[f'images/{i}.png'] = spr.Sprite(None)
                     im['path'] = f'images/{i}.png'
-                    data['images'][i] = im
+                    images.append(im)
+                    i += 1
+                elif isinstance(im, str) and im.startswith('$LGX:'):
+                    source = im[5:im.find(".lgx")]
+                    index_range = im[im.find('[')+1:-1].split('..')
+                    indices = [k for k in range(
+                        int(index_range[0]), int(index_range[-1])+1)]
+
+                    for index in indices:
+                        im = copy.copy(lgx_buffer[source][0][index])
+                        sprite = copy.copy(lgx_buffer[source][1][im['path']])
+                        im['path'] = f'images/{i}.png'
+                        sprites[im['path']] = sprite
+                        images.append(im)
+                        i += 1
                 else:
                     raise RuntimeError(
                         'Image was not a valid type. G1, G2, CSG, LGX not supported')
 
+            data['images'] = images
         else:
             raise RuntimeError('Cannot extract images.')
 
@@ -137,10 +170,8 @@ class RCTObject:
 
         return cls(data=data, sprites=sprites, old_id=dat_id)
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
+    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False, compress_sprites: bool =False, openpath: str = OPENRCTPATH):
         """Saves an object as .parkobj file to specified path."""
-        if not path:
-            path = getcwd()
 
         if not self.data.get('id', False):
             raise RuntimeError('Forbidden to save object without id!')
@@ -185,15 +216,34 @@ class RCTObject:
 
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
+            if compress_sprites:
+                im_list = self.data['images']
+                for i, im in enumerate(self['images']):
+                    sprite = self.sprites[im['path']]
 
-            for i, im in enumerate(self['images']):
-                sprite = self.sprites[im['path']]
-
-                # we don't save empty sprites and replace their list entry with an empty string
-                if sprite.isEmpty():
-                    data_save['images'][i] = ""
-                else:
                     sprite.save(f"{temp}/{im['path']}")
+
+                with open(f'{temp}/sprites.json', mode='w') as file:
+                    dump(obj=im_list, fp=file, indent=2)
+                    
+                result = run([f'{openpath}/bin/openrct2', 'sprite',
+                        'build', f'{temp}/sprites.lgx', f'{temp}/sprites.json'], stdout=-1, stderr=-1, encoding='utf-8')
+
+                if result.returncode:
+                    raise RuntimeError(f'OpenRCT2 export error: {result.stderr}.')
+                data_save['images'] = f"$LGX:sprites.lgx[0..{len(im_list)-1}]"
+                
+                remove(f'{temp}/sprites.json')   
+                rmtree(f'{temp}/images', ignore_errors=True)
+            else:
+                for i, im in enumerate(self['images']):
+                    sprite = self.sprites[im['path']]
+
+                    # we don't save empty sprites and replace their list entry with an empty string
+                    if sprite.isEmpty():
+                        data_save['images'][i] = ""
+                    else:
+                        sprite.save(f"{temp}/{im['path']}")
 
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=data_save, fp=file, indent=2)
@@ -205,8 +255,14 @@ class RCTObject:
             if no_zip:
                 rmtree(filename, ignore_errors=True)
                 makedirs(filename, exist_ok=True)
-                move(f'{temp}/images', filename)
+                
+                if compress_sprites:
+                    move(f'{temp}/sprites.lgx', filename)
+                else:
+                    move(f'{temp}/images', filename)
+                
                 move(f'{temp}/object.json', filename)
+        
 
     def size(self):
         'gives size in game coordinates; to be defined in subclass'
@@ -892,14 +948,14 @@ class LargeScenery(RCTObject):
 
             self.updateImageList()
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False):
+    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool =False, openpath: str = OPENRCTPATH):
         tile_list = []
         for tile in self.tiles:
             tile_list.append(tile.giveDictEntry())
 
         self['properties']['tiles'] = tile_list
 
-        super().save(path, name, no_zip, include_originalId)
+        super().save(path, name, no_zip, include_originalId, compress_sprites, openpath)
 
     def size(self):
         max_x = 0
