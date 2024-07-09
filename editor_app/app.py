@@ -11,7 +11,7 @@
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, \
     QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
-    QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog
+    QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog, qApp
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -71,6 +71,7 @@ class MainWindowUi(QMainWindow):
         self.setWindowTitle(f'Object Creator - {VERSION}')
 
         self.setFocusPolicy(QtCore.Qt.NoFocus)
+        qApp.focusChanged.connect(self.onFocusChanged)
 
         self.app_data_path = app_data_path
         self.loadSettings()
@@ -141,7 +142,7 @@ class MainWindowUi(QMainWindow):
         self.actionCopySprite.triggered.connect(self.spriteCopy)
 
         self.actionSettings.triggered.connect(
-            lambda x: self.changeSettings(update_widgets=True))
+            lambda: self.changeSettings(update_widgets=True))
 
         self.actionBlackImport.triggered.connect(
             lambda x, mode=0: self.setCurrentImportColor(mode))
@@ -164,6 +165,11 @@ class MainWindowUi(QMainWindow):
         self.actionCustomColorBackground.triggered.connect(
             lambda x, mode=2: self.setCurrentBackgroundColor(mode))
 
+        self.actionTileBottom.triggered.connect(
+            lambda x, mode=0: self.setCurrentImportOffsetMode(mode))
+        self.actionTileCenter.triggered.connect(
+            lambda x, mode=1: self.setCurrentImportOffsetMode(mode))
+
         self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
         self.actionAbout.triggered.connect(self.aboutPage)
 
@@ -179,7 +185,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.currentChanged.connect(self.layer_widget.updateList)
 
         # Right bar
-        self.import_offset = (0,0)
+        self.import_offset = (0, 0)
 
         # function wrappers
         self.giveTool = self.tool_widget.toolbox.giveTool
@@ -276,6 +282,7 @@ class MainWindowUi(QMainWindow):
                 self.settings['background_color_custom'] = (0, 0, 0)
                 self.settings['palette'] = 0
                 self.settings['history_maximum'] = 5
+                self.settings['import_offset_mode'] = 0
 
                 self.settings['small_scenery_defaults'] = {}
 
@@ -285,6 +292,8 @@ class MainWindowUi(QMainWindow):
         self.setCurrentPalette(self.settings['palette'], update_widgets=False)
         self.setCurrentBackgroundColor(self.settings.get(
             'background_color', 0), update_widgets=False)
+        self.setCurrentImportOffsetMode(
+            self.settings.get('import_offset_mode', 0))
 
     def saveSettings(self):
         path = self.app_data_path
@@ -303,6 +312,8 @@ class MainWindowUi(QMainWindow):
                 self.settings['palette'], update_widgets=update_widgets)
             self.setCurrentBackgroundColor(
                 self.settings['background_color'], update_widgets=update_widgets)
+            self.setCurrentImportOffsetMode(
+                self.settings['import_offset_mode'])
 
             self.saveSettings()
 
@@ -391,6 +402,16 @@ class MainWindowUi(QMainWindow):
                     preview.setStyleSheet("QLabel{"
                                           f"background-color :  rgb{self.current_background_color};"
                                           "}")
+
+    def setCurrentImportOffsetMode(self, mode):
+        if mode == 0:
+            self.current_import_offset_mode = 'bottom'
+            self.actionTileBottom.setChecked(True)
+            self.actionTileCenter.setChecked(False)
+        elif mode == 1:
+            self.current_import_offset_mode = 'center'
+            self.actionTileBottom.setChecked(False)
+            self.actionTileCenter.setChecked(True)
 
     def loadObjectFromPath(self, filepath):
         try:
@@ -618,7 +639,7 @@ class MainWindowUi(QMainWindow):
     def objectOpenFile(self):
         folder = self.last_open_folder
         if not folder:
-            folder = self.settings.get('opendefault', None)        
+            folder = self.settings.get('opendefault', None)
         if not folder:
             folder = getcwd()
         filepaths, _ = QFileDialog.getOpenFileNames(
@@ -760,6 +781,12 @@ class MainWindowUi(QMainWindow):
                 self.loadObjectFromPath(filepath)
         else:
             self.activateWindow()
+
+    @QtCore.pyqtSlot("QWidget*", "QWidget*")
+    def onFocusChanged(self, old, now):
+
+        if now == None:
+            self.tool_widget.toolbox.restoreTool()
 
 
 def excepthook(exc_type, exc_value, exc_tb):

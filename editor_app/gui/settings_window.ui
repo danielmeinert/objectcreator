@@ -643,6 +643,39 @@
         <string>Custom color for background (R,G,B)</string>
        </property>
       </widget>
+      <widget class="QComboBox" name="comboBox_import_offset_mode">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>200</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>With tile bottom</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>With tile center</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_19">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>200</y>
+         <width>201</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default import alignment offset setting</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_defaults">
       <attribute name="title">

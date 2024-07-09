@@ -418,10 +418,18 @@ border: 1px solid darkgrey;}
      <addaction name="actionWhiteBackground"/>
      <addaction name="actionCustomColorBackground"/>
     </widget>
+    <widget class="QMenu" name="menuImport_Alignmen">
+     <property name="title">
+      <string>Import Alignment</string>
+     </property>
+     <addaction name="actionTileBottom"/>
+     <addaction name="actionTileCenter"/>
+    </widget>
     <addaction name="actionSettings"/>
     <addaction name="menuImport_Color"/>
     <addaction name="menuPalette"/>
     <addaction name="menuBackground"/>
+    <addaction name="menuImport_Alignmen"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -624,6 +632,22 @@ border: 1px solid darkgrey;}
   <action name="actionCheckForUpdates">
    <property name="text">
     <string>Check for Updates...</string>
+   </property>
+  </action>
+  <action name="actionTileBottom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tile Bottom</string>
+   </property>
+  </action>
+  <action name="actionTileCenter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tile Center</string>
    </property>
   </action>
  </widget>

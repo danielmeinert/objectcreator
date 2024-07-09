@@ -780,7 +780,7 @@ class SmallScenery(RCTObject):
     def changeNumImagesSets(self, value):
         shift = int(self.has_preview)
         shift += 1 if self.animation_type == self.AnimationType.FOUNTAIN1 else 0
-        shift += 2 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
+        shift += 6 if self.animation_type == self.AnimationType.FOUNTAIN4 else 0
         shift += 8 if self.animation_type == self.AnimationType.CLOCK else 0
 
         multiplier = 1 if self.animation_type in [

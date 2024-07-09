@@ -16,7 +16,7 @@ import rctobject.palette as pal
 class Sprite:
     def __init__(self, image: Image.Image, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
                  transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
-                 offset: tuple = None, already_palettized: bool = False):
+                 auto_offset_mode: str = 'bottom', offset: tuple = None, already_palettized: bool = False):
 
         if image:
             if not already_palettized:
@@ -31,13 +31,19 @@ class Sprite:
             self.x, self.y = coords
             self.x_base, self.y_base = coords
         else:
-            self.x = -int(image.size[0]/2)
-            self.y = -int(image.size[1]/2)
-            self.x_base = int(self.x)
-            self.y_base = int(self.y)
+            if auto_offset_mode == 'bottom':
+                self.x = -int(image.size[0]/2)
+                self.y = -image.size[1]
+            elif auto_offset_mode == 'center':
+                self.x = -int(image.size[0]/2)
+                self.y = -int(image.size[1]/2)
+
             if offset:
                 self.x += offset[0]
                 self.y += offset[1]
+
+            self.x_base = int(self.x)
+            self.y_base = int(self.y)
 
         self.crop()
 
@@ -46,18 +52,27 @@ class Sprite:
     @classmethod
     def fromFile(cls, path: str, coords: tuple = None, palette: pal.Palette = pal.orct, dither: bool = True,
                  transparent_color: tuple = (0, 0, 0), selected_colors: list = None, alpha_threshold: int = 0,
-                 offset: tuple = None, already_palettized: bool = False):
+                 auto_offset_mode: str = 'bottom', offset: tuple = None, already_palettized: bool = False):
         """Instantiates a new Sprite from an image file."""
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            selected_colors=selected_colors, alpha_threshold=alpha_threshold, offset=offset, already_palettized=already_palettized)
+            selected_colors=selected_colors, alpha_threshold=alpha_threshold, auto_offset_mode=auto_offset_mode, offset=offset, already_palettized=already_palettized)
 
     def save(self, path: str, keep_palette: bool = False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
-        if not keep_palette and self.palette is not pal.orct:
-            self.switchPalette(pal.orct)
-        self.image.save(path)
+        if not keep_palette:
+            if self.palette != pal.orct:
+                self.switchPalette(pal.orct)
+            # We convert the image to an indexed image to optimize storage
+            p = Image.new("P", (1, 1))
+            p.putpalette(pal.complete_palette_array.flatten())
+
+            image = self.image.convert('RGB').quantize(
+                palette=p)
+            image.save(path, transparency=0)
+        else:
+            self.image.save(path)
 
     def isEmpty(self):
         return spriteIsEmpty(self)
@@ -262,9 +277,11 @@ def remapColor(image: Image.Image, color_name_old: str, color_name_new: str,  pa
     color_new = palette.getColor(color_name_new)
 
     if color_name_old == 'Sparkles':
-        color_old = np.append(color_old, [color_old[-1], color_old[-1]], axis=0)
+        color_old = np.append(
+            color_old, [color_old[-1], color_old[-1]], axis=0)
     if color_name_new == 'Sparkles':
-        color_new = np.append(color_new, [color_new[-1], color_new[-1]], axis=0)
+        color_new = np.append(
+            color_new, [color_new[-1], color_new[-1]], axis=0)
     # if color_new == 'NoColor':
     #     return image
 

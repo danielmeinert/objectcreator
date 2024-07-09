@@ -44,6 +44,9 @@ class Palette(np.ndarray):
     def __eq__(self, other):
         return self.name == other.name
 
+    def __ne__(self, other):
+        return self.name != other.name
+
     # def __repr__(self):
     #     return str(self.name)
 
