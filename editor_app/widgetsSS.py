@@ -693,15 +693,18 @@ class SpritesTab(QWidget):
         menu.exec_(self.sprite_view_main.mapToGlobal(pos))
 
     def pasteSpriteFromClipboard(self):
-        image = ImageGrab.grabclipboard()
-        if type(image) == list:
-            try:
-                image = Image.open(image[0])
-            except:
-                return
+        if self.main_window.sprite_clipboard:
+            self.setCurrentLayers(self.main_window.sprite_clipboard)
+        else:
+            image = ImageGrab.grabclipboard()
+            if type(image) == list:
+                try:
+                    image = Image.open(image[0])
+                except:
+                    return
 
-        if image:
-            self.setImage(image)
+            if image:
+                self.setImage(image)
 
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
@@ -710,6 +713,13 @@ class SpritesTab(QWidget):
         pixmap = self.sprite_view_main_item.pixmap()
 
         QApplication.clipboard().setPixmap(pixmap)
+        layers = QtGui.QStandardItemModel()
+
+        for i, layer in enumerate(self.giveCurrentMainViewLayers()):
+            layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
+
+        self.main_window.sprite_clipboard = layers
+        self.main_window.sprite_clipboard_reset = False
 
     def copySpriteToView(self, view):
         layers = QtGui.QStandardItemModel()
@@ -902,12 +912,12 @@ class SpritesTab(QWidget):
         elif self.o.subtype == self.o.Subtype.GARDENS:
             return 3
 
-    def setCurrentLayers(self, layers, view=None):
+    def setCurrentLayers(self, layers, index=0, view=None):
         if view == None:
             view = self.o.rotation
 
         if self.requestNumberOfLayers() != layers.rowCount():
-            dialog = SpriteImportUi(layers, self.layers[view])
+            dialog = SpriteImportUi(layers, index, self.layers[view])
 
             if dialog.exec():
                 target_index = dialog.selected_index
@@ -1027,7 +1037,7 @@ class SpritesTab(QWidget):
 
 
 class SpriteImportUi(QDialog):
-    def __init__(self, layers_incoming, layers_object):
+    def __init__(self, layers_incoming, selected_index, layers_object):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/sprite_import.ui'), self)
 
@@ -1043,7 +1053,9 @@ class SpriteImportUi(QDialog):
         for layer in layers_object:
             self.list_layers_object.insertItem(0, layer.text())
 
-        self.list_layers_incoming.setCurrentRow(0)
+        if selected_index >= 0:
+            self.list_layers_incoming.setCurrentRow(selected_index)
+
         self.list_layers_object.setCurrentRow(0)
 
     def accept(self):
