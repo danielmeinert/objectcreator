@@ -156,6 +156,27 @@ class RCTObject:
                         'Image was not a valid type. G1, G2, CSG, LGX not supported')
 
             data['images'] = images
+            
+        elif isinstance(data['images'], str):
+            s = data['images']
+            images = []
+            sprites = {}
+            i = 0
+            if s.startswith('$LGX:'):
+                    source = s[5:s.find(".lgx")]
+                    index_range = s[s.find('[')+1:-1].split('..')
+                    indices = [k for k in range(
+                        int(index_range[0]), int(index_range[-1])+1)]
+
+                    for index in indices:
+                        im = copy.copy(lgx_buffer[source][0][index])
+                        sprite = copy.copy(lgx_buffer[source][1][im['path']])
+                        im['path'] = f'images/{i}.png'
+                        sprites[im['path']] = sprite
+                        images.append(im)
+                        i += 1
+            data['images'] = images
+            
         else:
             raise RuntimeError('Cannot extract images.')
 
@@ -177,7 +198,7 @@ class RCTObject:
             raise RuntimeError('Forbidden to save object without id!')
 
         # Reset object to default rotation
-        self.rotateObject(-self.rotation)
+        self.setRotation(0)
 
         # If sprites have changed, they have to be updated
         self.updateImageList()
@@ -949,6 +970,7 @@ class LargeScenery(RCTObject):
             self.updateImageList()
 
     def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool =False, openpath: str = OPENRCTPATH):
+        self.setRotation(0)
         tile_list = []
         for tile in self.tiles:
             tile_list.append(tile.giveDictEntry())
