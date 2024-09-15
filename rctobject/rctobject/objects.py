@@ -19,7 +19,7 @@ Created 09/26/2021; 16:58:33
 
 from json import dump, loads
 from json import load as jload
-from os import mkdir, makedirs, replace, getcwd, walk
+from os import mkdir, makedirs, replace, getcwd, remove, walk
 from os.path import splitext, exists
 import copy
 from PIL import Image
@@ -156,10 +156,8 @@ class RCTObject:
 
         return cls(data=data, sprites=sprites, old_id=dat_id)
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False):
+    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False, compress_sprites: bool = False, openpath: str = OPENRCTPATH):
         """Saves an object as .parkobj file to specified path."""
-        if not path:
-            path = getcwd()
 
         if not self.data.get('id', False):
             raise RuntimeError('Forbidden to save object without id!')
@@ -204,15 +202,35 @@ class RCTObject:
 
         with TemporaryDirectory() as temp:
             mkdir(f'{temp}/images')
+            if compress_sprites:
+                im_list = self.data['images']
+                for i, im in enumerate(self['images']):
+                    sprite = self.sprites[im['path']]
 
-            for i, im in enumerate(self['images']):
-                sprite = self.sprites[im['path']]
-
-                # we don't save empty sprites and replace their list entry with an empty string
-                if sprite.isEmpty():
-                    data_save['images'][i] = ""
-                else:
                     sprite.save(f"{temp}/{im['path']}")
+
+                with open(f'{temp}/sprites.json', mode='w') as file:
+                    dump(obj=im_list, fp=file, indent=2)
+
+                result = run([f'{openpath}/bin/openrct2', 'sprite',
+                              'build', f'{temp}/sprites.lgx', f'{temp}/sprites.json'], stdout=-1, stderr=-1, encoding='utf-8')
+
+                if result.returncode:
+                    raise RuntimeError(
+                        f'OpenRCT2 export error: {result.stderr}.')
+                data_save['images'] = f"$LGX:sprites.lgx[0..{len(im_list)-1}]"
+
+                remove(f'{temp}/sprites.json')
+                rmtree(f'{temp}/images', ignore_errors=True)
+            else:
+                for i, im in enumerate(self['images']):
+                    sprite = self.sprites[im['path']]
+
+                    # we don't save empty sprites and replace their list entry with an empty string
+                    if sprite.isEmpty():
+                        data_save['images'][i] = ""
+                    else:
+                        sprite.save(f"{temp}/{im['path']}")
 
             with open(f'{temp}/object.json', mode='w') as file:
                 dump(obj=data_save, fp=file, indent=2)
@@ -224,7 +242,12 @@ class RCTObject:
             if no_zip:
                 rmtree(filename, ignore_errors=True)
                 makedirs(filename, exist_ok=True)
-                move(f'{temp}/images', filename)
+
+                if compress_sprites:
+                    move(f'{temp}/sprites.lgx', filename)
+                else:
+                    move(f'{temp}/images', filename)
+
                 move(f'{temp}/object.json', filename)
 
     def size(self):
@@ -851,12 +874,25 @@ class LargeScenery(RCTObject):
             sprite.overwriteOffsets(
                 int(sprite.x), int(sprite.y) - 15)
 
-        self.rotation_matrices = [
-            np.array([[1, 0], [0, 1]]),      # R^0
-            np.array([[0, 1], [-1, 0]]),  # R
-            np.array([[-1, 0], [0, -1]]),  # R^2
-            np.array([[0, -1], [1, 0]])   # R^3
-        ]
+            self.num_tiles = len(self.data['properties']['tiles'])
+            self.tiles = []
+            for i, tile_dict in enumerate(self['properties']['tiles']):
+                tile = self.Tile(o=self, dict_entry=tile_dict,
+                                 images=self['images']
+                                 [4 * (i + 1) + self.num_glyph_sprites: 4 * (i + 2) + self.num_glyph_sprites],
+                                 rotation=self.rotation)
+                self.tiles.append(tile)
+
+            self.updateImageList()
+
+    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool = False, openpath: str = OPENRCTPATH):
+        tile_list = []
+        for tile in self.tiles:
+            tile_list.append(tile.giveDictEntry())
+
+        self['properties']['tiles'] = tile_list
+
+        super().save(path, name, no_zip, include_originalId, compress_sprites, openpath)
 
     def size(self):
         max_x = 0
