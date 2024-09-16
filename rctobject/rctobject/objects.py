@@ -153,30 +153,30 @@ class RCTObject:
                         i += 1
                 else:
                     raise RuntimeError(
-                        'Image was not a valid type. G1, G2, CSG, LGX not supported')
+                        'Image was not a valid type. G1, G2, CSG not supported')
 
             data['images'] = images
-            
+
         elif isinstance(data['images'], str):
             s = data['images']
             images = []
             sprites = {}
             i = 0
             if s.startswith('$LGX:'):
-                    source = s[5:s.find(".lgx")]
-                    index_range = s[s.find('[')+1:-1].split('..')
-                    indices = [k for k in range(
-                        int(index_range[0]), int(index_range[-1])+1)]
+                source = s[5:s.find(".lgx")]
+                index_range = s[s.find('[')+1:-1].split('..')
+                indices = [k for k in range(
+                    int(index_range[0]), int(index_range[-1])+1)]
 
-                    for index in indices:
-                        im = copy.copy(lgx_buffer[source][0][index])
-                        sprite = copy.copy(lgx_buffer[source][1][im['path']])
-                        im['path'] = f'images/{i}.png'
-                        sprites[im['path']] = sprite
-                        images.append(im)
-                        i += 1
+                for index in indices:
+                    im = copy.copy(lgx_buffer[source][0][index])
+                    sprite = copy.copy(lgx_buffer[source][1][im['path']])
+                    im['path'] = f'images/{i}.png'
+                    sprites[im['path']] = sprite
+                    images.append(im)
+                    i += 1
             data['images'] = images
-            
+
         else:
             raise RuntimeError('Cannot extract images.')
 
@@ -191,7 +191,7 @@ class RCTObject:
 
         return cls(data=data, sprites=sprites, old_id=dat_id)
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False, compress_sprites: bool =False, openpath: str = OPENRCTPATH):
+    def save(self, path: str = None, name: str = None, no_zip: bool = False, include_originalId: bool = False, compress_sprites: bool = False, openpath: str = OPENRCTPATH):
         """Saves an object as .parkobj file to specified path."""
 
         if not self.data.get('id', False):
@@ -246,15 +246,16 @@ class RCTObject:
 
                 with open(f'{temp}/sprites.json', mode='w') as file:
                     dump(obj=im_list, fp=file, indent=2)
-                    
+
                 result = run([f'{openpath}/bin/openrct2', 'sprite',
-                        'build', f'{temp}/sprites.lgx', f'{temp}/sprites.json'], stdout=-1, stderr=-1, encoding='utf-8')
+                              'build', f'{temp}/sprites.lgx', f'{temp}/sprites.json'], stdout=-1, stderr=-1, encoding='utf-8')
 
                 if result.returncode:
-                    raise RuntimeError(f'OpenRCT2 export error: {result.stderr}.')
+                    raise RuntimeError(
+                        f'OpenRCT2 export error: {result.stderr}.')
                 data_save['images'] = f"$LGX:sprites.lgx[0..{len(im_list)-1}]"
-                
-                remove(f'{temp}/sprites.json')   
+
+                remove(f'{temp}/sprites.json')
                 rmtree(f'{temp}/images', ignore_errors=True)
             else:
                 for i, im in enumerate(self['images']):
@@ -276,14 +277,13 @@ class RCTObject:
             if no_zip:
                 rmtree(filename, ignore_errors=True)
                 makedirs(filename, exist_ok=True)
-                
+
                 if compress_sprites:
                     move(f'{temp}/sprites.lgx', filename)
                 else:
                     move(f'{temp}/images', filename)
-                
+
                 move(f'{temp}/object.json', filename)
-        
 
     def size(self):
         'gives size in game coordinates; to be defined in subclass'
@@ -969,7 +969,7 @@ class LargeScenery(RCTObject):
 
             self.updateImageList()
 
-    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool =False, openpath: str = OPENRCTPATH):
+    def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool = False, openpath: str = OPENRCTPATH):
         self.setRotation(0)
         tile_list = []
         for tile in self.tiles:
@@ -1162,12 +1162,13 @@ class LargeScenery(RCTObject):
             im.paste(im_paste, mask=mask)
             bbox = mask.getbbox()
 
-            sprite_tile = spr.Sprite(im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
+            sprite_tile = spr.Sprite(
+                im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
             tile.setSprite(sprite_tile)
 
     def giveMask(self, tile):
         x_baseline, y_baseline = self.baseOffset()
-        
+
         mask = Image.new('1', self.spriteBoundingBox())
         draw = ImageDraw.Draw(mask)
 
@@ -1177,16 +1178,15 @@ class LargeScenery(RCTObject):
         for i in range(64):
             if i < 32:
                 draw.line([(x+i, y-i//2-tile.h*8),
-                               (x+i, y+i//2)],
-                              fill=1, width=1)
+                           (x+i, y+i//2)],
+                          fill=1, width=1)
             else:
                 draw.line([(x+i, y-(63-i)//2-tile.h*8),
-                               (x+i, y+(63-i)//2)],
-                              fill=1, width=1)
-                          
+                           (x+i, y+(63-i)//2)],
+                          fill=1, width=1)
+
         return mask
 
-    
     def addTile(self, coords, dict_entry=None, clearance=0):
         # we expect that the image list is ordered
 
@@ -1230,23 +1230,20 @@ class LargeScenery(RCTObject):
         self.tiles.pop(index)
 
         self.updateImageList()
-        
+
     def setShape(self, width, length, height):
-        #erase all tiles and set a rectangular shape
-        
-        for i in range(1,len(self.tiles)):
+        # erase all tiles and set a rectangular shape
+
+        for i in range(1, len(self.tiles)):
             self.removeTile(i)
-            
+
         for x in range(width):
             for y in range(length):
                 if x == 0 and y == 0:
                     continue
-                self.addTile((x,y), clearance=height)
-                
+                self.addTile((x, y), clearance=height)
+
         self.updateImageList()
-       
-                
-        
 
     def copyTilesGeometry(self, tiles):
         pass

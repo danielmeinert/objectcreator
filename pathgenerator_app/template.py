@@ -9,7 +9,7 @@
 """
 
 from json import load, dump
-from os import mkdir, replace
+from os import mkdir, replace, walk
 from PIL import Image
 from shutil import unpack_archive, make_archive
 from tempfile import TemporaryDirectory
@@ -17,11 +17,10 @@ from tempfile import TemporaryDirectory
 
 class PathTemplate:
 
-    def __init__(self, data: dict, images: dict, num_tiles: int, is_small: bool):
+    def __init__(self, data: dict, images: dict, is_small: bool):
         """Instantiate object directly given JSON and image data."""
         self.data = data
         self.images = images
-        self.num_tiles = num_tiles
         self.is_small = is_small
         self.name = data['strings']['name']['en-GB']
 
@@ -45,21 +44,19 @@ class PathTemplate:
 
             data = data_raw['json']
 
-            num_tiles = len(data['properties']['tiles']) if data_raw["template_type"] == "path_tile" else 1
-            preview_skip = 0 if num_tiles == 1 else 4
+            preview_skip = 0 if is_small else 4
             i = 0
             images = {}
-            for im in data['images']:
+            for path in next(walk(f'{temp}/images'))[2]:
                 if i < preview_skip:
-                    images[im['path']] = Image.new('RGBA', (1, 1))
+                    images[f'images/{path}'] = Image.new('RGBA', (1, 1))
                     i += 1
                     continue
 
-                images[im['path']] = Image.open(
-                    f'{temp}/{im["path"]}').convert('RGBA')
+                images[f'images/{path}'] = Image.open(
+                    f'{temp}/images/{path}').convert('RGBA')
 
-
-        return cls(data=data, images=images, num_tiles=num_tiles, is_small=is_small)
+        return cls(data=data, images=images, is_small=is_small)
 
     def save(self, path: str):
         """Saves an object as .parkobj file to specified path."""

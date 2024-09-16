@@ -37,6 +37,9 @@ class Sprite:
             elif auto_offset_mode == 'center':
                 self.x = -int(image.size[0]/2)
                 self.y = -int(image.size[1]/2)
+            else:
+                self.x = 0
+                self.y = 0
 
             if offset:
                 self.x += offset[0]
@@ -59,12 +62,12 @@ class Sprite:
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
             selected_colors=selected_colors, alpha_threshold=alpha_threshold, auto_offset_mode=auto_offset_mode, offset=offset, already_palettized=already_palettized)
 
-    def save(self, path: str, keep_palette: bool = False, index_color = False):
+    def save(self, path: str, keep_palette: bool = False, index_color=False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
         if not keep_palette:
             if self.palette != pal.orct:
                 self.switchPalette(pal.orct)
-                
+
             if index_color:
                 # We convert the image to an indexed image to optimize storage
                 p = Image.new("P", (1, 1))

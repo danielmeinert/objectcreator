@@ -1,7 +1,7 @@
 {
   "template_type": "path_tile_small",
   "json": {
-    "id": "quarterin",
+    "id": "quarter_halfdiagonal_left_1",
     "authors": "",
     "version": "1.0",
     "sourceGame": "custom",
@@ -11,7 +11,7 @@
       "removalPrice": -1,
       "cursor": "CURSOR_PATH_DOWN",
       "height": 8,
-      "shape": "1/4+D",
+      "shape": "1/4",
       "isRotatable": true,
       "hasPrimaryColour": true,
       "isStackable": true,
@@ -19,7 +19,7 @@
     },
     "strings": {
       "name": {
-        "en-GB": "Round Quarter Inside"
+        "en-GB": "Quarter Half Diagonal Left 1"
       }
     }
   }

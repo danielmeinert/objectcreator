@@ -58,34 +58,42 @@ class PathObject:
         else:
             base = [self.bases[0], self.bases[1], self.bases[2], self.bases[3]]
 
-        if template.num_tiles == 1:
+        if template.is_small:
             preview_skip = 0
+            num_images = 4
         else:
             preview_skip = 4
+            num_images = 4*len(data['properties']['tiles'])+4
 
         sprites = {}
+        images = []
         rot = 0
-        for i, im in enumerate(data['images']):
+
+        for i in range(num_images):
+            path = f'images/{i}.png'
             if i < preview_skip:
-                sprites[im['path']] = spr.Sprite(template.images[im['path']])
+                sprites[path] = spr.Sprite(None)
+                images.append({'path': path, 'x': 0, 'y': 0})
                 continue
 
-            mask = template.images[im['path']]
+            mask = template.images[path]
 
             image = spr.pasteOnMask(mask, base[rot].image)
-
             sprite = spr.Sprite(image)
 
             sprite.y -= 8 if settings['raised'] else 0
-            sprite.y += 15 if not template.is_small else 0
+#            sprite.y += 15 if not template.is_small else 0
 
-            sprites[im['path']] = sprite
+            sprites[path] = sprite
+            images.append({'path': path, 'x': 0, 'y': 0})
+
             rot = (rot + 1) % 4
 
+        data['images'] = images
         self.object = obj.new(data, sprites)
 
-        # Create preview thumbnails for multitile objects
-        if template.num_tiles > 1:
+        # Create preview thumbnails for LS objects
+        if not template.is_small:
             self.object.createThumbnails()
 
     def save(self, filepath: str = None, no_zip: bool = False):
