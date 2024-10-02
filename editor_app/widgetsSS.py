@@ -506,7 +506,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             settings_SS.get('cursor', 'CURSOR_BLANK')))
 
 
-class SpritesTab(QWidget):
+class SpritesTab(widgetsGeneric.SpritesTabAll):
     def __init__(self, o, object_tab):
         super().__init__()
         uic.loadUi(aux.resource_path('gui/spritesSS.ui'), self)
@@ -516,46 +516,13 @@ class SpritesTab(QWidget):
         self.main_window = object_tab.main_window
         self.last_image_path = ''
 
-        # Buttons load/reset
-        self.button_load_image = self.findChild(
-            QPushButton, "pushButton_loadImage")
-
-        self.button_load_image.clicked.connect(self.loadImage)
-
-        self.button_cycle_rotation = self.findChild(
-            QPushButton, "pushButton_cycleRotation")
-
-        self.button_cycle_rotation.clicked.connect(self.cycleRotation)
+        self.initializeWidgets(151, 268)
 
         self.button_cycle_animation_frame = self.findChild(
             QPushButton, "pushButton_cycleFrame")
 
         self.button_cycle_animation_frame.clicked.connect(
             self.cycleAnimationFrame)
-
-        self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.sprite_view_main.customContextMenuRequested.connect(
-            self.showSpriteMenu)
-        self.sprite_view_main.setBackgroundBrush(
-            QtGui.QBrush(
-                QtGui.QColor(
-                    self.main_window.current_background_color[0],
-                    self.main_window.current_background_color[1],
-                    self.main_window.current_background_color[2])))
-
-        self.sprite_view_main_item = QGraphicsPixmapItem()
-        self.sprite_view_main_scene = QGraphicsScene()
-        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
-        self.sprite_view_main_scene.setSceneRect(0, 0, 151, 268)
-        self.sprite_view_main.setScene(self.sprite_view_main_scene)
-
-        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
-                               self.sprite_view_preview2, self.sprite_view_preview3]
-        for rot, widget in enumerate(self.sprite_preview):
-            self.sprite_preview[rot].mousePressEvent = (
-                lambda e, rot=rot: self.previewClicked(rot))
-            self.sprite_preview[rot].setStyleSheet(
-                f"background-color :  rgb{self.main_window.current_background_color};")
 
         self.slider_sprite_index = self.findChild(
             QSlider, "horizontalSlider_spriteIndex")
@@ -565,43 +532,6 @@ class SpritesTab(QWidget):
         self.widget_frame_controls = self.findChild(
             QWidget, "groupBox_frame_controls")
         self.widget_frame_controls.setEnabled(False)
-
-        # Remap Color Buttons
-        self.button_first_remap = self.findChild(
-            QPushButton, 'pushButton_firstRemap')
-        self.button_first_remap.colorChanged.connect(
-            lambda color, remap="1st Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_first_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
-
-        self.button_second_remap = self.findChild(
-            QPushButton, 'pushButton_secondRemap')
-        self.button_second_remap.colorChanged.connect(
-            lambda color, remap="2nd Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_second_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
-
-        self.button_third_remap = self.findChild(
-            QPushButton, 'pushButton_thirdRemap')
-        self.button_third_remap.colorChanged.connect(
-            lambda color, remap="3rd Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_third_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
-
-        self.button_first_remap.panelOpened.connect(
-            self.button_second_remap.hidePanel)
-        self.button_first_remap.panelOpened.connect(
-            self.button_third_remap.hidePanel)
-
-        self.button_second_remap.panelOpened.connect(
-            self.button_first_remap.hidePanel)
-        self.button_second_remap.panelOpened.connect(
-            self.button_third_remap.hidePanel)
-
-        self.button_third_remap.panelOpened.connect(
-            self.button_second_remap.hidePanel)
-        self.button_third_remap.panelOpened.connect(
-            self.button_first_remap.hidePanel)
 
         self.previewClicked(0)
         self.updateAllViews()

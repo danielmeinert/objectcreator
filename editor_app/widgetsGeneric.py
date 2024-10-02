@@ -175,6 +175,96 @@ class SettingsTabAll(QWidget):
             self.o['strings']['name'].get(lang, ''))
 
 
+class SpritesTabAll(QWidget):
+    """Proxy Class for all object types. initializeWidgets should be called after all members have been set."""
+
+    def __init__(self):
+        super().__init__()
+
+    def initializeWidgets(self, view_width, view_height):
+        # Buttons load/reset
+        self.button_load_image = self.findChild(
+            QPushButton, "pushButton_loadImage")
+
+        self.button_load_image.clicked.connect(self.loadImage)
+
+        self.button_cycle_rotation = self.findChild(
+            QPushButton, "pushButton_cycleRotation")
+
+        self.button_cycle_rotation.clicked.connect(self.cycleRotation)
+
+        # View main
+        self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.sprite_view_main.customContextMenuRequested.connect(
+            self.showSpriteMenu)
+        self.sprite_view_main.setBackgroundBrush(
+            QtGui.QBrush(
+                QtGui.QColor(
+                    self.main_window.current_background_color[0],
+                    self.main_window.current_background_color[1],
+                    self.main_window.current_background_color[2])))
+
+        self.sprite_view_main_item = QGraphicsPixmapItem()
+        self.sprite_view_main_scene = QGraphicsScene()
+        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
+        self.sprite_view_main_scene.setSceneRect(0, 0, view_width, view_height)
+        self.sprite_view_main.setScene(self.sprite_view_main_scene)
+
+        # Previews
+        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
+                               self.sprite_view_preview2, self.sprite_view_preview3]
+        for rot, widget in enumerate(self.sprite_preview):
+            self.sprite_preview[rot].mousePressEvent = (
+                lambda e, rot=rot: self.previewClicked(rot))
+            self.sprite_preview[rot].setStyleSheet(
+                f"background-color :  rgb{self.main_window.current_background_color};")
+
+        # Remap Color Buttons
+        self.button_first_remap = self.findChild(
+            QPushButton, 'pushButton_firstRemap')
+        self.button_first_remap.colorChanged.connect(
+            lambda color, remap="1st Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_first_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
+
+        self.button_second_remap = self.findChild(
+            QPushButton, 'pushButton_secondRemap')
+        self.button_second_remap.colorChanged.connect(
+            lambda color, remap="2nd Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_second_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
+
+        self.button_third_remap = self.findChild(
+            QPushButton, 'pushButton_thirdRemap')
+        self.button_third_remap.colorChanged.connect(
+            lambda color, remap="3rd Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_third_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
+
+        self.button_first_remap.panelOpened.connect(
+            self.button_second_remap.hidePanel)
+        self.button_first_remap.panelOpened.connect(
+            self.button_third_remap.hidePanel)
+
+        self.button_second_remap.panelOpened.connect(
+            self.button_first_remap.hidePanel)
+        self.button_second_remap.panelOpened.connect(
+            self.button_third_remap.hidePanel)
+
+        self.button_third_remap.panelOpened.connect(
+            self.button_second_remap.hidePanel)
+        self.button_third_remap.panelOpened.connect(
+            self.button_first_remap.hidePanel)
+
+    def loadImage(self):
+        # to be defined in sub class
+        pass
+
+    def cycleRotation(self):
+        # to be defined in sub class
+        pass
+
+
 class TabNamingMisc(QWidget):
     def __init__(self):
         super().__init__()

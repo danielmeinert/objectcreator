@@ -181,78 +181,9 @@ class SpritesTab(QWidget):
 
         self.viewing_mode = 0  # projection
 
-        # Buttons load/reset
-        self.button_load_image = self.findChild(
-            QPushButton, "pushButton_loadImage")
+        self.initializeWidgets(261, 268)
 
-        self.button_load_image.clicked.connect(self.loadImage)
-
-        self.button_cycle_rotation = self.findChild(
-            QPushButton, "pushButton_cycleRotation")
-
-        self.button_cycle_rotation.clicked.connect(self.cycleRotation)
-
-        self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.sprite_view_main.customContextMenuRequested.connect(
-            self.showSpriteMenu)
-        self.sprite_view_main.setBackgroundBrush(
-            QtGui.QBrush(
-                QtGui.QColor(
-                    self.main_window.current_background_color[0],
-                    self.main_window.current_background_color[1],
-                    self.main_window.current_background_color[2])))
-
-        self.sprite_view_main_item = QGraphicsPixmapItem()
-        self.sprite_view_main_scene = QGraphicsScene()
-        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
-        self.sprite_view_main_scene.setSceneRect(0, 0, 261, 268)
-        self.sprite_view_main.setScene(self.sprite_view_main_scene)
-
-        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
-                               self.sprite_view_preview2, self.sprite_view_preview3]
-        for rot, widget in enumerate(self.sprite_preview):
-            self.sprite_preview[rot].mousePressEvent = (
-                lambda e, rot=rot: self.previewClicked(rot))
-            self.sprite_preview[rot].setStyleSheet(
-                f"background-color :  rgb{self.main_window.current_background_color};")
-
-        # Remap Color Buttons
-        self.button_first_remap = self.findChild(
-            QPushButton, 'pushButton_firstRemap')
-        self.button_first_remap.colorChanged.connect(
-            lambda color, remap="1st Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_first_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
-
-        self.button_second_remap = self.findChild(
-            QPushButton, 'pushButton_secondRemap')
-        self.button_second_remap.colorChanged.connect(
-            lambda color, remap="2nd Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_second_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
-
-        self.button_third_remap = self.findChild(
-            QPushButton, 'pushButton_thirdRemap')
-        self.button_third_remap.colorChanged.connect(
-            lambda color, remap="3rd Remap": self.clickChangeRemap(color, remap=remap))
-        self.button_third_remap.setColor(self.main_window.settings.get(
-            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
-
-        self.button_first_remap.panelOpened.connect(
-            self.button_second_remap.hidePanel)
-        self.button_first_remap.panelOpened.connect(
-            self.button_third_remap.hidePanel)
-
-        self.button_second_remap.panelOpened.connect(
-            self.button_first_remap.hidePanel)
-        self.button_second_remap.panelOpened.connect(
-            self.button_third_remap.hidePanel)
-
-        self.button_third_remap.panelOpened.connect(
-            self.button_second_remap.hidePanel)
-        self.button_third_remap.panelOpened.connect(
-            self.button_first_remap.hidePanel)
-
+        # Buttons projection mode
         self.button_projection_mode = self.findChild(
             QRadioButton, "radioButton_projection")
         self.button_tiles_mode = self.findChild(
@@ -263,6 +194,7 @@ class SpritesTab(QWidget):
         self.button_tiles_mode.clicked.connect(
             lambda: self.changeViewMode('tiles'))
 
+        self.createProjectionSprites()
         self.previewClicked(0)
         self.updateAllViews()
 
@@ -396,14 +328,22 @@ class SpritesTab(QWidget):
 
         self.updateAllViews()
 
-    def createLayers(self, base_x, base_y):
-        self.layers = [[], [], [], []]
+    def createProjectionSprites(self):
+        self.projectionSprites = []
 
         if self.viewing_mode == 0:  # projection mode
             for rot in range(4):
                 im, x, y = self.o.show(rotation=rot, no_remaps=True)
                 sprite = spr.Sprite(
                     im, (x, y), palette=self.main_window.current_palette, already_palettized=True)
+                self.projectionSprites.append(sprite)
+
+    def createLayers(self, base_x, base_y):
+        self.layers = [[], [], [], []]
+
+        if self.viewing_mode == 0:  # projection mode
+            for rot in range(4):
+                sprite = self.projectionSprites[rot]
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
@@ -508,7 +448,11 @@ class SpritesTab(QWidget):
 
     def updateMainView(self, emit_signal=True):
 
-        im, x, y = self.o.show()
+        if self.viewing_mode == 0:
+            sprite = self.projectionSprites[self.o.rotation]
+            im, x, y = sprite.image, sprite.x, sprite.y
+        else:
+            im, x, y = self.o.show()
 
         height = -y + 90 if -y > 178 else 268
         self.sprite_view_main_scene.setSceneRect(0, 0, 261, height)
@@ -526,7 +470,11 @@ class SpritesTab(QWidget):
             self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
-        im, x, y = self.o.show(rotation=rot)
+        if self.viewing_mode == 0:
+            sprite = self.projectionSprites[self.o.rotation]
+            im, x, y = sprite.image, sprite.x, sprite.y
+        else:
+            im, x, y = self.o.show()
 
         im = copy(im)
         im.thumbnail((72, 72), Image.NEAREST)

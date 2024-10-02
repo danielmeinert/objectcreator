@@ -115,6 +115,8 @@ class ObjectTab(QWidget):
                     self.o['properties']['hasTertiaryColour'] = True
                     break
 
+        self.sprites_tab.save()
+
         if filepath:
             self.lastpath = filepath
             self.o.save(filepath, name=name,
