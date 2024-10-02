@@ -162,8 +162,8 @@ class ObjectTab(QWidget):
     def requestNumberOfLayers(self):
         return self.sprites_tab.requestNumberOfLayers()
 
-    def setCurrentLayers(self, layers):
-        self.sprites_tab.setCurrentLayers(layers)
+    def setCurrentLayers(self, layers, index=0):
+        self.sprites_tab.setCurrentLayers(layers, index)
 
     def colorRemapToAll(self, index, color_remap, selected_colors):
         if self.locked:
@@ -294,6 +294,7 @@ class SpriteTab(QWidget):
             self.object_tab.symmAxesChanged.disconnect()
 
             self.object_tab = None
+            self.layersChanged.emit()
 
     def giveDummy(self):
         if self.locked:
@@ -857,49 +858,60 @@ class SpriteTab(QWidget):
         if self.locked:
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
-            image = ImageGrab.grabclipboard()
-            if type(image) == list:
-                try:
-                    image = Image.open(image[0])
-                except:
-                    return
-
-            image = image.convert('RGBA')
-
-            if image:
-                selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-
-                if self.main_window.current_import_offset_mode == 'bottom':
-                    o = self.giveDummy()
-                    x, y, _ = o.size()
-                    offset_y = (16*x+16*y)//2
+            if self.main_window.sprite_clipboard:
+                for layer in self.main_window.sprite_clipboard:
+                    self.addLayer(layer)
                 else:
-                    offset_y = 0
+                    self.main_window.layer_widget.layers_list.setCurrentIndex(
+                        self.layers.indexFromItem(layer))
+                    self.active_layer = layer
+            else:
+                image = ImageGrab.grabclipboard()
+                if type(image) == list:
+                    try:
+                        image = Image.open(image[0])
+                    except:
+                        return
 
-                layer = SpriteLayer(
-                    spr.Sprite(
-                        image, palette=self.main_window.current_palette,
-                        transparent_color=self.main_window.current_import_color,
-                        selected_colors=selected_colors,
-                        alpha_threshold=0,
-                        offset=(0, offset_y),
-                        auto_offset_mode=self.main_window.current_import_offset_mode),
-                    self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
-                self.layercount += 1
+                image = image.convert('RGBA')
 
-                self.addLayer(layer)
-                self.main_window.layer_widget.layers_list.setCurrentIndex(
-                    self.layers.indexFromItem(layer))
-                self.active_layer = layer
+                if image:
+                    selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+
+                    if self.main_window.current_import_offset_mode == 'bottom':
+                        o = self.giveDummy()
+                        x, y, _ = o.size()
+                        offset_y = (16*x+16*y)//2
+                    else:
+                        offset_y = 0
+
+                    layer = SpriteLayer(
+                        spr.Sprite(
+                            image, palette=self.main_window.current_palette,
+                            transparent_color=self.main_window.current_import_color,
+                            selected_colors=selected_colors,
+                            alpha_threshold=0,
+                            offset=(0, offset_y),
+                            auto_offset_mode=self.main_window.current_import_offset_mode),
+                        self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+                    self.layercount += 1
+
+                    self.addLayer(layer)
+                    self.main_window.layer_widget.layers_list.setCurrentIndex(
+                        self.layers.indexFromItem(layer))
+                    self.active_layer = layer
 
     def copy(self):
-        if self.locked:
-            self.object_tab.sprites_tab.copySpriteToClipboard()
-        else:
-            image = ImageQt(self.active_layer.sprite.image)
-            pixmap = QtGui.QPixmap.fromImage(image)
+        image = ImageQt(self.active_layer.sprite.image)
+        pixmap = QtGui.QPixmap.fromImage(image)
 
-            QApplication.clipboard().setPixmap(pixmap)
+        QApplication.clipboard().setPixmap(pixmap)
+        layers = QtGui.QStandardItemModel()
+
+        layers.insertRow(0, SpriteLayer.fromLayer(self.active_layer))
+
+        self.main_window.sprite_clipboard = layers
+        self.main_window.sprite_clipboard_reset = False
 
     def switchPalette(self, palette):
         if self.locked:
@@ -1461,7 +1473,6 @@ class LayersWidget(QWidget):
 
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
-
         if widget:
             model = widget.layers
 
@@ -1471,6 +1482,8 @@ class LayersWidget(QWidget):
             self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
             self.layers_list.setCurrentIndex(
                 model.indexFromItem(widget.active_layer))
+        else:
+            self.layers_list.setModel(QtGui.QStandardItemModel())
 
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()

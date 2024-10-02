@@ -78,6 +78,10 @@ class MainWindowUi(QMainWindow):
         self.bounding_boxes = aux.BoundingBoxes()
         self.symm_axes = aux.SymmetryAxes()
 
+        self.sprite_clipboard = None
+        self.sprite_clipboard_reset = True
+        QApplication.clipboard().dataChanged.connect(self.clipboardChanged)
+
         self.setAcceptDrops(True)
 
         # Tabs
@@ -558,7 +562,7 @@ class MainWindowUi(QMainWindow):
 
         if sprite_tab and object_tab:
             index = self.layer_widget.layers_list.currentIndex()
-            object_tab.setCurrentLayers(sprite_tab.layers)
+            object_tab.setCurrentLayers(sprite_tab.layers, index.row())
 
     def pushNewSprite(self):
 
@@ -721,6 +725,12 @@ class MainWindowUi(QMainWindow):
         widget = self.sprite_tabs.currentWidget()
 
         widget.copy()
+
+    def clipboardChanged(self):
+        if self.sprite_clipboard_reset == True:
+            self.sprite_clipboard = None
+
+        self.sprite_clipboard_reset = True
 
     def aboutPage(self):
         url = "https://github.com/danielmeinert/objectcreator"
