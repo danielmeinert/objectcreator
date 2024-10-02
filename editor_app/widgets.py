@@ -101,21 +101,8 @@ class ObjectTab(QWidget):
         else:
             filepath = self.lastpath
 
-        if self.settings_tab.checkBox_remapCheck.isChecked():
-            for path, sprite in self.o.sprites.items():
-                if sprite.checkPrimaryColor():
-                    self.o['properties']['hasPrimaryColour'] = True
-                    break
-            for path, sprite in self.o.sprites.items():
-                if sprite.checkSecondaryColor():
-                    self.o['properties']['hasSecondaryColour'] = True
-                    break
-            for path, sprite in self.o.sprites.items():
-                if sprite.checkTertiaryColor():
-                    self.o['properties']['hasTertiaryColour'] = True
-                    break
-
         self.sprites_tab.save()
+        self.settings_tab.save()
 
         if filepath:
             self.lastpath = filepath

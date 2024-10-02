@@ -38,13 +38,8 @@ from rctobject import objects as obj
 
 class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
-        super().__init__()
+        super().__init__(o, object_tab, sprites_tab)
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
-
-        self.o = o
-        self.object_tab = object_tab
-        self.sprites_tab = sprites_tab
-        self.main_window = object_tab.main_window
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsLS")
         self.tab_widget.currentChanged.connect(self.tabChanged)
@@ -170,9 +165,9 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             settings_LS.get('cursor', 'CURSOR_BLANK')))
 
 
-class SpritesTab(QWidget):
+class SpritesTab(widgetsGeneric.SpritesTabAll):
     def __init__(self, o, object_tab):
-        super().__init__()
+        super().__init__(o, object_tab)
         uic.loadUi(aux.resource_path('gui/spritesLS.ui'), self)
 
         self.o = o
@@ -198,136 +193,6 @@ class SpritesTab(QWidget):
         self.previewClicked(0)
         self.updateAllViews()
 
-    def loadImage(self):
-        filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
-
-        if filepath:
-            sprite = spr.Sprite.fromFile(filepath, palette=self.main_window.current_palette,
-                                         transparent_color=self.main_window.current_import_color)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
-
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
-
-        self.updateLockedSpriteLayersModel()
-        self.updateMainView()
-
-    def showSpriteMenu(self, pos):
-        menu = QMenu()
-        menu.addAction("Paste Sprite", self.pasteSpriteFromClipboard)
-        menu.addAction("Copy Sprite", self.copySpriteToClipboard)
-
-        submenu_copy = QMenu("Copy Sprite to")
-        rot = self.o.rotation
-        submenu_copy.addAction(
-            f"View {(rot + 1 )%4+1}", lambda view=(rot + 1) % 4: self.copySpriteToView(view))
-        submenu_copy.addAction(
-            f"View {(rot + 2 )%4+1}", lambda view=(rot + 2) % 4: self.copySpriteToView(view))
-        submenu_copy.addAction(
-            f"View {(rot + 3 )%4+1}", lambda view=(rot + 3) % 4: self.copySpriteToView(view))
-        submenu_copy.addAction("All Views", self.copySpriteToAllViews)
-
-        menu.addMenu(submenu_copy)
-
-        menu.addAction("Delete Sprite", self.deleteSprite)
-
-        menu.exec_(self.sprite_view_main.mapToGlobal(pos))
-
-    def pasteSpriteFromClipboard(self):
-        image = ImageGrab.grabclipboard()
-        if type(image) == list:
-            try:
-                image = Image.open(image[0])
-            except:
-                return
-
-        if image:
-            image = image.convert('RGBA')
-
-            sprite = spr.Sprite(image, palette=self.main_window.current_palette,
-                                transparent_color=self.main_window.current_import_color)
-            layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
-
-            layers = QtGui.QStandardItemModel()
-            layers.insertRow(0, layer)
-
-            self.setCurrentLayers(layers)
-
-        self.updateLockedSpriteLayersModel()
-        self.updateMainView()
-
-    def copySpriteToClipboard(self):
-        pixmap = self.sprite_view_main_item.pixmap()
-
-        QApplication.clipboard().setPixmap(pixmap)
-
-    def copySpriteToView(self, view):
-        layers = QtGui.QStandardItemModel()
-
-        for i, layer in enumerate(self.giveCurrentMainViewLayers()):
-            layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
-
-        self.setCurrentLayers(layers, view=view)
-
-        self.updateLockedSpriteLayersModel()
-        self.updatePreview(view)
-
-    def copySpriteToAllViews(self):
-        rot = self.o.rotation
-
-        for view in range(3):
-            self.copySpriteToView(view=(view+rot + 1) % 4)
-
-    def deleteSprite(self):
-        for layer in self.giveCurrentMainViewLayers():
-            layer.sprite.clearSprite()
-
-        self.updateLockedSpriteLayersModel()
-        self.updateMainView()
-
-    def cycleRotation(self):
-        self.o.cycleSpritesRotation()
-
-        self.updateLockedSpriteLayersModel()
-        self.updateAllViews()
-
-    def previewClicked(self, rot):
-        old_rot = self.o.rotation
-        self.sprite_preview[old_rot].setStyleSheet(
-            f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset rgb{self.main_window.current_background_color};")
-        self.sprite_preview[rot].setStyleSheet(
-            f"background-color :  rgb{self.main_window.current_background_color}; border:2px outset green;")
-
-        self.o.setRotation(rot)
-
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
-        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
-        self.object_tab.symmAxesChanged.emit(
-            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
-        self.object_tab.rotationChanged.emit(rot)
-
-        self.updateMainView()
-
-    def clickRemapButton(self, panel_index):
-        for i, panel in enumerate(self.select_panels_remap):
-            if i == panel_index:
-                if panel.isVisible():
-                    panel.hide()
-                else:
-                    panel.show()
-            else:
-                panel.hide()
-
-    def clickChangeRemap(self, color, remap):
-        self.o.changeRemap(color, remap)
-
-        self.updateAllViews()
-
     def createProjectionSprites(self):
         self.projectionSprites = []
 
@@ -347,16 +212,6 @@ class SpritesTab(QWidget):
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
-
-    def updateLockedSpriteLayersModel(self):
-        if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
-                              self.object_tab.locked_sprite_tab.base_y)
-            self.object_tab.locked_sprite_tab.updateLayersModel()
-            self.updateAllViews()
-
-    def giveCurrentMainViewLayers(self):
-        return self.layers[self.o.rotation]
 
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
@@ -485,11 +340,6 @@ class SpritesTab(QWidget):
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
-
-    def updateAllViews(self):
-        self.updateMainView()
-        for rot in range(4):
-            self.updatePreview(rot)
 
 
 class SpriteImportUi(QDialog):
