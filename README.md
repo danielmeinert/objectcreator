@@ -7,7 +7,7 @@ Just download the provided setup file and install the program. Upon first openin
 Now there is also an update check included that asks you to update the program whenever there is a new version on github. When you update this way note that the update gets installed via the installer.
 
 ## Current State of Development
-The program is currently under constant development. With the first release version 0.1 you are able to edit and create simple small scenery objects. Eventually the program's scope should include all types of object types, however currently the focus is on the sprite editing part and added functionalities.
+The program is currently under constant development. With the current version you are able to edit and create any type of Small Scenery object. Large Scenery and further object types are planned for the future.
 
 ## Feedback and Contributing
 You can contribute and give feedback either through the Issues in this github or join the New Object Creator discord: [https://discord.gg/GHCP2K7d](https://discord.gg/rmdeTmKWbh)
