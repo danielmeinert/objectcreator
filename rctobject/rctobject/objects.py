@@ -1037,12 +1037,6 @@ class LargeScenery(RCTObject):
         return -x, -y
 
     def show(self, rotation=None, no_remaps=False):
-        if isinstance(rotation, int):
-            rotation_save = int(self.rotation)
-            self.setRotation(rotation)
-        else:
-            rotation_save = None
-
         if no_remaps:
             first_remap = 'NoColor'
             second_remap = 'NoColor'
@@ -1054,25 +1048,12 @@ class LargeScenery(RCTObject):
 
         canvas = Image.new('RGBA', self.spriteBoundingBox())
 
-        x_baseline, y_baseline = self.baseOffset()
-
-        tile_index = 0
-        drawing_order = self.getDrawingOrder()
-
-        for tile_index in drawing_order:
-            tile = self.tiles[tile_index]
-            y_base = y_baseline + \
-                tile.x*16 + tile.y*16 - tile.z*8
-            x_base = x_baseline - tile.x*32 + tile.y*32
-
-            sprite = tile.giveSprite(rotation)
+        for tile_entry in self.getOrderedTileSprites(rotation):
+            sprite = tile_entry[0]
             canvas.paste(sprite.show(first_remap,
                                      second_remap,
                                      third_remap),
-                         (x_base+sprite.x, y_base+sprite.y), sprite.image)
-
-        if rotation_save is not None:
-            self.setRotation(rotation_save)
+                         (tile_entry[1]+sprite.x, tile_entry[2]+sprite.y), sprite.image)
 
         x, y = self.centerOffset()
 
@@ -1095,6 +1076,35 @@ class LargeScenery(RCTObject):
             order[tile_index] = score
 
         return sorted(order, key=order.get)
+
+    def getOrderedTileSprites(self, rotation=None):
+        if rotation:
+            rotation_save = int(self.rotation)
+            self.setRotation(rotation)
+        else:
+            rotation_save = None
+
+        x_baseline, y_baseline = self.baseOffset()
+
+        tile_index = 0
+        drawing_order = self.getDrawingOrder()
+
+        ret = []
+
+        for tile_index in drawing_order:
+            tile = self.tiles[tile_index]
+            y = y_baseline + \
+                tile.x*16 + tile.y*16 - tile.z*8
+            x = x_baseline - tile.x*32 + tile.y*32
+
+            sprite = tile.giveSprite(rotation)
+
+            ret.append([sprite, x, y, tile_index])
+
+        if rotation_save is not None:
+            self.setRotation(rotation_save)
+
+        return ret
 
     def createThumbnails(self):
         if self.subtype != self.Subtype.SIGN:
@@ -1143,7 +1153,7 @@ class LargeScenery(RCTObject):
         self['images'] = new_list
         self.sprites = new_dict
 
-    def projectSpriteToTiles(self, sprite):
+    def projectSpriteToTiles(self, sprite, rotation=None):
         x_baseline, y_baseline = self.baseOffset()
 
         if not sprite.palette == self.palette:
@@ -1153,9 +1163,14 @@ class LargeScenery(RCTObject):
         im_paste.paste(
             sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
 
-        self.projectImageToTiles(im_paste, already_palettized=True)
+        self.projectImageToTiles(im_paste, rotation, already_palettized=True)
 
-    def projectImageToTiles(self, im_paste, already_palettized=False):
+    def projectImageToTiles(self, im_paste, rotation=None, already_palettized=False):
+        rotation_current = int(self.rotation)
+
+        if rotation:
+            self.setRotation(rotation)
+
         for i, tile in enumerate(self.tiles):
             im = Image.new('RGBA', self.spriteBoundingBox())
             mask = self.giveMask(tile)
@@ -1166,6 +1181,8 @@ class LargeScenery(RCTObject):
             sprite_tile = spr.Sprite(
                 im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
             tile.setSprite(sprite_tile)
+
+        self.setRotation(rotation_current)
 
     def giveMask(self, tile):
         x_baseline, y_baseline = self.baseOffset()

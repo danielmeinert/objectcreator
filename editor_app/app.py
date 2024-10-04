@@ -203,7 +203,7 @@ class MainWindowUi(QMainWindow):
         # Load empty object if not started with objects
 
         if not opening_objects:
-            self.objectNew()
+            self.objectNew(obj_type=obj.Type.LARGE)
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)

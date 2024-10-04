@@ -22,6 +22,7 @@ import os.path
 from os import getcwd
 import numpy as np
 from pkgutil import get_data
+from enum import Enum
 
 
 import auxiliaries as aux
@@ -170,12 +171,6 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         super().__init__(o, object_tab)
         uic.loadUi(aux.resource_path('gui/spritesLS.ui'), self)
 
-        self.o = o
-        self.object_tab = object_tab
-        self.main_window = object_tab.main_window
-
-        self.viewing_mode = 0  # projection
-
         self.initializeWidgets(261, 268)
 
         # Buttons projection mode
@@ -185,33 +180,61 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             QRadioButton, "radioButton_tiles")
 
         self.button_projection_mode.clicked.connect(
-            lambda: self.changeViewMode('projection'))
+            lambda: self.changeViewMode(self.ViewMode.PROJECTION))
         self.button_tiles_mode.clicked.connect(
-            lambda: self.changeViewMode('tiles'))
+            lambda: self.changeViewMode(self.ViewMode.TILES))
 
-        self.createProjectionSprites()
+        self.changeViewMode(self.ViewMode.PROJECTION)
         self.previewClicked(0)
         self.updateAllViews()
+
+    def save(self):
+        self.projectSprites()
+
+        self.o.createThumbnails()
 
     def createProjectionSprites(self):
         self.projectionSprites = []
 
-        if self.viewing_mode == 0:  # projection mode
-            for rot in range(4):
-                im, x, y = self.o.show(rotation=rot, no_remaps=True)
-                sprite = spr.Sprite(
-                    im, (x, y), palette=self.main_window.current_palette, already_palettized=True)
-                self.projectionSprites.append(sprite)
+        for rot in range(4):
+            im, x, y = self.o.show(rotation=rot, no_remaps=True)
+            sprite = spr.Sprite(
+                im, (x, y), palette=self.main_window.current_palette, already_palettized=True)
+            self.projectionSprites.append(sprite)
+
+    def projectSprites(self):
+        for rot in range(4):
+            sprite = self.projectionSprites[rot]
+
+            self.o.projectSpriteToTiles(sprite, rot)
+
+        self.updateAllViews()
+
+    def changeViewMode(self, mode):
+        if mode == self.ViewMode.PROJECTION:
+            self.createProjectionSprites()
+        elif mode == self.ViewMode.TILES:
+            self.projectSprites()
+
+        self.view_mode = mode
+        self.updateLockedSpriteLayersModel()
 
     def createLayers(self, base_x, base_y):
         self.layers = [[], [], [], []]
 
-        if self.viewing_mode == 0:  # projection mode
+        if self.view_mode == self.ViewMode.PROJECTION:
             for rot in range(4):
                 sprite = self.projectionSprites[rot]
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, base_x, base_y, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
+        elif self.view_mode == self.ViewMode.TILES:
+            center_x, center_y = self.o.centerOffset()
+            for rot in range(4):
+                for tile_entry in self.o.getOrderedTileSprites(rot):
+                    layer = wdg.SpriteLayer(
+                        tile_entry[0], self.main_window, base_x+tile_entry[1]+center_x, base_y+tile_entry[2]+center_y, name=f'View {rot+1} Tile {tile_entry[3]+1}')
+                    self.layers[rot].append(layer)
 
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
@@ -303,9 +326,10 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
 
     def updateMainView(self, emit_signal=True):
 
-        if self.viewing_mode == 0:
+        if self.view_mode == self.ViewMode.PROJECTION:
             sprite = self.projectionSprites[self.o.rotation]
-            im, x, y = sprite.image, sprite.x, sprite.y
+            im, x, y = sprite.show(
+                self.o.current_first_remap, self.o.current_second_remap, self.o.current_third_remap), sprite.x, sprite.y
         else:
             im, x, y = self.o.show()
 
@@ -325,9 +349,10 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             self.object_tab.mainViewUpdated.emit()
 
     def updatePreview(self, rot):
-        if self.viewing_mode == 0:
-            sprite = self.projectionSprites[self.o.rotation]
-            im, x, y = sprite.image, sprite.x, sprite.y
+        if self.view_mode == self.ViewMode.PROJECTION:
+            sprite = self.projectionSprites[rot]
+            im, x, y = sprite.show(
+                self.o.current_first_remap, self.o.current_second_remap, self.o.current_third_remap), sprite.x, sprite.y
         else:
             im, x, y = self.o.show()
 
@@ -340,6 +365,19 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
+
+    class ViewMode(Enum):
+        PROJECTION = 0, 'Projection'
+        TILES = 1, 'Tiles'
+
+        def __new__(cls, value, name):
+            member = object.__new__(cls)
+            member._value_ = value
+            member.fullname = name
+            return member
+
+        def __int__(self):
+            return self.value
 
 
 class SpriteImportUi(QDialog):

@@ -716,7 +716,7 @@ class SpriteTab(QWidget):
     def clearView(self):
         for index in range(self.layers.rowCount()):
             layer = self.layers.takeRow(0)[0]
-            self.view.scene.removeItem(layer.item)
+            self.view.scene.removeItem(layer.giveItem())
 
     def addLayer(self, layer, pos=None):
         if pos is None:
