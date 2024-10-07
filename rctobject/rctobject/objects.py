@@ -1154,19 +1154,19 @@ class LargeScenery(RCTObject):
         self.sprites = new_dict
 
     def projectSpriteToTiles(self, sprite, rotation=None):
-        x_baseline, y_baseline = self.baseOffset()
+        x_baseline, y_baseline = self.centerOffset()
 
         if not sprite.palette == self.palette:
             sprite.switchPalette(self.palette)
 
         im_paste = Image.new('RGBA', self.spriteBoundingBox())
         im_paste.paste(
-            sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
+            sprite.image, (sprite.x-x_baseline, sprite.y-y_baseline))
 
         self.projectImageToTiles(im_paste, rotation, already_palettized=True)
 
     def projectImageToTiles(self, im_paste, rotation=None, already_palettized=False):
-        rotation_current = int(self.rotation)
+        rotation_save = int(self.rotation)
 
         if rotation:
             self.setRotation(rotation)
@@ -1182,7 +1182,7 @@ class LargeScenery(RCTObject):
                 im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
             tile.setSprite(sprite_tile)
 
-        self.setRotation(rotation_current)
+        self.setRotation(rotation_save)
 
     def giveMask(self, tile):
         x_baseline, y_baseline = self.baseOffset()

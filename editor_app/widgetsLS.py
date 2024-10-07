@@ -211,12 +211,12 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.updateAllViews()
 
     def changeViewMode(self, mode):
+        self.view_mode = mode
         if mode == self.ViewMode.PROJECTION:
             self.createProjectionSprites()
         elif mode == self.ViewMode.TILES:
             self.projectSprites()
 
-        self.view_mode = mode
         self.updateLockedSpriteLayersModel()
 
     def createLayers(self, base_x, base_y):
@@ -354,9 +354,12 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             im, x, y = sprite.show(
                 self.o.current_first_remap, self.o.current_second_remap, self.o.current_third_remap), sprite.x, sprite.y
         else:
-            im, x, y = self.o.show()
+            im, x, y = self.o.show(rotation=rot)
 
         im = copy(im)
+        bbox = im.getbbox()
+        if bbox:
+            im = im.crop(bbox)
         im.thumbnail((72, 72), Image.NEAREST)
         coords = (int(34-im.size[0]/2), int(36-im.size[1]/2))
 
