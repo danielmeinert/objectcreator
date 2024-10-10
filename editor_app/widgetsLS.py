@@ -171,6 +171,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         super().__init__(o, object_tab)
         uic.loadUi(aux.resource_path('gui/spritesLS.ui'), self)
 
+        self.view_mode = self.ViewMode.TILES
+
         self.initializeWidgets(261, 268)
 
         # Buttons projection mode
@@ -184,7 +186,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.button_tiles_mode.clicked.connect(
             lambda: self.changeViewMode(self.ViewMode.TILES))
 
-        self.changeViewMode(self.ViewMode.PROJECTION)
+#        self.changeViewMode(self.ViewMode.PROJECTION)
         self.previewClicked(0)
         self.updateAllViews()
 
