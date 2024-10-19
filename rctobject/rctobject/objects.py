@@ -1046,18 +1046,40 @@ class LargeScenery(RCTObject):
             second_remap = self.current_second_remap
             third_remap = self.current_third_remap
 
-        canvas = Image.new('RGBA', self.spriteBoundingBox())
 
-        for tile_entry in self.getOrderedTileSprites(rotation):
+        tiles_list = self.getOrderedTileSprites(rotation)
+        width, height, left, right, top, bottom = self.computeCanvasOverlap(tiles_list, rotation)
+        canvas = Image.new('RGBA', (width, height))
+
+        for tile_entry in tiles_list:
             sprite = tile_entry[0]
             canvas.paste(sprite.show(first_remap,
                                      second_remap,
                                      third_remap),
-                         (tile_entry[1]+sprite.x, tile_entry[2]+sprite.y), sprite.image)
+                         (tile_entry[1]+sprite.x+left, tile_entry[2]+sprite.y+top), sprite.image)
 
         x, y = self.centerOffset()
 
-        return canvas, x, y
+        return canvas, x-left, y-top
+    
+    def computeCanvasOverlap(self, tiles_list, rotation=None):
+        'Computes the overlap of the object sprite to the sprite bounding box'
+        left = 0
+        right = 0
+        top = 0 
+        bottom = 0    
+        
+        width, height = self.spriteBoundingBox(rotation) 
+                
+        for tile_entry in tiles_list:
+            s = tile_entry[0]
+            left = max(left, -s.x-tile_entry[1]) 
+            right = max(right, s.image.width+s.x-(width-tile_entry[1]))
+            top = max(top, -s.y-tile_entry[2])
+            bottom = max(bottom, s.image.height+s.y-(height-tile_entry[2]))
+            
+        return (width+left+right, height+top+bottom, left, right, top, bottom)
+
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4

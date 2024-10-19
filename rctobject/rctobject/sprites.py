@@ -547,3 +547,4 @@ def spriteIsEmpty(sprite):
     if sprite.image.getbbox() is None:
         return True
     return False
+
