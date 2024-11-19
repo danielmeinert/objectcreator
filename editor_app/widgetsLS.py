@@ -235,7 +235,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             for rot in range(4):
                 for tile_entry in self.o.getOrderedTileSprites(rot):
                     layer = wdg.SpriteLayer(
-                        tile_entry[0], self.main_window, base_x+tile_entry[1]+center_x, base_y+tile_entry[2]+center_y, name=f'View {rot+1} Tile {tile_entry[3]+1}')
+                        tile_entry[0], self.main_window, base_x-center_x+tile_entry[1], base_y-center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')
                     self.layers[rot].append(layer)
 
     def requestNumberOfLayers(self):

@@ -1034,7 +1034,7 @@ class LargeScenery(RCTObject):
         x = int(x_obj*16 + y_obj*16)
         y = int(-1 + x_obj*8 + y_obj*8 + z_obj*8)
 
-        return -x, -y
+        return x, y
 
     def show(self, rotation=None, no_remaps=False):
         if no_remaps:
@@ -1060,7 +1060,7 @@ class LargeScenery(RCTObject):
 
         x, y = self.centerOffset()
 
-        return canvas, x-left, y-top
+        return canvas, -x-left, -y-top
     
     def computeCanvasOverlap(self, tiles_list, rotation=None):
         'Computes the overlap of the object sprite to the sprite bounding box'
@@ -1183,7 +1183,7 @@ class LargeScenery(RCTObject):
 
         im_paste = Image.new('RGBA', self.spriteBoundingBox())
         im_paste.paste(
-            sprite.image, (sprite.x-x_baseline, sprite.y-y_baseline))
+            sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
 
         self.projectImageToTiles(im_paste, rotation, already_palettized=True)
 

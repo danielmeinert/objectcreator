@@ -463,8 +463,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (self.base_x+sprite.x,
-                  self.base_y+sprite.y)
+        coords = (layer.base_x+sprite.x,
+                  layer.base_y+sprite.y)
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -522,8 +522,8 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -self.base_x + bbox[0]
-            y_offset = -self.base_y + bbox[1]
+            x_offset = -layer.base_x + bbox[0]
+            y_offset = -layer.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
@@ -540,8 +540,8 @@ class SpriteTab(QWidget):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
 
-        coords = (self.base_x+sprite.x,
-                  self.base_y+sprite.y)
+        coords = (layer.base_x+sprite.x,
+                  layer.base_y+sprite.y)
 
         indices = sprite.giveShade((x-coords[0], y-coords[1]))
 
@@ -561,8 +561,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (self.base_x+sprite.x,
-                  self.base_y+sprite.y)
+        coords = (layer.base_x+sprite.x,
+                  layer.base_y+sprite.y)
 
         canvas.paste(working_sprite.image, coords, mask=working_sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -624,8 +624,8 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -self.base_x + bbox[0]
-            y_offset = -self.base_y + bbox[1]
+            x_offset = -layer.base_x + bbox[0]
+            y_offset = -layer.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
@@ -642,8 +642,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (self.base_x+sprite.x,
-                  self.base_y+sprite.y)
+        coords = (layer.base_x+sprite.x,
+                  layer.base_y+sprite.y)
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -672,8 +672,8 @@ class SpriteTab(QWidget):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
 
-        coords = (self.base_x+sprite.x,
-                  self.base_y+sprite.y)
+        coords = (layer.base_x+sprite.x,
+                  layer.base_y+sprite.y)
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_width, self.canvas_height))
@@ -701,8 +701,13 @@ class SpriteTab(QWidget):
         for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
 
-        self.main_window.layer_widget.layers_list.setCurrentIndex(self.layers.indexFromItem(
-            self.layers.item(selected_row)))
+        if selected_row >= self.layers.rowCount():
+            selected_row = 0
+        
+        index = self.layers.indexFromItem(
+            self.layers.item(selected_row))
+        self.main_window.layer_widget.layers_list.setCurrentIndex(index)
+        self.setCurrentActiveLayer(index)
 
         self.layersChanged.emit()
 
