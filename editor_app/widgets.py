@@ -440,13 +440,13 @@ class SpriteTab(QWidget):
         sprite = layer.sprite
 
         if direction == 'left':
-            layer.setOffset(sprite.x - 1, sprite.y)
+            layer.setSpriteOffset(sprite.x - 1, sprite.y)
         elif direction == 'right':
-            layer.setOffset(sprite.x + 1, sprite.y)
+            layer.setSpriteOffset(sprite.x + 1, sprite.y)
         elif direction == 'up':
-            layer.setOffset(sprite.x, sprite.y - 1)
+            layer.setSpriteOffset(sprite.x, sprite.y - 1)
         elif direction == 'down':
-            layer.setOffset(sprite.x, sprite.y + 1)
+            layer.setSpriteOffset(sprite.x, sprite.y + 1)
         elif direction == 'leftright':
             sprite.image = sprite.image.transpose(
                 Image.FLIP_LEFT_RIGHT)
@@ -529,7 +529,7 @@ class SpriteTab(QWidget):
             y_offset = 0
 
         sprite.image = canvas
-        layer.setOffset(x_offset, y_offset)
+        layer.setSpriteOffset(x_offset, y_offset)
 
         self.updateView()
 
@@ -631,7 +631,7 @@ class SpriteTab(QWidget):
             y_offset = 0
 
         sprite.image = canvas
-        layer.setOffset(x_offset, y_offset)
+        layer.setSpriteOffset(x_offset, y_offset)
 
         self.updateView()
 
@@ -657,14 +657,14 @@ class SpriteTab(QWidget):
 
         if bbox:
             canvas = canvas.crop(bbox)
-            x_offset = -self.base_x + bbox[0]
-            y_offset = -self.base_y + bbox[1]
+            x_offset = -layer.base_x + bbox[0]
+            y_offset = -layer.base_y + bbox[1]
         else:
             x_offset = 0
             y_offset = 0
 
         sprite.image = canvas
-        layer.setOffset(x_offset, y_offset)
+        layer.setSpriteOffset(x_offset, y_offset)
 
         self.updateView()
 
@@ -758,7 +758,7 @@ class SpriteTab(QWidget):
 
         layer = SpriteLayer(spr.Sprite(None, palette=self.main_window.current_palette,
                                        transparent_color=self.main_window.current_import_color),
-                            self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+                            self.main_window, self.base_x, self.base_y, 0, 0, f'Layer {self.layercount}')
         self.layercount += 1
 
         self.addLayer(layer, pos)
@@ -885,7 +885,7 @@ class SpriteTab(QWidget):
                             alpha_threshold=0,
                             offset=(0, offset_y),
                             auto_offset_mode=self.main_window.current_import_offset_mode),
-                        self.main_window, self.base_x, self.base_y, f'Layer {self.layercount}')
+                        self.main_window, self.base_x, self.base_y, 0, 0, f'Layer {self.layercount}')
                     self.layercount += 1
 
                     self.addLayer(layer)
@@ -1244,14 +1244,16 @@ class SpriteViewWidget(QGraphicsView):
 
 
 class SpriteLayer(QtGui.QStandardItem):
-    def __init__(self, sprite, main_window, base_x, base_y, name="Layer", parent=None):
+    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", parent=None):
         super().__init__(name)
 
         self.item = QGraphicsPixmapItem()
 
         self.main_window = main_window
-        self.base_x = base_x
-        self.base_y = base_y
+        self.base_x = base_x + offset_x # self.base_x and self.base_y are the offset of the layer in the canvas
+        self.base_y = base_y + offset_y # base_x and base_y are the global base point
+        self.offset_x = offset_x        # self.offset_x and self.offset_y are the offset ofc layer with respect to the canvas base point
+        self.offset_y = offset_y
 
         self.visible = True
 
@@ -1271,9 +1273,12 @@ class SpriteLayer(QtGui.QStandardItem):
         sprite = deepcopy(layer.sprite)
         base_x = int(layer.base_x)
         base_y = int(layer.base_y)
+        offset_x = int(layer.offset_x)
+        offset_y = int(layer.offset_y)
+        
         name = new_name if new_name else layer.text()
 
-        return cls(sprite, layer.main_window, base_x, base_y, name)
+        return cls(sprite, layer.main_window, base_x, base_y, offset_x, offset_y, name)
 
     def isVisible(self):
         return self.visible
@@ -1336,7 +1341,7 @@ class SpriteLayer(QtGui.QStandardItem):
         self.updateOffset()
         self.updateLayer()
 
-    def setOffset(self, x, y):
+    def setSpriteOffset(self, x, y):
         self.sprite.x = x
         self.sprite.y = y
 
@@ -1347,8 +1352,10 @@ class SpriteLayer(QtGui.QStandardItem):
                             self.base_y + self.sprite.y)
 
     def setBaseOffset(self, x, y):
-        self.base_x = x
-        self.base_y = y
+        
+        # x and y are the global base point
+        self.base_x = x + self.offset_x
+        self.base_y = y + self.offset_y
 
         self.updateOffset()
 
