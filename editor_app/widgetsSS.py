@@ -534,38 +534,38 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.updateLockedSpriteLayersModel()
         self.updateAllViews()
 
-    def createLayers(self, base_x, base_y):
+    def createLayers(self):
         self.layers = [[], [], [], []]
 
         if self.o.subtype == obj.SmallScenery.Subtype.GLASS:
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, 0, 0, name=f'Structure View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Structure View {rot+1}')
                 self.layers[rot].append(layer)
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot, glass=True)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, 0, 0, name=f'Glass View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Glass View {rot+1}')
                 self.layers[rot].append(layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
             if self.slider_sprite_index.value() == 0:
                 for rot in range(4):
                     sprite = self.o.giveSprite(rotation=rot, wither=0)
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, 0, 0, name=f'Watered View {rot+1}')
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Watered View {rot+1}')
                     self.layers[rot].append(layer)
             elif self.slider_sprite_index.value() == 1:
                 for rot in range(4):
                     sprite = self.o.giveSprite(rotation=rot, wither=1)
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, 0, 0, name=f'Wither 1 View {rot+1}')
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Wither 1 View {rot+1}')
                     self.layers[rot].append(layer)
             elif self.slider_sprite_index.value() == 2:
                 for rot in range(4):
                     sprite = self.o.giveSprite(rotation=rot, wither=2)
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, 0, 0, name=f'Wither 2 View {rot+1}')
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Wither 2 View {rot+1}')
                     self.layers[rot].append(layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.ANIMATED:
             animation_frame = self.slider_sprite_index.value()
@@ -579,13 +579,13 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     sprite = self.o.sprites[self.o.data['images']
                                             [base_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y, 0, 0, name=f'Base 1 View {rot+1}')
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Base 1 View {rot+1}')
                     self.layers[rot].append(layer)
 
                     sprite = self.o.sprites[self.o.data['images']
                                             [fountain_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, base_x, base_y,
+                        sprite, self.main_window, 0, 0, 0, 0,
                         name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
                     self.layers[rot].append(layer)
 
@@ -593,12 +593,12 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                         sprite = self.o.sprites[self.o.data['images']
                                                 [base_index+4]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, 0, 0, name=f'Base 2 View {rot+1}')
+                            sprite, self.main_window, 0, 0, 0, 0, name=f'Base 2 View {rot+1}')
                         self.layers[rot].append(layer)
                         sprite = self.o.sprites[self.o.data['images']
                                                 [fountain_index+16]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, 0, 0, 
+                            sprite, self.main_window, 0, 0, 0, 0, 
                             name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
                         self.layers[rot].append(layer)
             else:
@@ -607,7 +607,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                         sprite = self.o.giveSprite(
                             rotation=rot, animation_frame=animation_frame)
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, 0, 0, name=f'Preview Image View {rot+1}')
+                            sprite, self.main_window, 0, 0, 0, 0, name=f'Preview Image View {rot+1}')
                         self.layers[rot].append(layer)
                 else:
                     for rot in range(4):
@@ -615,14 +615,14 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                             rotation=rot, animation_frame=animation_frame)
 
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, base_x, base_y, 0, 0, 
+                            sprite, self.main_window, 0, 0, 0, 0, 
                             name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
                         self.layers[rot].append(layer)
         else:
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, 0, 0, name=f'View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
 
     def requestNumberOfLayers(self):
@@ -674,8 +674,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     index, 0).sprite)
 
         if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
-                              self.object_tab.locked_sprite_tab.base_y)
+            self.createLayers()
             self.object_tab.locked_sprite_tab.updateLayersModel()
 
         self.updateMainView()

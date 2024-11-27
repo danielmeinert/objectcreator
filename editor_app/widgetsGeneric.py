@@ -457,8 +457,7 @@ class SpritesTabAll(QWidget):
 
     def updateLockedSpriteLayersModel(self):
         if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
-                              self.object_tab.locked_sprite_tab.base_y)
+            self.createLayers()
             self.object_tab.locked_sprite_tab.updateLayersModel()
             self.updateAllViews()
 

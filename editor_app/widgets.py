@@ -122,9 +122,8 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
 
-        self.sprites_tab.createLayers(
-            locked_sprite_tab.base_x, locked_sprite_tab.base_y)
-
+        self.sprites_tab.createLayers()
+        
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
@@ -192,9 +191,9 @@ class SpriteTab(QWidget):
         self.spinbox_height.setValue(self.canvas_height)
 
         self.spinbox_width.valueChanged.connect(
-            lambda x: self.canvasSizeChanged(width=x))
+            lambda x: self.canvasSizeChanged(left=(x-self.canvas_width)//2, right=(x-self.canvas_width)//2))
         self.spinbox_height.valueChanged.connect(
-            lambda x: self.canvasSizeChanged(height=x))
+            lambda x: self.canvasSizeChanged(top=x-self.canvas_height))
 
         self.dummy_o = obj.newEmpty(obj.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
@@ -289,8 +288,13 @@ class SpriteTab(QWidget):
         else:
             return self.dummy_o
 
-    def canvasSizeChanged(self, width=None, height=None):
+    def canvasSizeChanged(self, left=0, right=0, top=0, bottom=0):
+        width = self.canvas_width + left + right
+        height = self.canvas_height + top + bottom
+                
         if height is not None and height < self.canvas_height:
+            # if height is smaller than the current canvas height, check if it is possible to resize
+            
             dummy_o = self.giveDummy()
 
             _, sprite_height = dummy_o.spriteBoundingBox()
@@ -309,6 +313,8 @@ class SpriteTab(QWidget):
                 return
 
         if width is not None and width < self.canvas_width:
+            # if width is smaller than the current canvas width, check if it is possible to resize
+            
             dummy_o = self.giveDummy()
 
             sprite_width, _ = dummy_o.spriteBoundingBox()
@@ -336,10 +342,18 @@ class SpriteTab(QWidget):
             self.canvas_height = height
             self.spinbox_height.setValue(height)
 
-        self.base_x = int(self.canvas_width/2)
-        self.base_y = self.canvas_height-70
-
+        self.setNewCanvasBase(x= self.base_x + left, y= self.base_y + top)
+        
         self.view.updateCanvasSize()
+
+        self.protected_pixels = Image.new(
+            '1', (self.canvas_width, self.canvas_height))
+
+    def setNewCanvasBase(self, x=None, y=None):
+        if x:
+            self.base_x = x 
+        if y:
+            self.base_y = y 
 
         for index in range(self.layers.rowCount()):
             layer = self.layers.item(index, 0)
@@ -353,9 +367,6 @@ class SpriteTab(QWidget):
         _, coords = self.main_window.symm_axes.giveSymmAxes(self.giveDummy())
         self.view.layer_symm_axes.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
-
-        self.protected_pixels = Image.new(
-            '1', (self.canvas_width, self.canvas_height))
 
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
@@ -380,7 +391,7 @@ class SpriteTab(QWidget):
 
         if -coords[1] - self.base_y > -20:
             self.canvasSizeChanged(
-                height=-coords[1] + self.canvas_height - self.base_y+20)
+                height=-coords[1]- self.base_y+20)
 
         self.dummyChanged.emit()
 
@@ -730,6 +741,8 @@ class SpriteTab(QWidget):
         if pos == -1:
             pos = 0
 
+        layer.setBaseOffset(self.base_x, self.base_y)
+
         self.layers.insertRow(pos, layer)
         item = layer.giveItem()
         self.view.addLayerItem(item)
@@ -738,17 +751,18 @@ class SpriteTab(QWidget):
         # adjust sprite margins
         width, height = layer.sprite.image.size
 
-        if -layer.sprite.x > self.canvas_width/2 - 20:
-            self.canvasSizeChanged(width=-layer.sprite.x*2 + 40)
+        
+        if layer.base_x + layer.sprite.x < 20:
+            self.canvasSizeChanged(left= -layer.base_x -layer.sprite.x + 20)
 
-        if width + layer.sprite.x > self.canvas_width/2 - 20:
-            self.canvasSizeChanged(width=2*(width + layer.sprite.x + 20))
+        if layer.base_x + width + layer.sprite.x > self.canvas_width - 20:
+            self.canvasSizeChanged(right= layer.base_x + width + layer.sprite.x + 20 -self.canvas_width)
 
-        if -layer.sprite.y > self.canvas_height - 20:
-            self.canvasSizeChanged(height=-layer.sprite.y + 90)
+        if layer.base_y + layer.sprite.y < 20:
+            self.canvasSizeChanged(top= -layer.base_y - layer.sprite.y + 20)
 
-        if height + layer.sprite.y + 70 > self.canvas_height - 20:
-            self.canvasSizeChanged(height=height + layer.sprite.y + 90)
+        if layer.base_y + height + layer.sprite.y > self.canvas_height - 20:
+            self.canvasSizeChanged(bottom= height + layer.base_y + layer.sprite.y - self.canvas_height + 20)
 
         self.layersChanged.emit()
 
@@ -1252,7 +1266,7 @@ class SpriteLayer(QtGui.QStandardItem):
         self.main_window = main_window
         self.base_x = base_x + offset_x # self.base_x and self.base_y are the offset of the layer in the canvas
         self.base_y = base_y + offset_y # base_x and base_y are the global base point
-        self.offset_x = offset_x        # self.offset_x and self.offset_y are the offset ofc layer with respect to the canvas base point
+        self.offset_x = offset_x        # self.offset_x and self.offset_y are the offset of layer with respect to the canvas base point
         self.offset_y = offset_y
 
         self.visible = True

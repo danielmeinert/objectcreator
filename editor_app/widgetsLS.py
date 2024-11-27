@@ -221,21 +221,21 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
 
         self.updateLockedSpriteLayersModel()
 
-    def createLayers(self, base_x, base_y):
+    def createLayers(self):
         self.layers = [[], [], [], []]
 
         if self.view_mode == self.ViewMode.PROJECTION:
             for rot in range(4):
                 sprite = self.projectionSprites[rot]
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, base_x, base_y, 0, 0, name=f'View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'View {rot+1}')
                 self.layers[rot].append(layer)
         elif self.view_mode == self.ViewMode.TILES:
             center_x, center_y = self.o.centerOffset()
             for rot in range(4):
                 for tile_entry in self.o.getOrderedTileSprites(rot):
                     layer = wdg.SpriteLayer(
-                        tile_entry[0], self.main_window, base_x, base_y, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')
+                        tile_entry[0], self.main_window, 0, 0, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')
                     self.layers[rot].append(layer)
 
     def requestNumberOfLayers(self):
@@ -286,8 +286,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     index, 0).sprite)
 
         if self.object_tab.locked:
-            self.createLayers(self.object_tab.locked_sprite_tab.base_x,
-                              self.object_tab.locked_sprite_tab.base_y)
+            self.createLayers()
             self.object_tab.locked_sprite_tab.updateLayersModel()
 
         self.updateMainView()
