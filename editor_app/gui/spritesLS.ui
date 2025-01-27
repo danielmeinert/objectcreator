@@ -460,6 +460,9 @@
         <height>61</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose the mode you want for sprite editing. If Projection is chosen, you have one sprite per angle that gets projected onto the respective tiles' sprite bounding boxes when saving. This corresponds to Old Object Maker + Landmark editor. If Tiles is selected, you can edit the respective sprite for each tile individually.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="title">
        <string>Drawing Mode</string>
       </property>

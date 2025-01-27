@@ -460,6 +460,33 @@ class MainWindowUi(QMainWindow):
 
         self.last_open_folder = filepath
 
+    def loadObjectFromId(self, dat_id):
+        try:
+            o = obj.loadFromId(dat_id, openpath=self.openpath)
+            name = dat_id
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error Trapper")
+            msg.setText("Failed to load object")
+            msg.setInformativeText(str(traceback.format_exc()))
+            msg.show()
+            return
+
+        if not self.current_palette == pal.orct:
+            o.switchPalette(self.current_palette)
+
+        object_tab = wdg.ObjectTab(o, self, self.last_open_folder)
+
+        sprite_tab = wdg.SpriteTab(self, object_tab)
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+
+        self.object_tabs.addTab(object_tab, name)
+        self.object_tabs.setCurrentWidget(object_tab)
+        self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
+        self.sprite_tabs.setCurrentWidget(sprite_tab)
+
     # Tab actions
     def changeObjectTab(self, index):
         object_tab = self.object_tabs.widget(index)
@@ -658,31 +685,7 @@ class MainWindowUi(QMainWindow):
         dat_id, ok = QInputDialog().getText(self, "DAT Identifier Import",
                                             "Input DAT Identifier of object to load.")
         if ok and dat_id:
-            try:
-                o = obj.loadFromId(dat_id, openpath=self.openpath)
-                name = dat_id
-            except Exception as e:
-                msg = QMessageBox(self)
-                msg.setIcon(QMessageBox.Critical)
-                msg.setWindowTitle("Error Trapper")
-                msg.setText("Failed to load object")
-                msg.setInformativeText(str(traceback.format_exc()))
-                msg.show()
-                return
-
-            if not self.current_palette == pal.orct:
-                o.switchPalette(self.current_palette)
-
-            object_tab = wdg.ObjectTab(o, self, self.last_open_folder)
-
-            sprite_tab = wdg.SpriteTab(self, object_tab)
-            sprite_tab.layersChanged.connect(self.layer_widget.updateList)
-            sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
-
-            self.object_tabs.addTab(object_tab, name)
-            self.object_tabs.setCurrentWidget(object_tab)
-            self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
-            self.sprite_tabs.setCurrentWidget(sprite_tab)
+            self.loadObjectFromId(dat_id)
 
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
@@ -759,6 +762,10 @@ class MainWindowUi(QMainWindow):
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
             self.tool_widget.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
+
+        if e.modifiers() & QtCore.Qt.ControlModifier:
+            if e.key() == QtCore.Qt.Key_T:
+                self.loadObjectFromId('TOLSPINE')
 
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:

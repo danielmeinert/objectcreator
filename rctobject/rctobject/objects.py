@@ -1046,9 +1046,9 @@ class LargeScenery(RCTObject):
             second_remap = self.current_second_remap
             third_remap = self.current_third_remap
 
-
         tiles_list = self.getOrderedTileSprites(rotation)
-        width, height, left, right, top, bottom = self.computeCanvasOverlap(tiles_list, rotation)
+        width, height, left, right, top, bottom = self.computeCanvasOverlap(
+            tiles_list, rotation)
         canvas = Image.new('RGBA', (width, height))
 
         for tile_entry in tiles_list:
@@ -1061,25 +1061,24 @@ class LargeScenery(RCTObject):
         x, y = self.centerOffset()
 
         return canvas, -x-left, -y-top
-    
+
     def computeCanvasOverlap(self, tiles_list, rotation=None):
         'Computes the overlap of the object sprite to the sprite bounding box'
         left = 0
         right = 0
-        top = 0 
-        bottom = 0    
-        
-        width, height = self.spriteBoundingBox(rotation) 
-                
+        top = 0
+        bottom = 0
+
+        width, height = self.spriteBoundingBox(rotation)
+
         for tile_entry in tiles_list:
             s = tile_entry[0]
-            left = max(left, -s.x-tile_entry[1]) 
+            left = max(left, -s.x-tile_entry[1])
             right = max(right, s.image.width+s.x-(width-tile_entry[1]))
             top = max(top, -s.y-tile_entry[2])
             bottom = max(bottom, s.image.height+s.y-(height-tile_entry[2]))
-            
-        return (width+left+right, height+top+bottom, left, right, top, bottom)
 
+        return (width+left+right, height+top+bottom, left, right, top, bottom)
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
@@ -1100,7 +1099,7 @@ class LargeScenery(RCTObject):
         return sorted(order, key=order.get)
 
     def getOrderedTileSprites(self, rotation=None):
-        if rotation:
+        if rotation is not None:
             rotation_save = int(self.rotation)
             self.setRotation(rotation)
         else:
@@ -1190,7 +1189,7 @@ class LargeScenery(RCTObject):
     def projectImageToTiles(self, im_paste, rotation=None, already_palettized=False):
         rotation_save = int(self.rotation)
 
-        if rotation:
+        if rotation is not None:
             self.setRotation(rotation)
 
         for i, tile in enumerate(self.tiles):
