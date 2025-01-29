@@ -541,12 +541,12 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, 0, 0, 0, 0, name=f'Structure View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Structure View {rot+1}', locked_id=0)
                 self.layers[rot].append(layer)
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot, glass=True)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, 0, 0, 0, 0, name=f'Glass View {rot+1}')
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Glass View {rot+1}', locked_id=1)
                 self.layers[rot].append(layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
             if self.slider_sprite_index.value() == 0:
@@ -579,27 +579,27 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     sprite = self.o.sprites[self.o.data['images']
                                             [base_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, 0, 0, 0, 0, name=f'Base 1 View {rot+1}')
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Base 1 View {rot+1}', locked_id=0)
                     self.layers[rot].append(layer)
 
                     sprite = self.o.sprites[self.o.data['images']
                                             [fountain_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, 0, 0, 0, 0,
-                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
+                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}', locked_id=1)
                     self.layers[rot].append(layer)
 
                     if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
                         sprite = self.o.sprites[self.o.data['images']
                                                 [base_index+4]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, 0, 0, 0, 0, name=f'Base 2 View {rot+1}')
+                            sprite, self.main_window, 0, 0, 0, 0, name=f'Base 2 View {rot+1}', locked_id=2)
                         self.layers[rot].append(layer)
                         sprite = self.o.sprites[self.o.data['images']
                                                 [fountain_index+16]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, 0, 0, 0, 0, 
-                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
+                            sprite, self.main_window, 0, 0, 0, 0,
+                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}', locked_id=3)
                         self.layers[rot].append(layer)
             else:
                 if animation_frame == 0 and self.o.has_preview:
@@ -615,7 +615,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                             rotation=rot, animation_frame=animation_frame)
 
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, 0, 0, 0, 0, 
+                            sprite, self.main_window, 0, 0, 0, 0,
                             name=f'Animation Frame {animation_frame + 1 - int(self.o.has_preview)} View {rot+1}')
                         self.layers[rot].append(layer)
         else:

@@ -207,6 +207,8 @@ class SpritesTabAll(QWidget):
         self.main_window = object_tab.main_window
         self.last_image_path = ''
 
+        self.active_layer_id = 0
+
     def initializeWidgets(self, view_width, view_height):
         # Buttons load/reset
         self.button_load_image = self.findChild(
@@ -461,8 +463,15 @@ class SpritesTabAll(QWidget):
             self.object_tab.locked_sprite_tab.updateLayersModel()
             self.updateAllViews()
 
+    # to be defined in sub class
+    def activeLayerChanged(self, layer):
+        self.active_layer_id = layer.locked_id
+
     def giveCurrentMainViewLayers(self):
         return self.layers[self.o.rotation]
+
+    def giveCurrentActiveLayerId(self):
+        return self.active_layer_id
 
     def updateMainView(self):
         # to be defined in sub class

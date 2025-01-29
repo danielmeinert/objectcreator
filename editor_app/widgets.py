@@ -121,9 +121,11 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab = locked_sprite_tab
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
+        self.locked_sprite_tab.activeLayerChanged.connect(
+            self.sprites_tab.activeLayerChanged)
 
         self.sprites_tab.createLayers()
-        
+
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
@@ -131,6 +133,9 @@ class ObjectTab(QWidget):
 
     def giveCurrentMainViewLayers(self):
         return self.sprites_tab.giveCurrentMainViewLayers()
+
+    def giveCurrentActiveLayerId(self):
+        return self.sprites_tab.giveCurrentActiveLayerId()
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
@@ -171,6 +176,7 @@ class ObjectTab(QWidget):
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
     layersChanged = QtCore.pyqtSignal()
+    activeLayerChanged = QtCore.pyqtSignal(object)
     dummyChanged = QtCore.pyqtSignal()
 
     def __init__(self, main_window, object_tab=None, filepath=None):
@@ -253,7 +259,8 @@ class SpriteTab(QWidget):
 
             self.dummyChanged.emit()
 
-            self.active_layer = self.layers.item(0)
+            index = self.layers.indexFromItem(self.layers.item(0))
+            self.setCurrentActiveLayer(index)
 
             self.layersChanged.emit()
 
@@ -291,10 +298,10 @@ class SpriteTab(QWidget):
     def canvasSizeChanged(self, left=0, right=0, top=0, bottom=0):
         width = self.canvas_width + left + right
         height = self.canvas_height + top + bottom
-                
+
         if height is not None and height < self.canvas_height:
             # if height is smaller than the current canvas height, check if it is possible to resize
-            
+
             dummy_o = self.giveDummy()
 
             _, sprite_height = dummy_o.spriteBoundingBox()
@@ -314,7 +321,7 @@ class SpriteTab(QWidget):
 
         if width is not None and width < self.canvas_width:
             # if width is smaller than the current canvas width, check if it is possible to resize
-            
+
             dummy_o = self.giveDummy()
 
             sprite_width, _ = dummy_o.spriteBoundingBox()
@@ -342,8 +349,8 @@ class SpriteTab(QWidget):
             self.canvas_height = height
             self.spinbox_height.setValue(height)
 
-        self.setNewCanvasBase(x= self.base_x + left, y= self.base_y + top)
-        
+        self.setNewCanvasBase(x=self.base_x + left, y=self.base_y + top)
+
         self.view.updateCanvasSize()
 
         self.protected_pixels = Image.new(
@@ -351,9 +358,9 @@ class SpriteTab(QWidget):
 
     def setNewCanvasBase(self, x=None, y=None):
         if x:
-            self.base_x = x 
+            self.base_x = x
         if y:
-            self.base_y = y 
+            self.base_y = y
 
         for index in range(self.layers.rowCount()):
             layer = self.layers.item(index, 0)
@@ -391,7 +398,7 @@ class SpriteTab(QWidget):
 
         if -coords[1] - self.base_y > -20:
             self.canvasSizeChanged(
-                height=-coords[1]- self.base_y+20)
+                height=-coords[1] - self.base_y+20)
 
         self.dummyChanged.emit()
 
@@ -706,17 +713,21 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        selected_row = self.layers.indexFromItem(self.active_layer).row()
+        active_id = self.object_tab.giveCurrentActiveLayerId()
+        active_layer = None
+
         self.clearView()
 
         for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
+            if layer.locked_id == active_id:
+                active_layer = layer
+        else:
+            if active_layer is None:
+                active_layer = layer
 
-        if selected_row >= self.layers.rowCount():
-            selected_row = 0
-        
-        index = self.layers.indexFromItem(
-            self.layers.item(selected_row))
+        index = self.layers.indexFromItem(active_layer)
+
         self.main_window.layer_widget.layers_list.setCurrentIndex(index)
         self.setCurrentActiveLayer(index)
 
@@ -751,18 +762,19 @@ class SpriteTab(QWidget):
         # adjust sprite margins
         width, height = layer.sprite.image.size
 
-        
         if layer.base_x + layer.sprite.x < 20:
-            self.canvasSizeChanged(left= -layer.base_x -layer.sprite.x + 20)
+            self.canvasSizeChanged(left=-layer.base_x - layer.sprite.x + 20)
 
         if layer.base_x + width + layer.sprite.x > self.canvas_width - 20:
-            self.canvasSizeChanged(right= layer.base_x + width + layer.sprite.x + 20 -self.canvas_width)
+            self.canvasSizeChanged(
+                right=layer.base_x + width + layer.sprite.x + 20 - self.canvas_width)
 
         if layer.base_y + layer.sprite.y < 20:
-            self.canvasSizeChanged(top= -layer.base_y - layer.sprite.y + 20)
+            self.canvasSizeChanged(top=-layer.base_y - layer.sprite.y + 20)
 
         if layer.base_y + height + layer.sprite.y > self.canvas_height - 20:
-            self.canvasSizeChanged(bottom= height + layer.base_y + layer.sprite.y - self.canvas_height + 20)
+            self.canvasSizeChanged(
+                bottom=height + layer.base_y + layer.sprite.y - self.canvas_height + 20)
 
         self.layersChanged.emit()
 
@@ -829,6 +841,9 @@ class SpriteTab(QWidget):
 
     def setCurrentActiveLayer(self, index, index_previous=None):
         self.active_layer = self.layers.itemFromIndex(index)
+
+        if self.active_layer is not None:
+            self.activeLayerChanged.emit(self.active_layer)
 
     def currentActiveLayer(self):
         return self.active_layer
@@ -1258,15 +1273,17 @@ class SpriteViewWidget(QGraphicsView):
 
 
 class SpriteLayer(QtGui.QStandardItem):
-    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", parent=None):
+    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", locked_id=0, parent=None):
         super().__init__(name)
 
         self.item = QGraphicsPixmapItem()
 
         self.main_window = main_window
-        self.base_x = base_x + offset_x # self.base_x and self.base_y are the offset of the layer in the canvas
-        self.base_y = base_y + offset_y # base_x and base_y are the global base point
-        self.offset_x = offset_x        # self.offset_x and self.offset_y are the offset of layer with respect to the canvas base point
+        # self.base_x and self.base_y are the offset of the layer in the canvas
+        self.base_x = base_x + offset_x
+        self.base_y = base_y + offset_y  # base_x and base_y are the global base point
+        # self.offset_x and self.offset_y are the offset of layer with respect to the canvas base point
+        self.offset_x = offset_x
         self.offset_y = offset_y
 
         self.visible = True
@@ -1274,6 +1291,9 @@ class SpriteLayer(QtGui.QStandardItem):
         self.sprite = sprite
         self.history = []
         self.history_redo = []
+
+        # layers made by objects get an id to easily identify them
+        self.locked_id = locked_id
 
         self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable |
                       QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
@@ -1289,7 +1309,7 @@ class SpriteLayer(QtGui.QStandardItem):
         base_y = int(layer.base_y)
         offset_x = int(layer.offset_x)
         offset_y = int(layer.offset_y)
-        
+
         name = new_name if new_name else layer.text()
 
         return cls(sprite, layer.main_window, base_x, base_y, offset_x, offset_y, name)
@@ -1366,7 +1386,7 @@ class SpriteLayer(QtGui.QStandardItem):
                             self.base_y + self.sprite.y)
 
     def setBaseOffset(self, x, y):
-        
+
         # x and y are the global base point
         self.base_x = x + self.offset_x
         self.base_y = y + self.offset_y
@@ -1507,7 +1527,6 @@ class LayersWidget(QWidget):
 
     def selectedLayerChanged(self, index):
         widget = self.main_window.sprite_tabs.currentWidget()
-
         if widget:
             widget.setCurrentActiveLayer(index)
 
