@@ -89,9 +89,22 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.loadObjectSettings(author=author, author_id=author_id)
 
     def giveDummy(self):
-        dummy_o = obj.newEmpty(obj.Type.SMALL)
+        if self.sprites_tab.view_mode == self.sprites_tab.ViewMode.PROJECTION:
+            dummy_o = obj.newEmpty(obj.Type.SMALL)
 
-        return dummy_o
+            return dummy_o, (0, 0)
+
+        elif self.sprites_tab.view_mode == self.sprites_tab.ViewMode.TILES:
+            tile = self.o.tiles[self.sprites_tab.active_layer_id]
+            dummy_o = obj.newEmpty(obj.Type.SMALL)
+            dummy_o.changeShape(obj.SmallScenery.Shape.FULL)
+            dummy_o['properties']['height'] = int(tile.h*8)
+
+            offset_x, offset_y = self.o.baseOffset()
+            offset_x -= self.o.centerOffset()[0]
+            offset_y -= self.o.centerOffset()[1]
+
+            return dummy_o, (32*(-tile.x + tile.y)+offset_x, 16*(tile.x+tile.y)-8*tile.z+offset_y)
 
     def subtypeChanged(self, value):
         value = self.subtype_box.currentIndex()
@@ -220,6 +233,16 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             self.projectSprites()
 
         self.updateLockedSpriteLayersModel()
+
+    # override base class method
+    def activeLayerChanged(self, layer):
+        self.active_layer_id = layer.locked_id
+
+        dummy_o, dummy_coords = self.object_tab.giveDummy()
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
+        self.object_tab.boundingBoxChanged.emit(
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
 
     def createLayers(self):
         self.layers = [[], [], [], []]

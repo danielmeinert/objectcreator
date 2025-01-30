@@ -44,7 +44,8 @@ import widgetsLS
 class ObjectTab(QWidget):
     mainViewUpdated = QtCore.pyqtSignal()
     rotationChanged = QtCore.pyqtSignal(int)
-    boundingBoxChanged = QtCore.pyqtSignal(bool, object, tuple)
+    boundingBoxChanged = QtCore.pyqtSignal(
+        [bool, object, tuple], [bool, object, tuple, tuple])
     symmAxesChanged = QtCore.pyqtSignal(bool, object, tuple)
 
     def __init__(self, o, main_window, filepath=None, author=None, author_id=None):
@@ -204,6 +205,7 @@ class SpriteTab(QWidget):
         self.dummy_o = obj.newEmpty(obj.Type.SMALL)
         self.dummy_o.changeShape(self.dummy_o.Shape.QUARTER)
         self.dummy_o['properties']['height'] = 0
+        self.dummy_coords = (0, 0)
 
         self.bounding_boxes_active = False
         self.symm_axes_active = False
@@ -277,7 +279,7 @@ class SpriteTab(QWidget):
 
             self.active_layer = self.layers.item(0)
 
-            self.dummy_o = self.object_tab.giveDummy()
+            self.dummy_o, self.dummy_coords = self.object_tab.giveDummy()
             self.dummyChanged.emit()
 
             self.locked = False
@@ -293,7 +295,7 @@ class SpriteTab(QWidget):
         if self.locked:
             return self.object_tab.giveDummy()
         else:
-            return self.dummy_o
+            return self.dummy_o, self.dummy_coords
 
     def canvasSizeChanged(self, left=0, right=0, top=0, bottom=0):
         width = self.canvas_width + left + right
@@ -302,11 +304,12 @@ class SpriteTab(QWidget):
         if height is not None and height < self.canvas_height:
             # if height is smaller than the current canvas height, check if it is possible to resize
 
-            dummy_o = self.giveDummy()
+            dummy_o, dummy_coords = self.giveDummy()
 
             _, sprite_height = dummy_o.spriteBoundingBox()
 
-            max_height = sprite_height + self.canvas_height - self.base_y
+            max_height = sprite_height + self.canvas_height - \
+                self.base_y - dummy_coords[1]
 
             for index in range(self.layers.rowCount()):
                 layer = self.layers.item(index, 0)
@@ -322,11 +325,12 @@ class SpriteTab(QWidget):
         if width is not None and width < self.canvas_width:
             # if width is smaller than the current canvas width, check if it is possible to resize
 
-            dummy_o = self.giveDummy()
+            dummy_o, dummy_coords = self.giveDummy()
 
             sprite_width, _ = dummy_o.spriteBoundingBox()
 
-            max_width = sprite_width + self.canvas_width - self.base_x
+            max_width = sprite_width + self.canvas_width - \
+                self.base_x - dummy_coords[0]
 
             for index in range(self.layers.rowCount()):
                 layer = self.layers.item(index, 0)
@@ -366,14 +370,16 @@ class SpriteTab(QWidget):
             layer = self.layers.item(index, 0)
             layer.setBaseOffset(self.base_x, self.base_y)
 
-        _, coords = self.main_window.bounding_boxes.giveBackbox(
-            self.giveDummy())
-        self.view.layer_boundingbox.setOffset(
-            coords[0]+self.base_x, coords[1]+self.base_y)
+        dummy_o, dummy_coords = self.giveDummy()
 
-        _, coords = self.main_window.symm_axes.giveSymmAxes(self.giveDummy())
+        _, coords = self.main_window.bounding_boxes.giveBackbox(
+            dummy_o)
+        self.view.layer_boundingbox.setOffset(
+            coords[0]+self.base_x+dummy_coords[0], coords[1]+self.base_y+dummy_coords[1])
+
+        _, coords = self.main_window.symm_axes.giveSymmAxes(dummy_o)
         self.view.layer_symm_axes.setOffset(
-            coords[0]+self.base_x, coords[1]+self.base_y)
+            coords[0]+self.base_x+dummy_coords[0], coords[1]+self.base_y+dummy_coords[1])
 
     def zoomChanged(self, val):
         self.view.scale(val/self.zoom_factor, val/self.zoom_factor)
@@ -393,12 +399,13 @@ class SpriteTab(QWidget):
 
         pixmap = QtGui.QPixmap.fromImage(image)
         self.view.layer_boundingbox.setPixmap(pixmap)
+
         self.view.layer_boundingbox.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
 
-        if -coords[1] - self.base_y > -20:
-            self.canvasSizeChanged(
-                height=-coords[1] - self.base_y+20)
+        # if -coords[1] - self.base_y > -20:
+        #     self.canvasSizeChanged(
+        #         height=-coords[1] - self.base_y+20)
 
         self.dummyChanged.emit()
 
@@ -900,7 +907,7 @@ class SpriteTab(QWidget):
                     selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
 
                     if self.main_window.current_import_offset_mode == 'bottom':
-                        o = self.giveDummy()
+                        o, _ = self.giveDummy()
                         x, y, _ = o.size()
                         offset_y = (16*x+16*y)//2
                     else:
@@ -1575,19 +1582,23 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
+            dummy_o, dummy_coords = widget.giveDummy()
+
             backbox, coords = self.main_window.bounding_boxes.giveBackbox(
-                widget.giveDummy())
+                dummy_o)
             widget.boundingBoxesChanged(
-                self.button_bounding_box.isChecked(), backbox, coords)
+                self.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1]+dummy_coords[1]))
 
     def clickSymmAxes(self):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
+            dummy_o, dummy_coords = widget.giveDummy()
+
             symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(
-                widget.giveDummy())
+                dummy_o)
             widget.symmAxesChanged(
-                self.button_symm_axes.isChecked(), symm_axis, coords)
+                self.button_symm_axes.isChecked(), symm_axis, (coords[0]+dummy_coords[0], coords[1]+dummy_coords[1]))
 
     def clickRotate(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1647,7 +1658,7 @@ class LayersWidget(QWidget):
     def setDummyControls(self):
         widget = self.main_window.sprite_tabs.currentWidget()
         if widget:
-            dummy_o = widget.giveDummy()
+            dummy_o, dummy_coords = widget.giveDummy()
             self.spin_box_clearance.setValue(
                 int(dummy_o['properties']['height']/8))
             self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)

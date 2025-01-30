@@ -186,7 +186,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         dummy_o['properties']['height'] = int(self.o['properties']['height'])
         dummy_o.rotation = int(self.o.rotation)
 
-        return dummy_o
+        return dummy_o, (0, 0)
 
     def subtypeChanged(self, value):
         value = self.subtype_box.currentIndex()
