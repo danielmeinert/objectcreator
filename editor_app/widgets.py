@@ -259,11 +259,10 @@ class SpriteTab(QWidget):
             for layer in object_tab.giveCurrentMainViewLayers():
                 self.addLayer(layer)
 
-            self.dummyChanged.emit()
-
             index = self.layers.indexFromItem(self.layers.item(0))
             self.setCurrentActiveLayer(index)
 
+            self.dummyChanged.emit()
             self.layersChanged.emit()
 
         self.updateView()
@@ -403,9 +402,22 @@ class SpriteTab(QWidget):
         self.view.layer_boundingbox.setOffset(
             coords[0]+self.base_x, coords[1]+self.base_y)
 
-        # if -coords[1] - self.base_y > -20:
-        #     self.canvasSizeChanged(
-        #         height=-coords[1] - self.base_y+20)
+        # adjust sprite margins
+        width, height = backbox.size
+
+        if coords[0]+self.base_x < 20:
+            self.canvasSizeChanged(left=-coords[0]-self.base_x + 20)
+
+        if coords[0]+self.base_x + width > self.canvas_width - 20:
+            self.canvasSizeChanged(
+                right=coords[0]+self.base_x + width + 20 - self.canvas_width)
+
+        if coords[1]+self.base_y < 20:
+            self.canvasSizeChanged(top=-coords[1]-self.base_y + 20)
+
+        if coords[1]+self.base_y + height > self.canvas_height - 20:
+            self.canvasSizeChanged(
+                bottom=height + coords[1]+self.base_y - self.canvas_height + 20)
 
         self.dummyChanged.emit()
 
@@ -712,9 +724,10 @@ class SpriteTab(QWidget):
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
     def updateView(self, emit_signal=True):
-        self.active_layer.updateLayer()
-        if emit_signal:
-            self.layerUpdated.emit()
+        if self.active_layer is not None:
+            self.active_layer.updateLayer()
+            if emit_signal:
+                self.layerUpdated.emit()
 
     def updateLayersModel(self):
         if not self.locked:
@@ -736,7 +749,6 @@ class SpriteTab(QWidget):
         index = self.layers.indexFromItem(active_layer)
 
         self.main_window.layer_widget.layers_list.setCurrentIndex(index)
-        self.setCurrentActiveLayer(index)
 
         self.layersChanged.emit()
 
@@ -1519,9 +1531,10 @@ class LayersWidget(QWidget):
             self.layers_list.reset()
             self.layers_list.setModel(model)
 
-            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
             self.layers_list.setCurrentIndex(
                 model.indexFromItem(widget.active_layer))
+            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
+
         else:
             self.layers_list.setModel(QtGui.QStandardItemModel())
 
@@ -1661,7 +1674,11 @@ class LayersWidget(QWidget):
             dummy_o, dummy_coords = widget.giveDummy()
             self.spin_box_clearance.setValue(
                 int(dummy_o['properties']['height']/8))
-            self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)
+            try:
+                self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)
+            except AttributeError:
+                self.combo_box_shape.setCurrentIndex(
+                    obj.SmallScenery.Shape.FULL.value)
 
     def setEnabledSpriteControls(self, val):
         widget = self.main_window.sprite_tabs.currentWidget()

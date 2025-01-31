@@ -90,9 +90,18 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
     def giveDummy(self):
         if self.sprites_tab.view_mode == self.sprites_tab.ViewMode.PROJECTION:
-            dummy_o = obj.newEmpty(obj.Type.SMALL)
+            dummy_o = obj.newEmpty(obj.Type.LARGE)
+            size = self.o.size()
+            dummy_o.changeShape(*size)
+            dummy_o.setRotation(self.o.rotation)
 
-            return dummy_o, (0, 0)
+            dummy_o['properties']['height'] = int(size[2]*8)
+
+            offset_x, offset_y = self.o.baseOffset()
+            offset_x -= self.o.centerOffset()[0]
+            offset_y -= self.o.centerOffset()[1]
+
+            return dummy_o, (offset_x, offset_y)
 
         elif self.sprites_tab.view_mode == self.sprites_tab.ViewMode.TILES:
             tile = self.o.tiles[self.sprites_tab.active_layer_id]

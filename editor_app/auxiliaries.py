@@ -69,6 +69,9 @@ class BoundingBoxes():
         image = Image.open(resource_path("res/base_full.png"))
         self.base_full = [image, (-32, -15)]
 
+        image = Image.open(resource_path("res/base_full_dark.png"))
+        self.base_full_dark = [image, (-32, -15)]
+
         image_0 = Image.open(resource_path("res/base_half_0.png"))
         image_1 = Image.open(resource_path("res/base_half_1.png"))
         self.base_half = [[image_0, (-16, -15)], [image_1, (-16, -7)],
@@ -162,7 +165,31 @@ class BoundingBoxes():
 
                 return [canvas, (self.backbox_three_quarter[rot][1][0], self.backbox_three_quarter[rot][1][1] - 8*h)]
         elif object_type == obj.Type.LARGE:
-            return [Image.new('RGBA', (1,1)), (0,0)]
+            tiles_list = o.getOrderedTileSprites()
+
+            width, height = o.spriteBoundingBox()
+            canvas = Image.new('RGBA', (width, height))
+
+            for tile_entry in reversed(tiles_list):
+                tile = o.tiles[tile_entry[3]]
+                h = tile.h
+
+                if (tile.x + tile.y) % 2 == 0:
+                    base = self.base_full[0]
+                else:
+                    base = self.base_full_dark[0]
+
+                for i in reversed(range(h+1)):
+                    if i == 0:
+                        canvas.paste(
+                            base, (tile_entry[1]-32, tile_entry[2]-15), base)
+                    else:
+                        canvas.paste(
+                            self.backbox_full[0], (tile_entry[1]-32, -i*8+tile_entry[2]-15), self.backbox_full[0])
+
+            x, y = o.baseOffset()
+
+            return [canvas, (-x, -y)]
 
 
 class SymmetryAxes():
@@ -213,4 +240,4 @@ class SymmetryAxes():
             elif shape == obj.SmallScenery.Shape.THREEQ or shape == obj.SmallScenery.Shape.FULLD:
                 return self.symm_diagonal[rot % 2]
         elif object_type == obj.Type.LARGE:
-            return [Image.new('RGBA', (1,1)), (0,0)]
+            return [Image.new('RGBA', (1, 1)), (0, 0)]
