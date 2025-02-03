@@ -224,6 +224,8 @@ class SpriteTab(QWidget):
         self.layers = QtGui.QStandardItemModel()
         self.layercount = 1
 
+        self.active_layer = None
+
         if object_tab:
             self.lockWithObjectTab(object_tab)
         else:
@@ -759,6 +761,14 @@ class SpriteTab(QWidget):
 
             item.setZValue(self.layers.rowCount()-index)
 
+        if self.locked:
+            if self.object_tab.o.object_type == obj.Type.LARGE:
+                active_layer = self.currentActiveLayer()
+                if active_layer is not None:
+                    item = active_layer.giveItem()
+                    print(item.zValue(), self.view.layer_boundingbox.zValue())
+                    self.view.layer_boundingbox.setZValue(item.zValue()-1)
+
     def clearView(self):
         for index in range(self.layers.rowCount()):
             layer = self.layers.takeRow(0)[0]
@@ -863,6 +873,10 @@ class SpriteTab(QWidget):
 
         if self.active_layer is not None:
             self.activeLayerChanged.emit(self.active_layer)
+            if self.locked:
+                if self.object_tab.o.object_type == obj.Type.LARGE:
+                    item = self.active_layer.giveItem()
+                    self.view.layer_boundingbox.setZValue(item.zValue())
 
     def currentActiveLayer(self):
         return self.active_layer
