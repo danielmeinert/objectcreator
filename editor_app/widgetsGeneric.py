@@ -464,7 +464,7 @@ class SpritesTabAll(QWidget):
             self.updateAllViews()
 
     # to be defined in sub class
-    def activeLayerChanged(self, layer):
+    def setActiveLayer(self, layer):
         self.active_layer_id = layer.locked_id
 
     def giveCurrentMainViewLayers(self):

@@ -47,6 +47,7 @@ class ObjectTab(QWidget):
     boundingBoxChanged = QtCore.pyqtSignal(
         [bool, object, tuple], [bool, object, tuple, tuple])
     symmAxesChanged = QtCore.pyqtSignal(bool, object, tuple)
+    activeLayerChanged = QtCore.pyqtSignal(object)
 
     def __init__(self, o, main_window, filepath=None, author=None, author_id=None):
         super().__init__()
@@ -123,13 +124,17 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
         self.locked_sprite_tab.activeLayerChanged.connect(
-            self.sprites_tab.activeLayerChanged)
+            self.sprites_tab.setActiveLayer)
+        self.activeLayerChanged.connect(
+            self.locked_sprite_tab.updateLayersModel)
 
         self.sprites_tab.createLayers()
 
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
+        self.locked_sprite_tab.activeLayerChanged.disconnect()
+        self.activeLayerChanged.disconnect()
         self.locked_sprite_tab = None
 
     def giveCurrentMainViewLayers(self):
@@ -262,7 +267,7 @@ class SpriteTab(QWidget):
                 self.addLayer(layer)
 
             index = self.layers.indexFromItem(self.layers.item(0))
-            self.setCurrentActiveLayer(index)
+            self.setCurrentActiveLayerFromIndex(index)
 
             self.dummyChanged.emit()
             self.layersChanged.emit()
@@ -750,6 +755,7 @@ class SpriteTab(QWidget):
 
         index = self.layers.indexFromItem(active_layer)
 
+        print(index.row())
         self.main_window.layer_widget.layers_list.setCurrentIndex(index)
 
         self.layersChanged.emit()
@@ -766,7 +772,6 @@ class SpriteTab(QWidget):
                 active_layer = self.currentActiveLayer()
                 if active_layer is not None:
                     item = active_layer.giveItem()
-                    print(item.zValue(), self.view.layer_boundingbox.zValue())
                     self.view.layer_boundingbox.setZValue(item.zValue()-1)
 
     def clearView(self):
@@ -868,8 +873,11 @@ class SpriteTab(QWidget):
 
         self.layersChanged.emit()
 
-    def setCurrentActiveLayer(self, index, index_previous=None):
-        self.active_layer = self.layers.itemFromIndex(index)
+    def setCurrentActiveLayerFromIndex(self, index, index_previous=None):
+        self.setCurrentActiveLayer(self.layers.itemFromIndex(index))
+
+    def setCurrentActiveLayer(self, layer):
+        self.active_layer = layer
 
         if self.active_layer is not None:
             self.activeLayerChanged.emit(self.active_layer)
@@ -1449,6 +1457,7 @@ class SpriteLayer(QtGui.QStandardItem):
 
 class SpriteLayerListView(QtWidgets.QListView):
     checked = QtCore.pyqtSignal(QtCore.QModelIndex, bool)
+    elementClicked = QtCore.pyqtSignal(QtCore.QModelIndex)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1528,6 +1537,7 @@ class LayersWidget(QWidget):
         self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
 
         self.layers_list.checked.connect(self.layerChecked)
+        self.layers_list.clicked.connect(self.selectedLayerChanged)
 
         self.button_new.clicked.connect(self.newLayer)
         self.button_merge.clicked.connect(self.mergeLayer)
@@ -1547,8 +1557,6 @@ class LayersWidget(QWidget):
 
             self.layers_list.setCurrentIndex(
                 model.indexFromItem(widget.active_layer))
-            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
-
         else:
             self.layers_list.setModel(QtGui.QStandardItemModel())
 
@@ -1562,7 +1570,7 @@ class LayersWidget(QWidget):
     def selectedLayerChanged(self, index):
         widget = self.main_window.sprite_tabs.currentWidget()
         if widget:
-            widget.setCurrentActiveLayer(index)
+            widget.setCurrentActiveLayerFromIndex(index)
 
     def newLayer(self):
         widget = self.main_window.sprite_tabs.currentWidget()

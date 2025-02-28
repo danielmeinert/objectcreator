@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox,
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
     QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider, QTableWidgetItem, \
-    QRadioButton
+    QRadioButton, QHeaderView
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
@@ -40,6 +40,9 @@ from rctobject import objects as obj
 class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__(o, object_tab, sprites_tab)
+
+        self.current_tile_index = 0
+
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
 
         self.tab_widget = self.findChild(QTabWidget, "tabWidget_settingsLS")
@@ -86,7 +89,27 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.spinbox_version.valueChanged.connect(
             lambda value, name='version': self.spinBoxChanged(value, name))
 
+        # Tiles control
+        self.spinbox_x = self.findChild(
+            QSpinBox, "spinBox_size_x")
+        self.spinbox_y = self.findChild(
+            QSpinBox, "spinBox_size_y")
+
+        self.table.cellClicked.connect(self.cellClicked)
+        self.spinbox_x.valueChanged.connect(
+            lambda value: self.sizeChanged(x=value))
+        self.spinbox_y.valueChanged.connect(
+            lambda value: self.sizeChanged(y=value))
+
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.table.setRowHeight(0, 30)
+        self.table.setColumnWidth(0, 30)
+
         self.loadObjectSettings(author=author, author_id=author_id)
+
+    def giveCurrentTile(self):
+        return self.o.tiles[self.current_tile_index]
 
     def giveDummy(self):
         if self.sprites_tab.view_mode == self.sprites_tab.ViewMode.PROJECTION:
@@ -104,7 +127,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             return dummy_o, (offset_x, offset_y)
 
         elif self.sprites_tab.view_mode == self.sprites_tab.ViewMode.TILES:
-            tile = self.o.tiles[self.sprites_tab.active_layer_id]
+            tile = self.giveCurrentTile()
             dummy_o = obj.newEmpty(obj.Type.SMALL)
             dummy_o.changeShape(obj.SmallScenery.Shape.FULL)
             dummy_o['properties']['height'] = int(tile.h*8)
@@ -167,6 +190,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             self.o['properties'].get('removalPrice', 1))
         self.spinbox_version.setValue(float(self.o.data.get('version', 1.0)))
 
+        size = self.o.size()
+        self.spinbox_x.setValue(size[0])
+        self.spinbox_y.setValue(size[1])
+
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
 
@@ -186,6 +213,20 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
             settings_LS.get('cursor', 'CURSOR_BLANK')))
+
+    def sizeChanged(self, x=None, y=None):
+        if x:
+            self.table.setRowCount(x)
+        if y:
+            self.table.setColumnCount(y)
+
+    def cellClicked(self, row, column):
+        tile, index = self.o.getTile((row, column))
+        if tile is not None:
+            self.current_tile_index = index
+            layer = self.sprites_tab.getTileLayerById(index)
+            self.sprites_tab.setActiveLayer(layer)
+            self.object_tab.activeLayerChanged.emit(layer)
 
 
 class SpritesTab(widgetsGeneric.SpritesTabAll):
@@ -244,14 +285,22 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.updateLockedSpriteLayersModel()
 
     # override base class method
-    def activeLayerChanged(self, layer):
-        self.active_layer_id = layer.locked_id
+    def setActiveLayer(self, layer):
+        self.active_layer_id = int(layer.locked_id)
+
+        if self.view_mode == self.ViewMode.TILES:
+            self.current_tile_index = int(layer.locked_id)
 
         dummy_o, dummy_coords = self.object_tab.giveDummy()
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
         self.object_tab.boundingBoxChanged.emit(
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
+
+    def getTileLayerById(self, id):
+        for layer in self.layers[self.o.rotation]:
+            if layer.locked_id == id:
+                return layer
 
     def createLayers(self):
         self.layers = [[], [], [], []]

@@ -65,7 +65,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="tabBarAutoHide">
          <bool>false</bool>
@@ -737,9 +737,9 @@ QTabBar::tab:selected {
           <property name="geometry">
            <rect>
             <x>60</x>
-            <y>27</y>
-            <width>47</width>
-            <height>13</height>
+            <y>25</y>
+            <width>16</width>
+            <height>16</height>
            </rect>
           </property>
           <property name="text">
@@ -750,9 +750,9 @@ QTabBar::tab:selected {
           <property name="geometry">
            <rect>
             <x>130</x>
-            <y>27</y>
-            <width>47</width>
-            <height>13</height>
+            <y>25</y>
+            <width>16</width>
+            <height>16</height>
            </rect>
           </property>
           <property name="text">
@@ -774,7 +774,7 @@ QTabBar::tab:selected {
           <property name="flat">
            <bool>true</bool>
           </property>
-          <widget class="QSpinBox" name="spinBox">
+          <widget class="QSpinBox" name="spinBox_baseh">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -816,7 +816,7 @@ QTabBar::tab:selected {
             <string>Clearance</string>
            </property>
           </widget>
-          <widget class="QSpinBox" name="spinBox_3">
+          <widget class="QSpinBox" name="spinBox_clearance">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -832,7 +832,7 @@ QTabBar::tab:selected {
             <number>31</number>
            </property>
           </widget>
-          <widget class="QCheckBox" name="checkBox">
+          <widget class="QCheckBox" name="checkBox_nosupports">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -848,7 +848,7 @@ QTabBar::tab:selected {
             <bool>true</bool>
            </property>
           </widget>
-          <widget class="QCheckBox" name="checkBox_2">
+          <widget class="QCheckBox" name="checkBox_allowsupports">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -879,7 +879,7 @@ QTabBar::tab:selected {
            <property name="title">
             <string>Quarter Tiles | Walls</string>
            </property>
-           <widget class="QToolButton" name="toolButton_4">
+           <widget class="QToolButton" name="toolButton_q3">
             <property name="geometry">
              <rect>
               <x>40</x>
@@ -910,7 +910,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton">
+           <widget class="QToolButton" name="toolButton_q0">
             <property name="geometry">
              <rect>
               <x>40</x>
@@ -941,7 +941,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_2">
+           <widget class="QToolButton" name="toolButton_q1">
             <property name="geometry">
              <rect>
               <x>60</x>
@@ -972,7 +972,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_3">
+           <widget class="QToolButton" name="toolButton_q2">
             <property name="geometry">
              <rect>
               <x>60</x>
@@ -1003,7 +1003,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_5">
+           <widget class="QToolButton" name="toolButton_w0">
             <property name="geometry">
              <rect>
               <x>50</x>
@@ -1034,7 +1034,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_6">
+           <widget class="QToolButton" name="toolButton_w3">
             <property name="geometry">
              <rect>
               <x>16</x>
@@ -1065,7 +1065,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_7">
+           <widget class="QToolButton" name="toolButton_w2">
             <property name="geometry">
              <rect>
               <x>50</x>
@@ -1096,7 +1096,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_8">
+           <widget class="QToolButton" name="toolButton_w1">
             <property name="geometry">
              <rect>
               <x>84</x>
@@ -1128,7 +1128,7 @@ QTabBar::tab:selected {
             </property>
            </widget>
           </widget>
-          <widget class="QCheckBox" name="checkBox_3">
+          <widget class="QCheckBox" name="checkBox_synctiles">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -1142,13 +1142,13 @@ QTabBar::tab:selected {
            </property>
           </widget>
           <zorder>groupBox_2</zorder>
-          <zorder>spinBox</zorder>
+          <zorder>spinBox_baseh</zorder>
           <zorder>label_4</zorder>
           <zorder>label_6</zorder>
-          <zorder>spinBox_3</zorder>
-          <zorder>checkBox</zorder>
-          <zorder>checkBox_2</zorder>
-          <zorder>checkBox_3</zorder>
+          <zorder>spinBox_clearance</zorder>
+          <zorder>checkBox_nosupports</zorder>
+          <zorder>checkBox_allowsupports</zorder>
+          <zorder>checkBox_synctiles</zorder>
          </widget>
          <widget class="QPushButton" name="pushButton_add_tile">
           <property name="geometry">
@@ -1189,7 +1189,7 @@ QTabBar::tab:selected {
            <string>Fill Shape</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="pushButton_rotate">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -1205,7 +1205,7 @@ QTabBar::tab:selected {
            <string>Rotate</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="pushButton_innerborders">
           <property name="enabled">
            <bool>false</bool>
           </property>

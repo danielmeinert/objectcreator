@@ -1270,6 +1270,13 @@ class LargeScenery(RCTObject):
 
         self.updateImageList()
 
+    def getTile(self, coords):
+        for i, tile in enumerate(self.tiles):
+            if (tile.x, tile.y) == coords:
+                return tile, i
+
+        return None, None
+
     def changeShape(self, width, length, height):
         # erase all tiles and set a rectangular shape
 
