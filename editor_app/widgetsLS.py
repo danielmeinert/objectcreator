@@ -109,6 +109,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.loadObjectSettings(author=author, author_id=author_id)
 
     def giveCurrentTile(self):
+        print(self.current_tile_index)
         return self.o.tiles[self.current_tile_index]
 
     def giveDummy(self):
@@ -289,7 +290,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.active_layer_id = int(layer.locked_id)
 
         if self.view_mode == self.ViewMode.TILES:
-            self.current_tile_index = int(layer.locked_id)
+            self.object_tab.settings_tab.current_tile_index = int(layer.locked_id)
 
         try:
             dummy_o, dummy_coords = self.object_tab.giveDummy()

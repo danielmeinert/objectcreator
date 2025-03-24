@@ -755,7 +755,7 @@ class SpriteTab(QWidget):
             if active_layer is None:
                 active_layer = layer
 
-        self.active_layer = active_layer
+        self.setCurrentActiveLayer(active_layer)
 
         self.layersChanged.emit()
 
