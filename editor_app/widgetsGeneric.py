@@ -100,6 +100,14 @@ class SettingsTabAll(QWidget):
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
+        
+    # to be overridden in sub class    
+    def giveDummy(self):
+        dummy_o = obj.newEmpty(obj.Type.SMALL)
+        
+        dummy_o.rotation = int(self.o.rotation)
+
+        return dummy_o, (0, 0)    
 
     def save(self):
         if self.checkBox_remapCheck.isChecked():
@@ -447,12 +455,19 @@ class SpritesTabAll(QWidget):
 
         self.o.setRotation(rot)
 
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(self.o)
+        try:
+            dummy_o, dummy_coords = self.object_tab.giveDummy()
+        except AttributeError:
+            self.updateMainView()
+            return
+        
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
         self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
-        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(self.o)
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
+        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(dummy_o)
         self.object_tab.symmAxesChanged.emit(
-            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, coords)
+            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
+        
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()

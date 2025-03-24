@@ -747,16 +747,15 @@ class SpriteTab(QWidget):
 
         for layer in self.object_tab.giveCurrentMainViewLayers():
             self.addLayer(layer)
+
             if layer.locked_id == active_id:
                 active_layer = layer
+
         else:
             if active_layer is None:
                 active_layer = layer
 
-        index = self.layers.indexFromItem(active_layer)
-
-        print(index.row())
-        self.main_window.layer_widget.layers_list.setCurrentIndex(index)
+        self.active_layer = active_layer
 
         self.layersChanged.emit()
 

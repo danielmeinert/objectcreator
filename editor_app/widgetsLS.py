@@ -291,7 +291,10 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         if self.view_mode == self.ViewMode.TILES:
             self.current_tile_index = int(layer.locked_id)
 
-        dummy_o, dummy_coords = self.object_tab.giveDummy()
+        try:
+            dummy_o, dummy_coords = self.object_tab.giveDummy()
+        except AttributeError:
+            return
 
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
         self.object_tab.boundingBoxChanged.emit(
