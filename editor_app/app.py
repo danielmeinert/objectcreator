@@ -756,7 +756,8 @@ class MainWindowUi(QMainWindow):
 
     def keyPressEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:
-            self.tool_widget.toolbox.selectTool(cwdg.Tools.EYEDROPPER)
+            self.tool_widget.toolbox.selectTool(
+                cwdg.Tools.EYEDROPPER, store_last=True)
 
     def keyReleaseEvent(self, e):
         if e.key() == QtCore.Qt.Key_Alt:

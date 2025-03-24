@@ -182,14 +182,19 @@ class ToolBoxWidget(QWidget):
 
         self.brushsize = 1
 
-    def selectTool(self, tool):
+    def selectTool(self, tool, store_last=False):
         if tool == self.tool:
             self.tool_buttons[tool].setChecked(True)
             return
 
         self.tool_buttons[tool].setChecked(True)
         self.tool_buttons[self.tool].setChecked(False)
-        self.last_tool = self.tool
+
+        if store_last:
+            self.last_tool = self.tool
+        else:
+            self.last_tool = tool
+
         self.tool = tool
 
         self.toolChanged.emit(self)
