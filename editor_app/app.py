@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -744,7 +744,7 @@ class MainWindowUi(QMainWindow):
         msg.setText(f"Object Creator version {VERSION} <br> \
                 If you want to give feedback or issue bugs, \
                 visit the <a href='{url}'>github page. </a> <br> <br> \
-                Copyright (c) 2024 Tolsimir <br> \
+                Copyright (c) 2025 Tolsimir <br> \
                 The program 'Object Creator' is licensed under the GNU General Public License version 3.")
         msg.setStandardButtons(QMessageBox.Close)
 
