@@ -41,7 +41,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__(o, object_tab, sprites_tab)
 
-        self.current_tile_index = 0
+        self.tiles_model = QtGui.QStandardItemModel(0, 1)
+        for tile in self.o.tiles:
+            item = TileItem(tile)
+            self.tiles_model.appendRow(item)
 
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
 
@@ -251,6 +254,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             lambda: self.changeViewMode(self.ViewMode.TILES))
 
 #        self.changeViewMode(self.ViewMode.PROJECTION)
+        self.createLayers()
+
         self.previewClicked(0)
         self.updateAllViews()
 
@@ -290,7 +295,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.active_layer_id = int(layer.locked_id)
 
         if self.view_mode == self.ViewMode.TILES:
-            self.object_tab.settings_tab.current_tile_index = int(layer.locked_id)
+            self.object_tab.settings_tab.current_tile_index = int(
+                layer.locked_id)
 
         try:
             dummy_o, dummy_coords = self.object_tab.giveDummy()
@@ -504,105 +510,8 @@ class SpriteImportUi(QDialog):
         super().accept()
 
 
-class EditAnimationSequenceUI(QDialog):
-    def __init__(self, o):
+class TileItem(QtGui.QStandardItem):
+    def __init__(self, tile):
         super().__init__()
-        uic.loadUi(aux.resource_path('gui/animation_edit.ui'), self)
-
-        self.o = o
-        self.sequence = list(o['properties'].get('frameOffsets', [0]))
-        self.num_image_sets = int(o.num_image_sets)
-
-        self.table.setRowCount(len(self.sequence))
-        self.spinbox_length.setValue(len(self.sequence))
-        self.table.setColumnCount(self.num_image_sets)
-        self.spinbox_num_sprites.setValue(self.num_image_sets)
-
-        self.table.cellClicked.connect(self.cellClicked)
-        self.spinbox_length.valueChanged.connect(self.lengthChanged)
-        self.spinbox_num_sprites.valueChanged.connect(self.numSpritesChanged)
-
-        self.button_ascending.clicked.connect(self.ascending)
-        self.button_descending.clicked.connect(self.descending)
-        self.button_back_forth.clicked.connect(self.backForth)
-
-        for i in range(self.table.rowCount()):
-            self.table.setRowHeight(i, 10)
-
-        for i in range(self.table.columnCount()):
-            self.table.setColumnWidth(i, 10)
-
-        self.resize(self.layout().sizeHint())
-        self.updateTable()
-
-    def cellClicked(self, row, column):
-        self.sequence[row] = column
-
-        self.updateTable()
-
-    def lengthChanged(self, value):
-        old_len = len(self.sequence)
-
-        if old_len < value:
-            for i in range(value-old_len):
-                self.sequence.append(0)
-        else:
-            self.sequence = self.sequence[:value]
-
-        self.table.setRowCount(value)
-        for i in range(self.table.rowCount()):
-            self.table.setRowHeight(i, 10)
-
-        self.resize(self.layout().sizeHint())
-        self.updateTable()
-
-    def numSpritesChanged(self, value):
-        old_len = max(self.sequence)
-
-        if old_len > value-1:
-            self.sequence = [value-1 if x ==
-                             old_len else x for x in self.sequence]
-
-        self.table.setColumnCount(value)
-        for i in range(self.table.columnCount()):
-            self.table.setColumnWidth(i, 10)
-
-        self.num_image_sets = value
-
-        self.resize(self.layout().sizeHint())
-        self.updateTable()
-
-    def ascending(self):
-        self.spinbox_num_sprites.setValue(self.table.rowCount())
-
-        self.sequence = [i for i in range(self.table.rowCount())]
-
-        self.updateTable()
-
-    def descending(self):
-        length = self.table.rowCount()
-        self.spinbox_num_sprites.setValue(length)
-
-        self.sequence = [length-i-1 for i in range(length)]
-
-        self.updateTable()
-
-    def backForth(self):
-        length = int(self.table.rowCount()/2)
-        if length < 2:
-            return
-
-        self.spinbox_num_sprites.setValue(length)
-
-        self.sequence[:length] = [i for i in range(length)]
-        self.sequence[length:] = [length-i-1 for i in range(length)]
-
-        self.updateTable()
-
-    def updateTable(self):
-        self.table.clearContents()
-
-        for row, column in enumerate(self.sequence):
-            item = QTableWidgetItem()
-            self.table.setItem(row, column, item)
-            item.setBackground(QtCore.Qt.green)
+        self.tile = tile
+        self.setText(f"Tile {tile.x}, {tile.y}")

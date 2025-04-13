@@ -100,14 +100,14 @@ class SettingsTabAll(QWidget):
         # Remap check
         checkbox = self.findChild(QCheckBox, 'checkBox_remapCheck')
         checkbox.stateChanged.connect(self.flagRemapChanged)
-        
-    # to be overridden in sub class    
+
+    # to be overridden in sub class
     def giveDummy(self):
         dummy_o = obj.newEmpty(obj.Type.SMALL)
-        
+
         dummy_o.rotation = int(self.o.rotation)
 
-        return dummy_o, (0, 0)    
+        return dummy_o, (0, 0)
 
     def save(self):
         if self.checkBox_remapCheck.isChecked():
@@ -317,6 +317,7 @@ class SpritesTabAll(QWidget):
 
         layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
+        #TODO: update to new model system
         layers = QtGui.QStandardItemModel()
         layers.insertRow(0, layer)
 
@@ -337,13 +338,15 @@ class SpritesTabAll(QWidget):
         self.updateMainView()
 
     def resetImage(self):
-        for layer in self.giveCurrentMainViewLayers():
+        for i in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().item(i)
             layer.sprite.resetSprite()
 
         self.updateMainView()
 
     def resetOffsets(self):
-        for layer in self.giveCurrentMainViewLayers():
+        for i in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().item(i)
             layer.sprite.resetOffsets()
 
         self.updateMainView()
@@ -395,7 +398,7 @@ class SpritesTabAll(QWidget):
         QApplication.clipboard().setPixmap(pixmap)
         layers = QtGui.QStandardItemModel()
 
-        for i, layer in enumerate(self.giveCurrentMainViewLayers()):
+        for i, layer in enumerate(self.giveLayers()):
             layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
 
         self.main_window.sprite_clipboard = layers
@@ -404,7 +407,7 @@ class SpritesTabAll(QWidget):
     def copySpriteToView(self, view):
         layers = QtGui.QStandardItemModel()
 
-        for i, layer in enumerate(self.giveCurrentMainViewLayers()):
+        for i, layer in enumerate(self.giveLayers()):
             layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
 
         self.setCurrentLayers(layers, view=view)
@@ -419,7 +422,7 @@ class SpritesTabAll(QWidget):
             self.copySpriteToView(view=(view+rot + 1) % 4)
 
     def deleteSprite(self):
-        for layer in self.giveCurrentMainViewLayers():
+        for layer in self.giveLayers():
             layer.sprite.clearSprite()
 
         self.updateLockedSpriteLayersModel()
@@ -460,14 +463,15 @@ class SpritesTabAll(QWidget):
         except AttributeError:
             self.updateMainView()
             return
-        
+
         backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
         self.object_tab.boundingBoxChanged.emit(
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
         symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(dummy_o)
         self.object_tab.symmAxesChanged.emit(
             self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
-        
+
+        self.giveLayers().setActiveColumn(rot)
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
@@ -480,13 +484,10 @@ class SpritesTabAll(QWidget):
 
     # to be defined in sub class
     def setActiveLayer(self, layer):
-        self.active_layer_id = layer.locked_id
+        self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
 
-    def giveCurrentMainViewLayers(self):
-        return self.layers[self.o.rotation]
-
-    def giveCurrentActiveLayerId(self):
-        return self.active_layer_id
+    def giveLayers(self):        
+        return self.layers
 
     def updateMainView(self):
         # to be defined in sub class

@@ -114,7 +114,7 @@ class MainWindowUi(QMainWindow):
 
         self.button_pull_new_sprite = self.findChild(
             QToolButton, "toolButton_pull_new")
-        self.button_pull_new_sprite.clicked.connect(self.pushNewSprite)
+        self.button_pull_new_sprite.clicked.connect(self.pullNewSprite)
 
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(
@@ -203,7 +203,7 @@ class MainWindowUi(QMainWindow):
         # Load empty object if not started with objects
 
         if not opening_objects:
-            self.objectNew(obj_type=obj.Type.LARGE)
+            self.objectNew(obj_type=obj.Type.SMALL)
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
@@ -588,10 +588,9 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            index = self.layer_widget.layers_list.currentIndex()
-            object_tab.setCurrentLayers(sprite_tab.layers, index.row())
+            object_tab.setCurrentLayers(sprite_tab.giveLayers())
 
-    def pushNewSprite(self):
+    def pullNewSprite(self):
 
         object_tab = self.object_tabs.currentWidget()
 
@@ -610,18 +609,21 @@ class MainWindowUi(QMainWindow):
         sprite_tab = self.sprite_tabs.currentWidget()
 
         if sprite_tab and object_tab:
-            for layer in object_tab.giveCurrentMainViewLayers():
+            for row in range(object_tab.giveLayers().rowCount()):
+                layer = object_tab.giveLayers().itemFromProxyRow(row)
                 new_layer = wdg.SpriteLayer.fromLayer(layer)
                 new_layer.setVisible(layer.isVisible())
+                new_layer.setCheckState(layer.checkState())
+
                 sprite_tab.addLayer(new_layer)
 
-            sprite_tab.active_layer = sprite_tab.layers.item(0)
+            sprite_tab.setCurrentActiveLayer(new_layer)
 
             sprite_tab.layersChanged.emit()
 
     # Menubar actions
 
-    def objectNew(self, obj_type=obj.Type.SMALL):
+    def objectNew(self, obj_type=obj.Type.LARGE):
         o = obj.newEmpty(obj_type)
         name = f'Object {self.new_object_count}'
         self.new_object_count += 1

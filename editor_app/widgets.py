@@ -8,6 +8,7 @@
  *****************************************************************************
 """
 
+from operator import pos
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
@@ -123,25 +124,18 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab = locked_sprite_tab
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
-        self.locked_sprite_tab.activeLayerChanged.connect(
-            self.sprites_tab.setActiveLayer)
+
         self.activeLayerChanged.connect(
             self.locked_sprite_tab.updateLayersModel)
-
-        self.sprites_tab.createLayers()
 
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
-        self.locked_sprite_tab.activeLayerChanged.disconnect()
         self.activeLayerChanged.disconnect()
         self.locked_sprite_tab = None
 
-    def giveCurrentMainViewLayers(self):
-        return self.sprites_tab.giveCurrentMainViewLayers()
-
-    def giveCurrentActiveLayerId(self):
-        return self.sprites_tab.giveCurrentActiveLayerId()
+    def giveLayers(self):
+        return self.sprites_tab.giveLayers()
 
     def giveCurrentMainViewSprite(self):
         return self.o.giveSprite()
@@ -159,8 +153,8 @@ class ObjectTab(QWidget):
     def requestNumberOfLayers(self):
         return self.sprites_tab.requestNumberOfLayers()
 
-    def setCurrentLayers(self, layers, index=0):
-        self.sprites_tab.setCurrentLayers(layers, index)
+    def setCurrentLayers(self, layers):
+        self.sprites_tab.setCurrentLayers(layers)
 
     def colorRemapToAll(self, index, color_remap, selected_colors):
         if self.locked:
@@ -175,6 +169,10 @@ class ObjectTab(QWidget):
     def colorRemoveAll(self, index, selected_colors):
         if self.locked:
             self.sprites_tab.colorRemoveAll(index, selected_colors)
+            
+    def colorInvertShadingAll(self, index, selected_colors):
+        if self.locked:
+            self.sprites_tab.colorInvertShadingAll(index, selected_colors)
 
 # Sprites Tab
 
@@ -182,7 +180,6 @@ class ObjectTab(QWidget):
 class SpriteTab(QWidget):
     layerUpdated = QtCore.pyqtSignal()
     layersChanged = QtCore.pyqtSignal()
-    activeLayerChanged = QtCore.pyqtSignal(object)
     dummyChanged = QtCore.pyqtSignal()
 
     def __init__(self, main_window, object_tab=None, filepath=None):
@@ -226,17 +223,24 @@ class SpriteTab(QWidget):
         self.slider_zoom.valueChanged.connect(
             lambda x, toolbox=self.main_window.tool_widget.toolbox: self.toolChanged(toolbox))
 
-        self.layers = QtGui.QStandardItemModel()
+        # Layers
+        self.layers = SpriteLayerModel(1,1)
+
         self.layercount = 1
 
-        self.active_layer = None
-
+        self.locked = False
+        self.object_tab = None
+        
         if object_tab:
             self.lockWithObjectTab(object_tab)
         else:
-            self.locked = False
-            self.object_tab = None
-            self.newLayer()
+            layer = SpriteLayer(spr.Sprite(None, palette=self.main_window.current_palette,
+                                       transparent_color=self.main_window.current_import_color),
+                            self.main_window, self.base_x, self.base_y, 0, 0, f'Layer {self.layercount}')
+            self.layercount += 1
+
+            self.layers.setItem(0, 0, layer)
+            self.addLayerToCanvas(layer)
 
         self.protected_pixels = Image.new(
             '1', (self.canvas_width, self.canvas_height))
@@ -251,6 +255,8 @@ class SpriteTab(QWidget):
 
     def lockWithObjectTab(self, object_tab):
         if object_tab:
+            self.clearView()
+            
             self.locked = True
             self.object_tab = object_tab
             object_tab.lockWithSpriteTab(self)
@@ -261,16 +267,9 @@ class SpriteTab(QWidget):
                 self.boundingBoxesChanged)
             self.object_tab.symmAxesChanged.connect(self.symmAxesChanged)
 
-            self.clearView()
-
-            for layer in object_tab.giveCurrentMainViewLayers():
-                self.addLayer(layer)
-
-            index = self.layers.indexFromItem(self.layers.item(0))
-            self.setCurrentActiveLayerFromIndex(index)
+            self.updateLayersModel()
 
             self.dummyChanged.emit()
-            self.layersChanged.emit()
 
         self.updateView()
 
@@ -278,21 +277,26 @@ class SpriteTab(QWidget):
         if self.locked:
             self.clearView()
 
-            for layer in self.object_tab.giveCurrentMainViewLayers():
+            self.locked = False
+            self.object_tab.mainViewUpdated.disconnect()
+            self.object_tab.rotationChanged.disconnect(self.updateLayersModel)
+            self.object_tab.boundingBoxChanged.disconnect(self.boundingBoxesChanged)
+            self.object_tab.symmAxesChanged.disconnect(self.symmAxesChanged)
+
+            self.layers = SpriteLayerModel(0,1)
+
+            for row in range(self.object_tab.giveLayers().rowCount()):
+                layer = self.object_tab.giveLayers().itemFromProxyRow(row)
                 new_layer = SpriteLayer.fromLayer(layer)
                 new_layer.setVisible(layer.isVisible())
-                self.addLayer(new_layer)
+                new_layer.setCheckState(layer.checkState())
+                self.layers.insertProxyRow(row, new_layer)
+                self.addLayerToCanvas(new_layer)
 
-            self.active_layer = self.layers.item(0)
+            self.layers.setActiveRow(self.object_tab.giveLayers().giveActiveProxyRow())
 
             self.dummy_o, self.dummy_coords = self.object_tab.giveDummy()
             self.dummyChanged.emit()
-
-            self.locked = False
-            self.object_tab.mainViewUpdated.disconnect()
-            self.object_tab.rotationChanged.disconnect()
-            self.object_tab.boundingBoxChanged.disconnect()
-            self.object_tab.symmAxesChanged.disconnect()
 
             self.object_tab = None
             self.layersChanged.emit()
@@ -317,8 +321,8 @@ class SpriteTab(QWidget):
             max_height = sprite_height + self.canvas_height - \
                 self.base_y - dummy_coords[1]
 
-            for index in range(self.layers.rowCount()):
-                layer = self.layers.item(index, 0)
+            for row in range(self.giveLayers().rowCount()):
+                layer = self.giveLayers().item(row)
                 layer_height = -layer.sprite.y - layer.base_y + self.canvas_height
 
                 max_height = max(max_height, layer_height)
@@ -338,8 +342,8 @@ class SpriteTab(QWidget):
             max_width = sprite_width + self.canvas_width - \
                 self.base_x - dummy_coords[0]
 
-            for index in range(self.layers.rowCount()):
-                layer = self.layers.item(index, 0)
+            for row in range(self.giveLayers().rowCount()):
+                layer = self.giveLayers().item(row)
                 layer_width_left = -layer.sprite.x - layer.base_x + self.canvas_width
                 layer_width_right = layer.sprite.image.size[0] + \
                     layer.sprite.x - layer.base_x + self.canvas_width
@@ -372,8 +376,8 @@ class SpriteTab(QWidget):
         if y:
             self.base_y = y
 
-        for index in range(self.layers.rowCount()):
-            layer = self.layers.item(index, 0)
+        for row in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().item(row)
             layer.setBaseOffset(self.base_x, self.base_y)
 
         dummy_o, dummy_coords = self.giveDummy()
@@ -731,8 +735,8 @@ class SpriteTab(QWidget):
             self.protected_pixels.paste(noise_mask, mask=noise_mask)
 
     def updateView(self, emit_signal=True):
-        if self.active_layer is not None:
-            self.active_layer.updateLayer()
+        if self.currentActiveLayer() is not None:
+            self.currentActiveLayer().updateLayer()
             if emit_signal:
                 self.layerUpdated.emit()
 
@@ -740,31 +744,20 @@ class SpriteTab(QWidget):
         if not self.locked:
             return
 
-        active_id = self.object_tab.giveCurrentActiveLayerId()
-        active_layer = None
-
         self.clearView()
 
-        for layer in self.object_tab.giveCurrentMainViewLayers():
-            self.addLayer(layer)
-
-            if layer.locked_id == active_id:
-                active_layer = layer
-
-        else:
-            if active_layer is None:
-                active_layer = layer
-
-        self.setCurrentActiveLayer(active_layer)
+        for row in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().giveLayerFromProxyRow(row)
+            self.addLayerToCanvas(layer)
 
         self.layersChanged.emit()
 
     def updateLayersZValues(self):
-        for index in range(self.layers.rowCount()):
-            layer = self.layers.item(index, 0)
+        for row in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().giveLayerFromProxyRow(row)
             item = layer.giveItem()
 
-            item.setZValue(self.layers.rowCount()-index)
+            item.setZValue(self.giveLayers().rowCount()-row)
 
         if self.locked:
             if self.object_tab.o.object_type == obj.Type.LARGE:
@@ -774,20 +767,28 @@ class SpriteTab(QWidget):
                     self.view.layer_boundingbox.setZValue(item.zValue()-1)
 
     def clearView(self):
-        for index in range(self.layers.rowCount()):
-            layer = self.layers.takeRow(0)[0]
-            self.view.scene.removeItem(layer.giveItem())
+        self.view.clearView()
 
     def addLayer(self, layer, pos=None):
+        if self.locked:
+            return
+        
         if pos is None:
-            pos = self.main_window.layer_widget.layers_list.currentIndex().row()
+            pos = self.giveLayers().giveActiveProxyRow()
 
         if pos == -1:
             pos = 0
+        
+        self.giveLayers().insertProxyRow(pos, layer)
+        self.addLayerToCanvas(layer)
+        
+        self.layersChanged.emit()
+        
 
+    def addLayerToCanvas(self, layer):
+        
         layer.setBaseOffset(self.base_x, self.base_y)
 
-        self.layers.insertRow(pos, layer)
         item = layer.giveItem()
         self.view.addLayerItem(item)
         self.updateLayersZValues()
@@ -809,7 +810,6 @@ class SpriteTab(QWidget):
             self.canvasSizeChanged(
                 bottom=height + layer.base_y + layer.sprite.y - self.canvas_height + 20)
 
-        self.layersChanged.emit()
 
     def newLayer(self, pos=None):
         if self.locked:
@@ -822,15 +822,17 @@ class SpriteTab(QWidget):
 
         self.addLayer(layer, pos)
 
-        self.main_window.layer_widget.layers_list.setCurrentIndex(
-            self.layers.indexFromItem(layer))
-        self.active_layer = layer
+        self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
+
+        self.layersChanged.emit()
 
     def deleteLayer(self, index):
         if self.locked:
             return
 
-        layer = self.layers.takeRow(index.row())[0]
+        row = index.row()
+
+        layer = self.giveLayers().takeProxyRow(row)[0]
         self.view.scene.removeItem(layer.item)
         del (layer)
 
@@ -840,11 +842,11 @@ class SpriteTab(QWidget):
         if self.locked:
             return
 
-        if (index.row() + 1) == self.layers.rowCount():
+        if (index.row() + 1) == self.giveLayers().rowCount():
             return
 
-        layer_top = self.layers.item(index.row())
-        layer_bottom = self.layers.item(index.row()+1)
+        layer_top = self.giveLayers().itemFromProxyIndex(index)
+        layer_bottom = self.giveLayers().itemFromProxyRow(index.row()+1)
 
         layer_bottom.merge(layer_top)
 
@@ -856,37 +858,42 @@ class SpriteTab(QWidget):
         if self.locked:
             return
 
-        layer = self.layers.takeRow(index.row())[0]
+        layer = self.giveLayers().takeProxyRow(index.row())[0]
 
         if direction == 'up':
-            self.layers.insertRow(index.row()-1, layer)
+            self.giveLayers().insertProxyRow(index.row()-1, layer)
 
         elif direction == 'down':
-            self.layers.insertRow(index.row()+1, layer)
+            self.giveLayers().insertProxyRow(index.row()+1, layer)
 
-        self.main_window.layer_widget.layers_list.setCurrentIndex(
-            self.layers.indexFromItem(layer))
-        self.active_layer = layer
+        self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
 
         self.updateLayersZValues()
 
         self.layersChanged.emit()
-
-    def setCurrentActiveLayerFromIndex(self, index, index_previous=None):
-        self.setCurrentActiveLayer(self.layers.itemFromIndex(index))
-
+    
+    def setCurrentActiveLayerFromIndex(self, index):
+        self.giveLayers().setActiveRowFromProxyIndex(index)
+        
     def setCurrentActiveLayer(self, layer):
-        self.active_layer = layer
+        self.giveLayers().setActiveRowFromItem(layer)
 
-        if self.active_layer is not None:
-            self.activeLayerChanged.emit(self.active_layer)
+    def currentActiveLayerChanged(self):
+        if self.currentActiveLayer() is not None:
             if self.locked:
                 if self.object_tab.o.object_type == obj.Type.LARGE:
-                    item = self.active_layer.giveItem()
+                    item = self.currentActiveLayer().giveItem()
                     self.view.layer_boundingbox.setZValue(item.zValue())
 
+    def giveLayers(self):
+        if self.locked:
+            return self.object_tab.giveLayers()
+        else:
+            return self.layers
+
     def currentActiveLayer(self):
-        return self.active_layer
+        
+        return self.giveLayers().giveActiveLayer()
 
     def giveSprite(self):
         layer = self.currentActiveLayer()
@@ -920,12 +927,12 @@ class SpriteTab(QWidget):
             self.object_tab.sprites_tab.pasteSpriteFromClipboard()
         else:
             if self.main_window.sprite_clipboard:
-                for layer in self.main_window.sprite_clipboard:
+                for i in range(self.main_window.sprite_clipboard.rowCount()):
+                    layer = self.main_window.sprite_clipboard.item(i, 0)
                     self.addLayer(layer)
                 else:
-                    self.main_window.layer_widget.layers_list.setCurrentIndex(
-                        self.layers.indexFromItem(layer))
-                    self.active_layer = layer
+                    self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
+
             else:
                 image = ImageGrab.grabclipboard()
                 if type(image) == list:
@@ -958,18 +965,17 @@ class SpriteTab(QWidget):
                     self.layercount += 1
 
                     self.addLayer(layer)
-                    self.main_window.layer_widget.layers_list.setCurrentIndex(
-                        self.layers.indexFromItem(layer))
-                    self.active_layer = layer
+                    self.giveLayers().setActiveRowFromIndex(
+                        self.giveLayers().indexFromItem(layer))
 
     def copy(self):
-        image = ImageQt(self.active_layer.sprite.image)
+        image = ImageQt(self.currentActiveLayer().sprite.image)
         pixmap = QtGui.QPixmap.fromImage(image)
 
         QApplication.clipboard().setPixmap(pixmap)
         layers = QtGui.QStandardItemModel()
 
-        layers.insertRow(0, SpriteLayer.fromLayer(self.active_layer))
+        layers.insertRow(0, SpriteLayer.fromLayer(self.currentActiveLayer()))
 
         self.main_window.sprite_clipboard = layers
         self.main_window.sprite_clipboard_reset = False
@@ -978,10 +984,11 @@ class SpriteTab(QWidget):
         if self.locked:
             return
 
-        for index in range(self.layers.rowCount()):
-            layer = self.layers.item(index, 0)
-            layer.sprite.switchPalette(palette)
-            layer.updateLayer()
+        for col in range(self.giveLayers().columnCount()):
+            for row in range(self.giveLayers().rowCount()):
+                layer = self.giveLayers().item(row, col)
+                layer.sprite.switchPalette(palette)
+                layer.updateLayer()
 
 
 class SpriteViewWidget(QGraphicsView):
@@ -1036,7 +1043,12 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene.addItem(self.layer_boundingbox)
         self.scene.addItem(self.layer_symm_axes)
-
+        
+    def clearView(self):
+        for item in self.scene.items():
+            if item not in [self.background, self.layer_boundingbox, self.layer_symm_axes]:
+                self.scene.removeItem(item)
+        
     def updateCanvasSize(self):
         self.base_x = self.tab.base_x
         self.base_y = self.tab.base_y
@@ -1315,7 +1327,6 @@ class SpriteViewWidget(QGraphicsView):
 class SpriteLayer(QtGui.QStandardItem):
     def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", locked_id=0, parent=None):
         super().__init__(name)
-
         self.item = QGraphicsPixmapItem()
 
         self.main_window = main_window
@@ -1454,6 +1465,126 @@ class SpriteLayer(QtGui.QStandardItem):
         self.item.setPixmap(pixmap)
 
 
+class SpriteLayerModel(QtGui.QStandardItemModel):
+    def __init__(self, rows, columns, orders=None, parent=None):
+        super().__init__(rows, columns, parent)
+        self.active_column = 0  # Active column in the fixed model
+        self.previous_active_column = 0  # Previous active column in the fixed model
+        self.active_row = 0     # Active row in the fixed model
+        # List of orders for the columns, Default: Reversed Identity. It maps the rows of the proxy model to the rows of the original model for each column. Rows in the proxy model are inversed, i.e. the last row in the proxy model is the first row in the original model (when there is the identity).
+        if orders is not None:
+            self.orders = orders
+        else:
+            order = list(range(rows))
+            order.reverse()
+            self.orders = [order for _ in range(columns)]
+
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        """Override data retrieval to return data from the active column."""
+        if not index.isValid():
+            return None
+
+        # Only override for display role
+        if role == QtCore.Qt.DisplayRole:
+            # Get the row of the index
+
+            return super().data(self.originalIndex(index), role)
+
+        # Default behavior for other roles
+        return super().data(index, role)
+
+    def originalIndex(self, index):
+        # Get the index in the original model for a given index in the proxy model
+        return self.index(self.orders[index.column()][index.row()], index.column())
+
+    def proxyIndex(self, row, column):
+        # For a given row and column from the original model, retrieve the index in the proxy model
+        row = self.orders[column].index(row)
+        return self.index(row, column)
+    
+    def item(self, row, column=None):
+        # For a given row and column from the original model, retrieve the item in the original model
+        if column is None:
+            column = self.active_column
+        
+        return super().item(row, column)
+
+    def itemFromProxyRow(self, row, column=None):
+        # For a given row in the proxy model, retrieve the corresponding item in the original model
+        if column is None:
+            column = self.active_column
+        original_row = self.orders[column][row]
+        return super().item(original_row, column)
+    
+    def itemFromProxyIndex(self, index):
+        # For a given index in the proxy model, retrieve the corresponding item in the original model
+        original_row = self.orders[index.column()][index.row()]
+        return self.item(original_row, index.column())
+    
+    def insertProxyRow(self, row, item):
+        # For now this only works for single column models with reversed order
+        self.insertRow(self.rowCount()-row, item)    
+        
+        self.orders[0].insert(0, len(self.orders[0]))   
+        
+    def takeProxyRow(self, row):
+        # For now this only works for single column models with reversed order
+        original_row = self.orders[0][row]
+        self.orders[0] = self.orders[0][1:]
+        
+        if original_row == self.active_row:
+            if row >= len(self.orders[0]):
+                self.active_row = self.orders[0][-1]
+            else:
+                self.active_row = self.orders[0][row]
+        
+        return self.takeRow(original_row)
+    
+    def setActiveRow(self, row):
+        self.active_row = row
+        
+    def setActiveRowFromIndex(self, index):
+        self.active_row = index.row()
+    
+    def setActiveRowFromProxyIndex(self, index):
+        self.active_row = self.orders[index.column()][index.row()]
+        
+    def setActiveRowFromItem(self, item):
+        for col in range(self.columnCount()):
+            for row in range(self.rowCount()):
+                if self.item(row, col) == item:
+                    self.active_row = row
+                    self.active_column = col
+                    return
+        
+    def setActiveColumn(self, column):
+        self.previous_active_column = self.active_column
+        self.active_column = column
+        
+    def giveActiveRow(self):
+        return self.active_row
+    
+    def giveActiveProxyRow(self):
+        return self.orders[self.active_column].index(self.active_row)
+    
+    def giveActiveColumn(self):
+        return self.active_column
+    
+    def giveActiveLayer(self):
+        return self.item(self.active_row, self.active_column)
+    
+    def giveCurrentProxyIndex(self):
+        # Give the current active index in the proxy model
+        return self.index(self.orders[self.active_column].index(self.active_row), self.active_column)
+    
+    def giveLayerFromProxyRow(self, row):
+        # For a given row in the proxy model, retrieve the corresponding layer in the original model
+        original_row = self.orders[self.active_column][row]
+        return self.item(original_row, self.active_column)
+
+
+
 class SpriteLayerListView(QtWidgets.QListView):
     checked = QtCore.pyqtSignal(QtCore.QModelIndex, bool)
     elementClicked = QtCore.pyqtSignal(QtCore.QModelIndex)
@@ -1536,7 +1667,6 @@ class LayersWidget(QWidget):
         self.button_sprite_up_down.setIcon(QtGui.QIcon(icon))
 
         self.layers_list.checked.connect(self.layerChecked)
-        self.layers_list.clicked.connect(self.selectedLayerChanged)
 
         self.button_new.clicked.connect(self.newLayer)
         self.button_merge.clicked.connect(self.mergeLayer)
@@ -1548,23 +1678,30 @@ class LayersWidget(QWidget):
 
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
-        if widget:
-            model = widget.layers
+        if widget:            
+            layers = widget.giveLayers() 
 
             self.layers_list.reset()
-            self.layers_list.setModel(model)
-
-            self.layers_list.setCurrentIndex(
-                model.indexFromItem(widget.active_layer))
+            self.layers_list.setModel(layers)
+            self.layers_list.setModelColumn(layers.giveActiveColumn())
+            
+            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
+            
+            self.layers_list.setCurrentIndex(layers.giveCurrentProxyIndex())
         else:
             self.layers_list.setModel(QtGui.QStandardItemModel())
 
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()
 
-        if widget:
-            layer = widget.layers.itemFromIndex(index)
-            layer.setVisible(layer.checkState())
+        if widget:            
+            for col in range(widget.giveLayers().columnCount()):                
+                widget.giveLayers().itemFromProxyRow(index.row(), col).setVisible(not val)
+                
+                if col != widget.giveLayers().giveActiveColumn():
+                    #for some reasone here we have to use the original index
+                    widget.giveLayers().item(index.row(), col).setCheckState(QtCore.Qt.CheckState.Checked if not val else QtCore.Qt.CheckState.Unchecked)
+                
 
     def selectedLayerChanged(self, index):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1581,7 +1718,7 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            if (self.layers_list.currentIndex().row() + 1) == widget.layers.rowCount():
+            if (self.layers_list.currentIndex().row() + 1) == widget.giveLayers().rowCount():
                 return
 
             widget.mergeLayer(self.layers_list.currentIndex())
@@ -1590,7 +1727,7 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            if widget.layers.rowCount() == 1:
+            if widget.giveLayers().rowCount() == 1:
                 return
 
             widget.deleteLayer(self.layers_list.currentIndex())
@@ -1599,7 +1736,7 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
 
         if widget:
-            if (self.layers_list.currentIndex().row() + 1) == widget.layers.rowCount() and direction == 'down':
+            if (self.layers_list.currentIndex().row() + 1) == widget.giveLayers().rowCount() and direction == 'down':
                 return
             if self.layers_list.currentIndex().row() == 0 and direction == 'up':
                 return
