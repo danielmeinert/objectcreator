@@ -57,7 +57,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QListWidget" name="list_layers_incoming">
+  <widget class="QListView" name="list_layers_incoming">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -73,7 +73,7 @@
     <enum>QAbstractItemView::SelectRows</enum>
    </property>
   </widget>
-  <widget class="QListWidget" name="list_layers_object">
+  <widget class="QListView" name="list_layers_object">
    <property name="geometry">
     <rect>
      <x>200</x>

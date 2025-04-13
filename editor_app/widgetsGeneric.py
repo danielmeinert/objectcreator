@@ -216,6 +216,8 @@ class SpritesTabAll(QWidget):
         self.last_image_path = ''
 
         self.active_layer_id = 0
+        
+        self.createLayers()
 
     def initializeWidgets(self, view_width, view_height):
         # Buttons load/reset
