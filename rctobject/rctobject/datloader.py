@@ -477,7 +477,7 @@ def read_image_table(data, graphic_base):
 def import_sprites_with_open(dat_id, openpath):
     if not exists(f'{openpath}/bin/openrct2.exe'):
         raise RuntimeError(
-            'Could not find openrct.exe in specified OpenRCT2 path.')
+            f'Could not find {openpath}/bin/openrct2.exe in specified OpenRCT2 path.')
 
     with TemporaryDirectory() as temp:
         temp = temp.replace('\\', '/')
