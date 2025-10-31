@@ -3,11 +3,11 @@
 Welcome to the project page of the OpenRCT2 Object Creator. This program is a newly developed editor that is supposed to replace Dr. J's object editor that accompanied the RCT custom scenery object (CSO) community for about 20 years.
 
 ## Installation Release Version
-Just download the provided setup file and install the program. Upon first opening you need to give your OpenRCT2 installation path if you want to open `.parkobj` files that use the `.LGX` sprite storage. There will be a `config.json` file stored in `AppData/Roaming/Object Creator` that saves all your settings given. Alternatively you can download the packed zip file and unpack it anywhere you want. Note that this way you cannot open `.parkobj` files automatically via double-click.
+Just download the provided setup file and install the program. Upon first opening you need to give your OpenRCT2 installation path, that is the folder, in which there is the folder `bin/` that contains `openrct2.exe. This is only needed if you want to open `.parkobj` files that refer to `.DAT` files' sprites in their json, i.e. mainly the converted `.parkobj`-files from OpenRCT2. There will be a `config.json` file stored in `AppData/Roaming/Object Creator` that saves all your settings given. Alternatively you can download the packed zip file and unpack it anywhere you want. Note that this way you cannot open `.parkobj` files automatically via double-click.
 There is also an update check included that asks you to update the program whenever there is a new version on github. When you update this way note that the update gets installed via the installer.
 
 ## Current State of Development
-The program is currently under constant development. With the current version you are able to edit and create any type of Small Scenery object. Large Scenery and further object types are planned for the future.
+The program is currently under constant development. With the current version you are able to edit and create any type of Small Scenery and Large Scenery object. Further object types are planned for the future.
 
 ## Feedback and Contributing
 You can contribute and give feedback either through the Issues in this github or join the New Object Creator discord: [https://discord.gg/GHCP2K7d](https://discord.gg/rmdeTmKWbh)
