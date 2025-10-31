@@ -39,6 +39,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
+       <widget class="QPushButton" name="pushButton_applyDefaultSettings">
+        <property name="text">
+         <string>Apply User Defaults</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QTabWidget" name="tabWidget_settingsLS">
         <property name="enabled">
          <bool>true</bool>
@@ -65,7 +72,7 @@ QTabBar::tab:selected {
 }</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="tabBarAutoHide">
          <bool>false</bool>
@@ -633,10 +640,10 @@ QTabBar::tab:selected {
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="horizontalHeaderMinimumSectionSize">
+          <attribute name="horizontalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
+          <attribute name="horizontalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -651,10 +658,10 @@ QTabBar::tab:selected {
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderMinimumSectionSize">
+          <attribute name="verticalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="verticalHeaderDefaultSectionSize">
+          <attribute name="verticalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="verticalHeaderShowSortIndicator" stdset="0">
@@ -1276,13 +1283,6 @@ QTabBar::tab:selected {
         </widget>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_applyDefaultSettings">
-        <property name="text">
-         <string>Apply User Defaults</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -1302,7 +1302,6 @@ QTabBar::tab:selected {
   <tabstop>lineEdit_objectName</tabstop>
   <tabstop>lineEdit_originalID</tabstop>
   <tabstop>pushButton_clearAllLang</tabstop>
-  <tabstop>pushButton_applyDefaultSettings</tabstop>
  </tabstops>
  <resources/>
  <connections/>
