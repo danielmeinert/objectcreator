@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>299</width>
-    <height>610</height>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -422,42 +422,13 @@
        <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>510</y>
-        <width>261</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Selected Tile Actions</string>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-      <widget class="QPushButton" name="pushButton_loadImage_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Load Image</string>
-       </property>
-      </widget>
-     </widget>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
         <x>170</x>
         <y>440</y>
         <width>101</width>
-        <height>61</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -499,6 +470,22 @@
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="checkBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>58</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Only selected</string>
        </property>
       </widget>
      </widget>

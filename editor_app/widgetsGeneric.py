@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -215,8 +215,6 @@ class SpritesTabAll(QWidget):
         self.main_window = object_tab.main_window
         self.last_image_path = ''
 
-        self.active_layer_id = 0
-
     def initializeWidgets(self, view_width, view_height):
         # Buttons load/reset
         self.button_load_image = self.findChild(
@@ -317,9 +315,8 @@ class SpritesTabAll(QWidget):
 
         layer = wdg.SpriteLayer(sprite, self.main_window, 0, 0)
 
-        #TODO: update to new model system
-        layers = QtGui.QStandardItemModel()
-        layers.insertRow(0, layer)
+        layers = wdg.SpriteLayerModel(1,1)
+        layers.setItem(0, 0, layer)
 
         self.setCurrentLayers(layers)
 
@@ -337,19 +334,19 @@ class SpritesTabAll(QWidget):
         self.updateLockedSpriteLayersModel()
         self.updateMainView()
 
-    def resetImage(self):
-        for i in range(self.giveLayers().rowCount()):
-            layer = self.giveLayers().item(i)
-            layer.sprite.resetSprite()
+    # def resetImage(self):
+    #     for i in range(self.giveLayers().rowCount()):
+    #         layer = self.giveLayers().item(i)
+    #         layer.sprite.resetSprite()
 
-        self.updateMainView()
+    #     self.updateMainView()
 
-    def resetOffsets(self):
-        for i in range(self.giveLayers().rowCount()):
-            layer = self.giveLayers().item(i)
-            layer.sprite.resetOffsets()
+    # def resetOffsets(self):
+    #     for i in range(self.giveLayers().rowCount()):
+    #         layer = self.giveLayers().item(i)
+    #         layer.sprite.resetOffsets()
 
-        self.updateMainView()
+    #     self.updateMainView()
 
     def showSpriteMenu(self, pos):
         menu = QMenu()
@@ -396,19 +393,22 @@ class SpritesTabAll(QWidget):
         pixmap = self.sprite_view_main_item.pixmap()
 
         QApplication.clipboard().setPixmap(pixmap)
-        layers = QtGui.QStandardItemModel()
+        
+        source_layers = self.giveLayers()
+        layers = wdg.SpriteLayerModel(source_layers.rowCount(), 1)
 
-        for i, layer in enumerate(self.giveLayers()):
-            layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
+        for i in range(source_layers.rowCount()):
+            layers.setItem(i, 0, wdg.SpriteLayer.fromLayer(source_layers.item(i)))
 
         self.main_window.sprite_clipboard = layers
         self.main_window.sprite_clipboard_reset = False
 
     def copySpriteToView(self, view):
-        layers = QtGui.QStandardItemModel()
+        source_layers = self.giveLayers()
+        layers = wdg.SpriteLayerModel(source_layers.rowCount(), 1)
 
-        for i, layer in enumerate(self.giveLayers()):
-            layers.insertRow(i, wdg.SpriteLayer.fromLayer(layer))
+        for i in range(source_layers.rowCount()):
+            layers.setItem(i, 0, wdg.SpriteLayer.fromLayer(source_layers.item(i)))
 
         self.setCurrentLayers(layers, view=view)
 
@@ -422,7 +422,8 @@ class SpritesTabAll(QWidget):
             self.copySpriteToView(view=(view+rot + 1) % 4)
 
     def deleteSprite(self):
-        for layer in self.giveLayers():
+        for i in range(self.giveLayers().rowCount()):
+            layer = self.giveLayers().item(i)
             layer.sprite.clearSprite()
 
         self.updateLockedSpriteLayersModel()
@@ -460,34 +461,116 @@ class SpritesTabAll(QWidget):
 
         try:
             dummy_o, dummy_coords = self.object_tab.giveDummy()
+            backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
+            self.object_tab.boundingBoxChanged.emit(
+                self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
+            symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(dummy_o)
+            self.object_tab.symmAxesChanged.emit(
+                self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
         except AttributeError:
-            self.updateMainView()
-            return
-
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
-        symm_axis, coords = self.main_window.symm_axes.giveSymmAxes(dummy_o)
-        self.object_tab.symmAxesChanged.emit(
-            self.main_window.layer_widget.button_symm_axes.isChecked(), symm_axis, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
-
+            pass
+                    
         self.giveLayers().setActiveColumn(rot)
         self.object_tab.rotationChanged.emit(rot)
 
         self.updateMainView()
 
-    def updateLockedSpriteLayersModel(self):
+    def updateLockedSpriteLayersModel(self, test=False):
         if self.object_tab.locked:
             self.createLayers()
             self.object_tab.locked_sprite_tab.updateLayersModel()
             self.updateAllViews()
 
-    # to be defined in sub class
-    def setActiveLayer(self, layer):
-        self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
-
-    def giveLayers(self):        
+    def giveLayers(self):
         return self.layers
+    
+    def addSpriteToHistoryAllViews(self, row):        
+        original_row = self.layers.originalRow(row)
+        for rot in range(4):
+            self.layers.item(original_row, rot).addSpriteToHistory()
+            
+    def colorRemapToAll(self, row, color_remap, selected_colors):
+        self.addSpriteToHistoryAllViews(row)
+
+        original_row = self.layers.originalRow(row)
+        for rot in range(4):
+            sprite = self.layers.item(original_row, rot).sprite
+            for color in selected_colors:
+                sprite.remapColor(color, color_remap)
+
+        self.updateAllViews()
+
+    def colorChangeBrightnessAll(self, row, step, selected_colors):
+        # row is the proxy model row
+        self.addSpriteToHistoryAllViews(row)
+
+        original_row = self.layers.originalRow(row)
+        for rot in range(4):
+            sprite = self.layers.item(original_row, rot).sprite
+            sprite.changeBrightnessColor(step, selected_colors)
+
+        self.updateAllViews()
+
+    def colorRemoveAll(self, row, selected_colors):
+        self.addSpriteToHistoryAllViews(row)
+
+        original_row = self.layers.originalRow(row)
+        for rot in range(4):
+            sprite = self.layers.item(original_row, rot).sprite
+            sprite.removeColor(selected_colors)
+
+        self.updateAllViews()
+        
+    def colorInvertShadingAll(self, row, selected_colors):
+        self.addSpriteToHistoryAllViews(row)
+
+        original_row = self.layers.originalRow(row)
+        for rot in range(4):
+            sprite = self.layers.item(original_row, rot).sprite
+            sprite.invertShadingColor(selected_colors)
+
+        self.updateAllViews()
+        
+    def setCurrentLayers(self, layers, view=None):
+        
+        if view == None:
+            view = self.o.rotation
+
+        if self.requestNumberOfLayers() != layers.rowCount():
+            dialog = wdg.SpriteImportUi(
+                layers, self.layers)
+
+            if dialog.exec():
+                target_row = dialog.selected_row # Row in base model
+                layers_incoming = dialog.selected_incoming #QtGui.QStandardItemModel()
+
+                if layers_incoming.rowCount() == 0:
+                    return
+
+                layer_top = wdg.SpriteLayer.fromLayer(layers_incoming.item(0))
+                for i in range(layers_incoming.rowCount()-1):
+                    layer_bottom = wdg.SpriteLayer.fromLayer(
+                        layers_incoming.item(i+1))
+                    layer_bottom.merge(layer_top)
+                    layer_top = layer_bottom
+
+                target_layer = self.layers.item(target_row)
+                target_layer.sprite.setFromSprite(layer_top.sprite)
+
+            else:
+                return
+        else:
+            for i in range(layers.rowCount()):
+                index = layers.rowCount() - i - 1
+                target_layer = self.layers.itemFromProxyRow(i,view)
+                target_layer.sprite.setFromSprite(layers.item(
+                    index, 0).sprite)
+
+        if self.object_tab.locked:
+            self.createLayers()
+            self.object_tab.locked_sprite_tab.updateLayersModel()
+
+        self.updateMainView()
 
     def updateMainView(self):
         # to be defined in sub class

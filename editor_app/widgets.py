@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -48,7 +48,7 @@ class ObjectTab(QWidget):
     boundingBoxChanged = QtCore.pyqtSignal(
         [bool, object, tuple], [bool, object, tuple, tuple])
     symmAxesChanged = QtCore.pyqtSignal(bool, object, tuple)
-    activeLayerChanged = QtCore.pyqtSignal(object)
+    activeLayerRowChanged = QtCore.pyqtSignal(int)
 
     def __init__(self, o, main_window, filepath=None, author=None, author_id=None):
         super().__init__()
@@ -125,13 +125,11 @@ class ObjectTab(QWidget):
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
 
-        self.activeLayerChanged.connect(
-            self.locked_sprite_tab.updateLayersModel)
 
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
-        self.activeLayerChanged.disconnect()
+        self.activeLayerRowChanged.disconnect()
         self.locked_sprite_tab = None
 
     def giveLayers(self):
@@ -262,6 +260,7 @@ class SpriteTab(QWidget):
             object_tab.lockWithSpriteTab(self)
             self.object_tab.mainViewUpdated.connect(
                 lambda: self.updateView(emit_signal=False))
+            
             self.object_tab.rotationChanged.connect(self.updateLayersModel)
             self.object_tab.boundingBoxChanged.connect(
                 self.boundingBoxesChanged)
@@ -745,7 +744,6 @@ class SpriteTab(QWidget):
             return
 
         self.clearView()
-
         for row in range(self.giveLayers().rowCount()):
             layer = self.giveLayers().giveLayerFromProxyRow(row)
             self.addLayerToCanvas(layer)
@@ -874,16 +872,14 @@ class SpriteTab(QWidget):
     
     def setCurrentActiveLayerFromIndex(self, index):
         self.giveLayers().setActiveRowFromProxyIndex(index)
-        
-    def setCurrentActiveLayer(self, layer):
-        self.giveLayers().setActiveRowFromItem(layer)
 
-    def currentActiveLayerChanged(self):
         if self.currentActiveLayer() is not None:
             if self.locked:
                 if self.object_tab.o.object_type == obj.Type.LARGE:
                     item = self.currentActiveLayer().giveItem()
                     self.view.layer_boundingbox.setZValue(item.zValue())
+                    
+
 
     def giveLayers(self):
         if self.locked:
@@ -892,7 +888,6 @@ class SpriteTab(QWidget):
             return self.layers
 
     def currentActiveLayer(self):
-        
         return self.giveLayers().giveActiveLayer()
 
     def giveSprite(self):
@@ -1325,7 +1320,7 @@ class SpriteViewWidget(QGraphicsView):
 
 
 class SpriteLayer(QtGui.QStandardItem):
-    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", locked_id=0, parent=None):
+    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", parent=None):
         super().__init__(name)
         self.item = QGraphicsPixmapItem()
 
@@ -1342,9 +1337,6 @@ class SpriteLayer(QtGui.QStandardItem):
         self.sprite = sprite
         self.history = []
         self.history_redo = []
-
-        # layers made by objects get an id to easily identify them
-        self.locked_id = locked_id
 
         self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable |
                       QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
@@ -1466,10 +1458,11 @@ class SpriteLayer(QtGui.QStandardItem):
 
 
 class SpriteLayerModel(QtGui.QStandardItemModel):
+    activeRowChanged = QtCore.pyqtSignal(int)
+    
     def __init__(self, rows, columns, orders=None, parent=None):
         super().__init__(rows, columns, parent)
         self.active_column = 0  # Active column in the fixed model
-        self.previous_active_column = 0  # Previous active column in the fixed model
         self.active_row = 0     # Active row in the fixed model
         # List of orders for the columns, Default: Reversed Identity. It maps the rows of the proxy model to the rows of the original model for each column. Rows in the proxy model are inversed, i.e. the last row in the proxy model is the first row in the original model (when there is the identity).
         if orders is not None:
@@ -1478,7 +1471,6 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
             order = list(range(rows))
             order.reverse()
             self.orders = [order for _ in range(columns)]
-
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         """Override data retrieval to return data from the active column."""
@@ -1490,6 +1482,7 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
             # Get the row of the index
 
             return super().data(self.originalIndex(index), role)
+        
 
         # Default behavior for other roles
         return super().data(index, role)
@@ -1497,6 +1490,12 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
     def originalIndex(self, index):
         # Get the index in the original model for a given index in the proxy model
         return self.index(self.orders[index.column()][index.row()], index.column())
+    
+    def originalRow(self, row, column = None):
+        # For a given row and column from the proxy model, retrieve the row in the original model
+        if column is None:
+            column = self.active_column
+        return self.orders[column][row]
 
     def proxyIndex(self, row, column):
         # For a given row and column from the original model, retrieve the index in the proxy model
@@ -1541,14 +1540,18 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
         
         return self.takeRow(original_row)
     
-    def setActiveRow(self, row):
+    def setActiveRow(self, row, emit_signal=True):
         self.active_row = row
-        
+        if emit_signal:
+            self.activeRowChanged.emit(row)
+
     def setActiveRowFromIndex(self, index):
         self.active_row = index.row()
+        self.activeRowChanged.emit(self.active_row)
     
     def setActiveRowFromProxyIndex(self, index):
         self.active_row = self.orders[index.column()][index.row()]
+        self.activeRowChanged.emit(self.active_row)
         
     def setActiveRowFromItem(self, item):
         for col in range(self.columnCount()):
@@ -1556,10 +1559,10 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
                 if self.item(row, col) == item:
                     self.active_row = row
                     self.active_column = col
+                    self.activeRowChanged.emit(self.active_row)
                     return
         
     def setActiveColumn(self, column):
-        self.previous_active_column = self.active_column
         self.active_column = column
         
     def giveActiveRow(self):
@@ -1587,7 +1590,6 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
 
 class SpriteLayerListView(QtWidgets.QListView):
     checked = QtCore.pyqtSignal(QtCore.QModelIndex, bool)
-    elementClicked = QtCore.pyqtSignal(QtCore.QModelIndex)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1596,6 +1598,7 @@ class SpriteLayerListView(QtWidgets.QListView):
     class Delegate(QtWidgets.QStyledItemDelegate):
         def editorEvent(self, event, model, option, index):
             checked = index.data(QtCore.Qt.CheckStateRole)
+            
             ret = QtWidgets.QStyledItemDelegate.editorEvent(
                 self, event, model, option, index)
             if checked != index.data(QtCore.Qt.CheckStateRole):
@@ -1675,6 +1678,15 @@ class LayersWidget(QWidget):
         self.button_down.clicked.connect(lambda: self.moveLayer('down'))
 
         self.updateList()
+        
+    def setActiveLayerRow(self, row):
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            layers = widget.giveLayers()
+            self.blockSignals(True)
+            self.layers_list.setModelColumn(layers.giveActiveColumn())
+            self.layers_list.setCurrentIndex(layers.giveCurrentProxyIndex())
+            self.blockSignals(False)
 
     def updateList(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1682,30 +1694,36 @@ class LayersWidget(QWidget):
             layers = widget.giveLayers() 
 
             self.layers_list.reset()
+            self.layers_list.selectionModel().currentChanged.disconnect()
             self.layers_list.setModel(layers)
+            
             self.layers_list.setModelColumn(layers.giveActiveColumn())
             
-            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
+            #this is a hacky way to update the checkboxes, I'm fed up trying to find a better way (checkstaterole does not get the right index)
+            for row in range(layers.rowCount()):
+                item = layers.itemFromProxyRow(row)
+                layers.item(row).setCheckState(QtCore.Qt.CheckState.Checked if item.visible else QtCore.Qt.CheckState.Unchecked)
             
             self.layers_list.setCurrentIndex(layers.giveCurrentProxyIndex())
+            self.layers_list.selectionModel().currentChanged.connect(self.selectedLayerChanged)
         else:
             self.layers_list.setModel(QtGui.QStandardItemModel())
+    
 
     def layerChecked(self, index, val):
         widget = self.main_window.sprite_tabs.currentWidget()
-
-        if widget:            
-            for col in range(widget.giveLayers().columnCount()):                
-                widget.giveLayers().itemFromProxyRow(index.row(), col).setVisible(not val)
-                
-                if col != widget.giveLayers().giveActiveColumn():
-                    #for some reasone here we have to use the original index
-                    widget.giveLayers().item(index.row(), col).setCheckState(QtCore.Qt.CheckState.Checked if not val else QtCore.Qt.CheckState.Unchecked)
-                
+        if widget:
+            layers = widget.giveLayers()
+            checked_state = QtCore.Qt.CheckState.Checked if not val else QtCore.Qt.CheckState.Unchecked
+            
+            original_row = layers.originalRow(index.row(), index.column())
+            for col in range(layers.columnCount()):
+                layers.item(original_row, col).setVisible(not val)
 
     def selectedLayerChanged(self, index):
         widget = self.main_window.sprite_tabs.currentWidget()
-        if widget:
+        if widget and index.isValid():
+            
             widget.setCurrentActiveLayerFromIndex(index)
 
     def newLayer(self):
@@ -1830,13 +1848,14 @@ class LayersWidget(QWidget):
         widget = self.main_window.sprite_tabs.currentWidget()
         if widget:
             dummy_o, dummy_coords = widget.giveDummy()
-            self.spin_box_clearance.setValue(
-                int(dummy_o['properties']['height']/8))
-            try:
-                self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)
-            except AttributeError:
-                self.combo_box_shape.setCurrentIndex(
-                    obj.SmallScenery.Shape.FULL.value)
+            if dummy_o:
+                self.spin_box_clearance.setValue(
+                    int(dummy_o['properties']['height']/8))
+                try:
+                    self.combo_box_shape.setCurrentIndex(dummy_o.shape.value)
+                except AttributeError:
+                    self.combo_box_shape.setCurrentIndex(
+                        obj.SmallScenery.Shape.FULL.value)
 
     def setEnabledSpriteControls(self, val):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1921,10 +1940,7 @@ class ToolWidgetSprite(QWidget):
 
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
-
-            index = self.main_window.layer_widget.layers_list.model().rowCount(
-            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
-            widget.colorRemapToAll(index, color_remap, selected_colors)
+            widget.colorRemapToAll(self.main_window.layer_widget.layers_list.currentIndex().row(), color_remap, selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
@@ -1936,14 +1952,10 @@ class ToolWidgetSprite(QWidget):
 
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
-
-            index = self.main_window.layer_widget.layers_list.model().rowCount(
-            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
-            widget.colorChangeBrightnessAll(index, step, selected_colors)
+            widget.colorChangeBrightnessAll(self.main_window.layer_widget.layers_list.currentIndex().row(), step, selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
-
             widget.colorChangeBrightness(step, selected_colors)
 
     def colorRemove(self):
@@ -1951,14 +1963,10 @@ class ToolWidgetSprite(QWidget):
 
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
-
-            index = self.main_window.layer_widget.layers_list.model().rowCount(
-            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
-            widget.colorRemoveAll(index, selected_colors)
+            widget.colorRemoveAll(self.main_window.layer_widget.layers_list.currentIndex().row(), selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
-
             widget.colorRemove(selected_colors)
 
     def colorInvertShading(self):
@@ -1966,10 +1974,7 @@ class ToolWidgetSprite(QWidget):
 
         if self.checkbox_all_views.isChecked():
             widget = self.main_window.object_tabs.currentWidget()
-
-            index = self.main_window.layer_widget.layers_list.model().rowCount(
-            ) - self.main_window.layer_widget.layers_list.currentIndex().row() - 1
-            widget.colorInvertShadingAll(index, selected_colors)
+            widget.colorInvertShadingAll(self.main_window.layer_widget.layers_list.currentIndex().row(), selected_colors)
 
         else:
             widget = self.main_window.sprite_tabs.currentWidget()
@@ -2174,4 +2179,35 @@ class ChangeSettingsUi(QDialog):
     def accept(self):
 
         self.ret = self.retrieveInputs()
+        super().accept()
+
+class SpriteImportUi(QDialog):
+    def __init__(self, layers_incoming, layers_object):
+        super().__init__()
+        uic.loadUi(aux.resource_path('gui/sprite_import.ui'), self)
+
+        self.setFixedSize(self.size())
+        self.layers_incoming = layers_incoming
+        self.layers_object = layers_object
+
+        self.list_layers_incoming.setModel(layers_incoming)
+        self.list_layers_incoming.setModelColumn(layers_incoming.giveActiveColumn())
+        self.list_layers_object.setModel(layers_object)
+        self.list_layers_object.setModelColumn(layers_object.giveActiveColumn())
+
+    
+        self.list_layers_incoming.setCurrentIndex(layers_incoming.giveCurrentProxyIndex())
+        self.list_layers_object.setCurrentIndex(layers_object.giveCurrentProxyIndex())
+
+    def accept(self):
+
+        self.selected_incoming = QtGui.QStandardItemModel()
+
+        for index in self.list_layers_incoming.selectedIndexes():
+            layer = SpriteLayer.fromLayer(self.layers_incoming.itemFromProxyIndex(index))
+            self.selected_incoming.appendRow(layer)
+
+        # Selected target layer row in base model
+        self.selected_row = self.list_layers_object.model().originalIndex(self.list_layers_object.currentIndex()).row()
+
         super().accept()

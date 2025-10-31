@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -203,7 +203,8 @@ class MainWindowUi(QMainWindow):
         # Load empty object if not started with objects
 
         if not opening_objects:
-            self.objectNew(obj_type=obj.Type.SMALL)
+            #self.objectNew(obj_type=obj.Type.LARGE)
+            self.loadObjectFromId(dat_id='TOLSPINE')
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
@@ -448,6 +449,7 @@ class MainWindowUi(QMainWindow):
             o.switchPalette(self.current_palette)
 
         object_tab = wdg.ObjectTab(o, self, filepath, author_id=author_id)
+        object_tab.activeLayerRowChanged.connect(self.layer_widget.setActiveLayerRow)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
@@ -477,6 +479,7 @@ class MainWindowUi(QMainWindow):
             o.switchPalette(self.current_palette)
 
         object_tab = wdg.ObjectTab(o, self, self.last_open_folder)
+        object_tab.activeLayerRowChanged.connect(self.layer_widget.setActiveLayerRow)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
@@ -617,7 +620,6 @@ class MainWindowUi(QMainWindow):
 
                 sprite_tab.addLayer(new_layer)
 
-            sprite_tab.setCurrentActiveLayer(new_layer)
 
             sprite_tab.layersChanged.emit()
 
@@ -633,6 +635,7 @@ class MainWindowUi(QMainWindow):
 
         object_tab = wdg.ObjectTab(
             o, self, author=self.settings['author'], author_id=self.settings['author_id'])
+        object_tab.activeLayerRowChanged.connect(self.layer_widget.setActiveLayerRow)
         sprite_tab = wdg.SpriteTab(self, object_tab)
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
         sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)

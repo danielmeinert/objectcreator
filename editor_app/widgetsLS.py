@@ -8,6 +8,7 @@
  *****************************************************************************
 """
 
+from operator import index
 from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox, QVBoxLayout, \
     QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
     QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
@@ -41,10 +42,8 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
     def __init__(self, o, object_tab, sprites_tab, author, author_id):
         super().__init__(o, object_tab, sprites_tab)
 
-        self.tiles_model = QtGui.QStandardItemModel(0, 1)
-        for tile in self.o.tiles:
-            item = TileItem(tile)
-            self.tiles_model.appendRow(item)
+        self.current_tile_index = 0
+
 
         uic.loadUi(aux.resource_path('gui/settingsLS.ui'), self)
 
@@ -98,28 +97,70 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.spinbox_y = self.findChild(
             QSpinBox, "spinBox_size_y")
 
-        self.table.cellClicked.connect(self.cellClicked)
+        #self.table.cellClicked.connect(self.cellClicked)
+        self.table.currentCellChanged.connect(self.cellClicked)
+        
         self.spinbox_x.valueChanged.connect(
             lambda value: self.sizeChanged(x=value))
         self.spinbox_y.valueChanged.connect(
             lambda value: self.sizeChanged(y=value))
 
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.table.horizontalHeader().setDefaultSectionSize(25)
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        self.table.setRowHeight(0, 30)
-        self.table.setColumnWidth(0, 30)
+        self.table.verticalHeader().setDefaultSectionSize(25)
+        
+        self.button_add_tile = self.findChild(QPushButton, "pushButton_add_tile")
+        self.button_remove_tile = self.findChild(
+            QPushButton, "pushButton_remove_tile")
+        self.button_add_tile.clicked.connect(self.addTile)
+        self.button_remove_tile.clicked.connect(self.removeTile)
+        self.button_fill_shape = self.findChild(QPushButton, "pushButton_fill_all")
+        self.button_fill_shape.clicked.connect(self.fillShape)
+        self.button_inner_borders = self.findChild(QPushButton, "pushButton_innerborders")
+        self.button_inner_borders.clicked.connect(self.detectInnerBorders)
+
+         # Tile settings
+        
+        self.checkbox_tile_sync = self.findChild(QCheckBox, "checkBox_synctiles")
+        self.checkbox_tile_sync.stateChanged.connect(self.checkboxTileSyncChanged)
+        
+        self.spinbox_tile_z = self.findChild(QSpinBox, "spinBox_tile_z")
+        self.spinbox_tile_h = self.findChild(QSpinBox, "spinBox_tile_h")
+
+        self.spinbox_tile_z.valueChanged.connect(lambda x: self.tileSpinBoxChanged(x, 'z'))
+        self.spinbox_tile_h.valueChanged.connect(lambda x: self.tileSpinBoxChanged(x, 'h'))
+
+        self.checkbox_has_supports = self.findChild(QCheckBox, "checkBox_hassupports")
+        self.checkbox_has_supports.stateChanged.connect(lambda x: self.tileFlagChanged(x, 'hasSupports'))
+        self.checkbox_allow_supports = self.findChild(QCheckBox, "checkBox_allowsupports")
+        self.checkbox_allow_supports.stateChanged.connect(lambda x: self.tileFlagChanged(x, 'allowSupports'))
+
+        self.buttons_corners = [self.findChild(QPushButton, f"pushButton_q{i}") for i in range(4)]
+        self.buttons_walls = [self.findChild(QPushButton, f"pushButton_w{i}") for i in range(4)]
+        
+        filter = cwdg.ButtonEventFilter(self)
+        for i, button in enumerate(self.buttons_corners):
+            button.toggled.connect(lambda val, index=i: self.toggleCorner(val, index))
+            button.installEventFilter(filter)
+
+        for i, button in enumerate(self.buttons_walls):
+            button.toggled.connect(lambda val, index=i: self.toggleWall(val, index))
+            button.installEventFilter(filter)
 
         self.loadObjectSettings(author=author, author_id=author_id)
 
     def giveCurrentTile(self):
-        print(self.current_tile_index)
-        return self.o.tiles[self.current_tile_index]
+        if self.current_tile_index is None:
+            return None
+        else:
+            return self.o.tiles[self.current_tile_index]
 
     def giveDummy(self):
         if self.sprites_tab.view_mode == self.sprites_tab.ViewMode.PROJECTION:
             dummy_o = obj.newEmpty(obj.Type.LARGE)
             size = self.o.size()
-            dummy_o.changeShape(*size)
+            dummy_o.copyTilesGeometry(self.o.tiles)
             dummy_o.setRotation(self.o.rotation)
 
             dummy_o['properties']['height'] = int(size[2]*8)
@@ -132,6 +173,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         elif self.sprites_tab.view_mode == self.sprites_tab.ViewMode.TILES:
             tile = self.giveCurrentTile()
+            
+            if tile is None:
+                return None, (0, 0)
+            
             dummy_o = obj.newEmpty(obj.Type.SMALL)
             dummy_o.changeShape(obj.SmallScenery.Shape.FULL)
             dummy_o['properties']['height'] = int(tile.h*8)
@@ -200,9 +245,44 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         if self.main_window.settings.get('clear_languages', False):
             self.clearAllLanguages()
+        
+        x, y, _ = self.o.size()
+        self.table.setColumnCount(y)
+        self.table.setRowCount(x)
+        self.updateTilesTable()
+
+    def updateTilesTable(self):
+        x_base, y_base = self.o.baseCoordinates()
+        
+        x = self.table.currentRow()
+        y = self.table.currentColumn()
+        
+        self.table.clearContents()
+
+        for i, tile in enumerate(self.o.tiles):
+            item = QTableWidgetItem()
+            item.setData(QtCore.Qt.UserRole, tile)
+            item.setBackground(QtGui.QColor(200, 200, 200) if (tile.x + tile.y) % 2 == 0 else QtGui.QColor(150, 150, 150))
+            item.setText(str(i+1))
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+
+            self.table.setItem(x_base + tile.x_orig, y_base + tile.y_orig, item)
+
+        self.table.setCurrentCell(x,y)
+        self.setCurrentTile(self.current_tile_index)
+
+
+    def setCurrentTile(self, tile_index):
+        self.current_tile_index = tile_index
+
+        if tile_index is not None:  
+            tile = self.o.tiles[tile_index]
+            x_base, y_base = self.o.baseCoordinates()
+            
+            self.table.setCurrentCell(x_base + tile.x_orig, y_base + tile.y_orig)
+        self.currentTileChanged(tile_index)
 
     def setDefaults(self):
-
         settings_LS = self.main_window.settings.get(
             'large_scenery_defaults', {})
 
@@ -219,18 +299,188 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             settings_LS.get('cursor', 'CURSOR_BLANK')))
 
     def sizeChanged(self, x=None, y=None):
+        x_size, y_size, _ = self.o.size()
+        
+        x_current = self.table.currentRow()
+        y_current = self.table.currentColumn()
         if x:
-            self.table.setRowCount(x)
+            if x >= x_size:
+                self.table.setRowCount(x)
+                if x_current >= x:
+                    self.table.setCurrentCell(x-1, y_current)
+            else:
+                self.spinbox_x.setValue(x_size)
+            
         if y:
-            self.table.setColumnCount(y)
+            if y >= y_size:
+                self.table.setColumnCount(y)
+                if y_current >= y:
+                    self.table.setCurrentCell(x_current, y-1)
+            else:
+                self.spinbox_y.setValue(y_size)
 
     def cellClicked(self, row, column):
         tile, index = self.o.getTile((row, column))
-        if tile is not None:
+        if index is not None:
             self.current_tile_index = index
-            layer = self.sprites_tab.getTileLayerById(index)
-            self.sprites_tab.setActiveLayer(layer)
-            self.object_tab.activeLayerChanged.emit(layer)
+            
+            if self.sprites_tab.view_mode == self.sprites_tab.ViewMode.TILES:
+                self.sprites_tab.layers.setActiveRow(index, emit_signal=False)
+                self.object_tab.activeLayerRowChanged.emit(index)
+        else:
+            self.current_tile_index = None
+            
+        self.currentTileChanged(self.current_tile_index)
+        
+    def currentTileChanged(self, index):
+        if index is None:
+            self.button_add_tile.setEnabled(True)
+            self.button_remove_tile.setEnabled(False)
+            
+            self.findChild(QGroupBox, "groupBox_tilesettings").setEnabled(False)
+                       
+            for button in self.buttons_corners:
+                button.setChecked(False)
+            for button in self.buttons_walls:
+                button.setChecked(False)
+            
+            return
+        else:
+            tile = self.o.tiles[index]
+            self.button_add_tile.setEnabled(False)
+            self.button_remove_tile.setEnabled(True if index != 0 else False)
+            
+            self.findChild(QGroupBox, "groupBox_tilesettings").setEnabled(True)
+            self.spinbox_tile_z.setValue(tile.z)
+            self.spinbox_tile_h.setValue(tile.h)
+            
+            self.checkbox_allow_supports.setChecked(tile.allow_supports_above)
+            self.checkbox_allow_supports.setEnabled(tile.has_supports)
+            self.checkbox_has_supports.setChecked(tile.has_supports)
+
+            for i, button in enumerate(self.buttons_corners):
+                button.setChecked(tile.corners[i])
+            for i, button in enumerate(self.buttons_walls):
+                button.setChecked(not tile.walls[i])
+                
+    def checkboxTileSyncChanged(self, state):
+        if state == QtCore.Qt.Checked:
+            tile_base = self.giveCurrentTile()
+            for tile in self.o.tiles:
+                tile.z = tile_base.z
+                tile.h = tile_base.h
+                tile.has_supports = tile_base.has_supports
+                tile.allow_supports_above = tile_base.allow_supports_above
+        
+            
+    def tileSpinBoxChanged(self, value, name):
+        if self.checkbox_tile_sync.isChecked():
+            for tile in self.o.tiles:
+                if name == 'z':
+                    tile.z = value
+                elif name == 'h':
+                    tile.h = value
+        else:
+            tile = self.giveCurrentTile()
+            if tile is None:
+                return
+            
+            if name == 'z':
+                tile.z = value
+            elif name == 'h':
+                tile.h = value
+
+        self.sprites_tab.updateBoundingBox()
+        self.sprites_tab.updateLockedSpriteLayersModel()
+        self.sprites_tab.updateAllViews()
+
+    def toggleCorner(self, val, index):
+        tile = self.giveCurrentTile()
+        if tile:
+            tile.corners[index] = val
+
+    def toggleWall(self, val, index):
+        tile = self.giveCurrentTile()
+        if tile:
+            tile.walls[index] = not val
+
+    def tileFlagChanged(self, state, flag):
+        if self.checkbox_tile_sync.isChecked():
+            for tile in self.o.tiles:
+                if flag == 'allowSupports':
+                    tile.allow_supports_above = True if state == QtCore.Qt.Checked else False
+                elif flag == 'hasSupports':
+                    tile.has_supports = True if state == QtCore.Qt.Checked else False
+                    self.checkbox_allow_supports.setEnabled((state == QtCore.Qt.Checked))
+        else:
+            tile = self.giveCurrentTile()
+            
+            if tile:
+                if flag == 'allowSupports':
+                    tile.allow_supports_above = True if state == QtCore.Qt.Checked else False
+                elif flag == 'hasSupports':
+                    tile.has_supports = True if state == QtCore.Qt.Checked else False
+                    self.checkbox_allow_supports.setEnabled((state == QtCore.Qt.Checked))
+
+            
+    def addTile(self):
+        if self.current_tile_index is not None:
+            return
+        
+        x_base, y_base = self.o.baseCoordinates()
+        x = self.table.currentRow() - x_base
+        y = self.table.currentColumn() - y_base
+        
+        tile_dict = {
+            'clearance': self.spinbox_tile_h.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
+            'z': self.spinbox_tile_z.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
+            'has_supports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+            'allow_supports_above': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+        }
+        
+        self.o.addTile((x, y), tile_dict)
+        self.current_tile_index = len(self.o.tiles) - 1
+        
+        self.sprites_tab.updateBoundingBox()
+        self.sprites_tab.updateLockedSpriteLayersModel()
+        self.sprites_tab.updateAllViews()
+        self.updateTilesTable()
+        
+    def removeTile(self):
+        if self.current_tile_index is None or self.current_tile_index == 0:
+            return
+        
+        self.o.removeTile(self.current_tile_index)
+        self.current_tile_index = None
+        self.sprites_tab.updateBoundingBox()
+        self.sprites_tab.updateLockedSpriteLayersModel()
+        self.sprites_tab.updateAllViews()
+        self.updateTilesTable()
+
+        
+    def fillShape(self):
+        x_base, y_base = self.o.baseCoordinates()
+        x_length = self.table.rowCount()
+        y_length = self.table.columnCount()
+
+        tile_dict = {
+            'clearance': self.spinbox_tile_h.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
+            'z': self.spinbox_tile_z.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
+            'has_supports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+            'allow_supports_above': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+        }
+
+        self.o.fillShape(x_length, y_length, base_x=x_base, base_y=y_base, dict_entry=tile_dict)
+
+        self.sprites_tab.updateBoundingBox()
+        self.sprites_tab.updateLockedSpriteLayersModel()
+        self.sprites_tab.updateAllViews()
+        self.updateTilesTable()
+        
+    def detectInnerBorders(self):
+        self.o.detectWalls()
+        
+        self.updateTilesTable()
 
 
 class SpritesTab(widgetsGeneric.SpritesTabAll):
@@ -253,7 +503,6 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.button_tiles_mode.clicked.connect(
             lambda: self.changeViewMode(self.ViewMode.TILES))
 
-#        self.changeViewMode(self.ViewMode.PROJECTION)
         self.createLayers()
 
         self.previewClicked(0)
@@ -285,136 +534,100 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.view_mode = mode
         if mode == self.ViewMode.PROJECTION:
             self.createProjectionSprites()
+            self.object_tab.settings_tab.checkbox_tile_sync.setChecked(True)
+            self.object_tab.settings_tab.checkbox_tile_sync.setEnabled(False)
         elif mode == self.ViewMode.TILES:
             self.projectSprites()
-
+            self.object_tab.settings_tab.checkbox_tile_sync.setEnabled(True)
+            
+        self.updateBoundingBox()
         self.updateLockedSpriteLayersModel()
 
-    # override base class method
-    def setActiveLayer(self, layer):
-        self.active_layer_id = int(layer.locked_id)
-
+    def activeLayerRowChanged(self, row):
         if self.view_mode == self.ViewMode.TILES:
-            self.object_tab.settings_tab.current_tile_index = int(
-                layer.locked_id)
+            self.object_tab.settings_tab.setCurrentTile(row)
 
-        try:
-            dummy_o, dummy_coords = self.object_tab.giveDummy()
-        except AttributeError:
-            return
+        self.updateBoundingBox()
 
-        backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
-        self.object_tab.boundingBoxChanged.emit(
-            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
 
     def getTileLayerById(self, id):
-        for layer in self.layers[self.o.rotation]:
-            if layer.locked_id == id:
-                return layer
+        return self.layers.item(id)
 
     def createLayers(self):
-        self.layers = [[], [], [], []]
-
+        
         if self.view_mode == self.ViewMode.PROJECTION:
+            self.layers = wdg.SpriteLayerModel(1, 4)
             for rot in range(4):
                 sprite = self.projectionSprites[rot]
                 layer = wdg.SpriteLayer(
                     sprite, self.main_window, 0, 0, 0, 0, name=f'View {rot+1}')
-                self.layers[rot].append(layer)
+                self.layers.setItem(0, rot, layer)
         elif self.view_mode == self.ViewMode.TILES:
             center_x, center_y = self.o.centerOffset()
+            orders = [list(reversed(self.o.getDrawingOrder(rotation=rot))) for rot in range(4)]
+            
+            self.layers = wdg.SpriteLayerModel(self.o.numTiles(), 4, orders=orders)
+            
             for rot in range(4):
-                for tile_entry in self.o.getOrderedTileSprites(rot):
+                for tile_entry in self.o.getOrderedTileSprites(rotation=rot):
                     layer = wdg.SpriteLayer(
-                        tile_entry[0], self.main_window, 0, 0, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}', locked_id=tile_entry[3])
-                    self.layers[rot].append(layer)
+                        tile_entry[0], self.main_window, 0, 0, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')
+                    self.layers.setItem(tile_entry[3], rot, layer)
+            
+            try:
+                if self.object_tab.settings_tab.current_tile_index is not None:
+                    self.layers.setActiveRow(self.object_tab.settings_tab.current_tile_index, emit_signal=False)
+                else: 
+                    self.layers.setActiveRow(0, emit_signal=False)
+            except AttributeError:
+                self.layers.setActiveRow(0, emit_signal=False)
+                
+            self.layers.activeRowChanged.connect(self.activeLayerRowChanged)
+            
+        self.layers.setActiveColumn(self.o.rotation)
 
     def requestNumberOfLayers(self):
-        if self.o.subtype == self.o.Subtype.SIMPLE:
-            return 1
-        elif self.o.subtype == self.o.Subtype.ANIMATED:
-            if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN1:
-                return 2
-            elif self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
-                return 4
-            else:
-                return 1
-        elif self.o.subtype == self.o.Subtype.GLASS:
-            return 2
-        elif self.o.subtype == self.o.Subtype.GARDENS:
-            return 3
+        return self.o.numTiles() if self.view_mode == self.ViewMode.TILES else 1
 
-    def setCurrentLayers(self, layers, view=None):
-        if view == None:
-            view = self.o.rotation
+    # def setCurrentLayers(self, layers, view=None):
+    #     #TODO
+    #     if view == None:
+    #         view = self.o.rotation
 
-        if self.requestNumberOfLayers() != layers.rowCount():
-            dialog = SpriteImportUi(layers, self.layers[view])
+    #     if self.requestNumberOfLayers() != layers.rowCount():
+    #         dialog = SpriteImportUi(layers, self.layers[view])
 
-            if dialog.exec():
-                target_index = dialog.selected_index
-                layers_incoming = dialog.selected_incoming
+    #         if dialog.exec():
+    #             target_index = dialog.selected_index
+    #             layers_incoming = dialog.selected_incoming
 
-                if len(layers_incoming) == 0:
-                    return
+    #             if len(layers_incoming) == 0:
+    #                 return
 
-                layer_top = layers_incoming[0]
-                for i in range(len(layers_incoming)-1):
-                    layer_bottom = layers_incoming[i+1]
-                    layer_bottom.merge(layer_top)
-                    layer_top = layer_bottom
+    #             layer_top = layers_incoming[0]
+    #             for i in range(len(layers_incoming)-1):
+    #                 layer_bottom = layers_incoming[i+1]
+    #                 layer_bottom.merge(layer_top)
+    #                 layer_top = layer_bottom
 
-                target_layer = self.layers[view][target_index]
-                target_layer.sprite.setFromSprite(layer_top.sprite)
+    #             target_layer = self.layers[view][target_index]
+    #             target_layer.sprite.setFromSprite(layer_top.sprite)
 
-            else:
-                return
-        else:
-            for i in range(layers.rowCount()):
-                index = layers.rowCount() - i - 1
-                target_layer = self.layers[view][i]
-                target_layer.sprite.setFromSprite(layers.item(
-                    index, 0).sprite)
+    #         else:
+    #             return
+    #     else:
+    #         for i in range(layers.rowCount()):
+    #             index = layers.rowCount() - i - 1
+    #             target_layer = self.layers[view][i]
+    #             target_layer.sprite.setFromSprite(layers.item(
+    #                 index, 0).sprite)
 
-        if self.object_tab.locked:
-            self.createLayers()
-            self.object_tab.locked_sprite_tab.updateLayersModel()
+    #     if self.object_tab.locked:
+    #         self.createLayers()
+    #         self.object_tab.locked_sprite_tab.updateLayersModel()
 
-        self.updateMainView()
+    #     self.updateMainView()
 
-    def addSpriteToHistoryAllViews(self, index):
-        for rot in range(4):
-            self.layers[rot][index].addSpriteToHistory()
-
-    def colorRemapToAll(self, index, color_remap, selected_colors):
-        self.addSpriteToHistoryAllViews(index)
-
-        for rot in range(4):
-            sprite = self.layers[rot][index].sprite
-            for color in selected_colors:
-                sprite.remapColor(color, color_remap)
-
-        self.updateAllViews()
-
-    def colorChangeBrightnessAll(self, index, step, selected_colors):
-        self.addSpriteToHistoryAllViews(index)
-
-        for rot in range(4):
-            sprite = self.layers[rot][index].sprite
-            for color in selected_colors:
-                sprite.changeBrightnessColor(step, color)
-
-        self.updateAllViews()
-
-    def colorRemoveAll(self, index, selected_colors):
-        self.addSpriteToHistoryAllViews(index)
-
-        for rot in range(4):
-            sprite = self.layers[rot][index].sprite
-            for color in selected_colors:
-                sprite.removeColor(color)
-
-        self.updateAllViews()
 
     def updateMainView(self, emit_signal=True):
 
@@ -460,6 +673,17 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
+        
+    def updateBoundingBox(self):
+        try:
+            dummy_o, dummy_coords = self.object_tab.giveDummy()
+        except AttributeError:
+            return
+
+        backbox, coords = self.main_window.bounding_boxes.giveBackbox(dummy_o)
+        self.object_tab.boundingBoxChanged.emit(
+            self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, (coords[0]+dummy_coords[0], coords[1] + dummy_coords[1]))
+
 
     class ViewMode(Enum):
         PROJECTION = 0, 'Projection'
@@ -473,41 +697,6 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
 
         def __int__(self):
             return self.value
-
-
-class SpriteImportUi(QDialog):
-    def __init__(self, layers_incoming, layers_object):
-        super().__init__()
-        uic.loadUi(aux.resource_path('gui/sprite_import.ui'), self)
-
-        self.setFixedSize(self.size())
-        self.layers_incoming = layers_incoming
-        self.layers_object = layers_object
-
-        for i in range(layers_incoming.rowCount()):
-            index = layers_incoming.rowCount() - i - 1
-            layer = layers_incoming.item(index, 0)
-            self.list_layers_incoming.insertItem(0, layer.text())
-
-        for layer in layers_object:
-            self.list_layers_object.insertItem(0, layer.text())
-
-        self.list_layers_incoming.setCurrentRow(0)
-        self.list_layers_object.setCurrentRow(0)
-
-    def accept(self):
-
-        self.selected_incoming = []
-
-        for item in self.list_layers_incoming.selectedItems():
-            index = self.list_layers_incoming.row(item)
-
-            self.selected_incoming.append(self.layers_incoming.item(index, 0))
-
-        self.selected_index = self.list_layers_object.count(
-        ) - self.list_layers_object.currentRow() - 1
-
-        super().accept()
 
 
 class TileItem(QtGui.QStandardItem):

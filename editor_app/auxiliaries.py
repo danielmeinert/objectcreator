@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -89,6 +89,9 @@ class BoundingBoxes():
             [image_0, (-32, 0)], [image_1, (-32, 0)], [image_2, (-32, 8)], [image_3, (-32, 0)]]
 
     def giveBackbox(self, o):
+        if o is None:
+            return [Image.new('RGBA', (1, 1)), (0, 0)]
+        
         object_type = o.object_type
         if object_type == obj.Type.SMALL:
             shape = o.shape
@@ -220,6 +223,9 @@ class SymmetryAxes():
         self.symm_diagonal = [[image_0, (-32, -15)], [image_1, (-32, -15)]]
 
     def giveSymmAxes(self, o):
+        if o is None:
+            return [Image.new('RGBA', (1, 1)), (0, 0)]
+        
         object_type = o.object_type
         if object_type == obj.Type.SMALL:
             shape = o.shape

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -552,12 +552,12 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, 0, 0, 0, 0, name=f'Structure View {rot+1}', locked_id=0)
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Structure View {rot+1}')
                 self.layers.setItem(0, rot, layer)
             for rot in range(4):
                 sprite = self.o.giveSprite(rotation=rot, glass=True)
                 layer = wdg.SpriteLayer(
-                    sprite, self.main_window, 0, 0, 0, 0, name=f'Glass View {rot+1}', locked_id=1)
+                    sprite, self.main_window, 0, 0, 0, 0, name=f'Glass View {rot+1}')
                 self.layers.setItem(1, rot, layer)
         elif self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
             if self.slider_sprite_index.value() == 0:
@@ -590,27 +590,27 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     sprite = self.o.sprites[self.o.data['images']
                                             [base_index]['path']]
                     layer = wdg.SpriteLayer(
-                        sprite, self.main_window, 0, 0, 0, 0, name=f'Base 1 View {rot+1}', locked_id=0)
+                        sprite, self.main_window, 0, 0, 0, 0, name=f'Base 1 View {rot+1}')
                     self.layers.setItem(0, rot, layer)
 
                     sprite = self.o.sprites[self.o.data['images']
                                             [fountain_index]['path']]
                     layer = wdg.SpriteLayer(
                         sprite, self.main_window, 0, 0, 0, 0,
-                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}', locked_id=1)
+                        name=f'Jets 1 Animation Frame {animation_frame + 1} View {rot+1}')
                     self.layers.setItem(1, rot, layer)
 
                     if self.o.animation_type == obj.SmallScenery.AnimationType.FOUNTAIN4:
                         sprite = self.o.sprites[self.o.data['images']
                                                 [base_index+4]['path']]
                         layer = wdg.SpriteLayer(
-                            sprite, self.main_window, 0, 0, 0, 0, name=f'Base 2 View {rot+1}', locked_id=2)
+                            sprite, self.main_window, 0, 0, 0, 0, name=f'Base 2 View {rot+1}')
                         self.layers.setItem(2, rot, layer)
                         sprite = self.o.sprites[self.o.data['images']
                                                 [fountain_index+16]['path']]
                         layer = wdg.SpriteLayer(
                             sprite, self.main_window, 0, 0, 0, 0,
-                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}', locked_id=3)
+                            name=f'Jets 2 Animation Frame {animation_frame + 1} View {rot+1}')
                         self.layers.setItem(3, rot, layer)
             else:
                 if animation_frame == 0 and self.o.has_preview:
@@ -636,6 +636,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     sprite, self.main_window, 0, 0, 0, 0, name=f'View {rot+1}')
                 self.layers.setItem(0, rot, layer)
 
+        self.layers.setActiveColumn(self.o.rotation)
+
 
     def requestNumberOfLayers(self):
         if self.o.subtype == self.o.Subtype.SIMPLE:
@@ -652,86 +654,6 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         elif self.o.subtype == self.o.Subtype.GARDENS:
             return 3
 
-    def setCurrentLayers(self, layers, view=None):
-        
-        if view == None:
-            view = self.o.rotation
-
-        if self.requestNumberOfLayers() != layers.rowCount():
-            dialog = SpriteImportUi(
-                layers, self.layers)
-
-            if dialog.exec():
-                target_row = dialog.selected_row # Row in base model
-                layers_incoming = dialog.selected_incoming #QtGui.QStandardItemModel()
-
-                if layers_incoming.rowCount() == 0:
-                    return
-
-                layer_top = wdg.SpriteLayer.fromLayer(layers_incoming.item(0))
-                for i in range(layers_incoming.rowCount()-1):
-                    layer_bottom = wdg.SpriteLayer.fromLayer(
-                        layers_incoming.item(i+1))
-                    layer_bottom.merge(layer_top)
-                    layer_top = layer_bottom
-
-                target_layer = self.layers.item(target_row)
-                target_layer.sprite.setFromSprite(layer_top.sprite)
-
-            else:
-                return
-        else:
-            for i in range(layers.rowCount()):
-                index = layers.rowCount() - i - 1
-                target_layer = self.layers.itemFromProxyRow(i,view)
-                target_layer.sprite.setFromSprite(layers.item(
-                    index, 0).sprite)
-
-        if self.object_tab.locked:
-            self.createLayers()
-            self.object_tab.locked_sprite_tab.updateLayersModel()
-
-        self.updateMainView()
-
-    def addSpriteToHistoryAllViews(self, row):        
-        for rot in range(4):
-            self.layers.itemFromProxyRow(row, rot).addSpriteToHistory()
-
-    def colorRemapToAll(self, row, color_remap, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        for rot in range(4):
-            sprite = self.layers.itemFromProxyRow(row, rot).sprite
-            sprite.remapColor(selected_colors, color_remap)
-
-        self.updateAllViews()
-
-    def colorChangeBrightnessAll(self, row, step, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        for rot in range(4):
-            sprite = self.layers.itemFromProxyRow(row, rot).sprite
-            sprite.changeBrightnessColor(step, selected_colors)
-
-        self.updateAllViews()
-
-    def colorRemoveAll(self, row, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        for rot in range(4):
-            sprite = self.layers.itemFromProxyRow(row, rot).sprite
-            sprite.removeColor(selected_colors)
-
-        self.updateAllViews()
-        
-    def colorInvertShadingAll(self, row, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        for rot in range(4):
-            sprite = self.layers.itemFromProxyRow(row, rot).sprite
-            sprite.invertShadingColor(selected_colors)
-
-        self.updateAllViews()
 
     def updateMainView(self, emit_signal=True):
         if self.o.subtype == obj.SmallScenery.Subtype.GARDENS:
@@ -776,39 +698,6 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         image = ImageQt(canvas)
         pixmap = QtGui.QPixmap.fromImage(image)
         self.sprite_preview[rot].setPixmap(pixmap)
-
-
-class SpriteImportUi(QDialog):
-    def __init__(self, layers_incoming, layers_object):
-        super().__init__()
-        uic.loadUi(aux.resource_path('gui/sprite_import.ui'), self)
-
-        self.setFixedSize(self.size())
-        self.layers_incoming = layers_incoming
-        self.layers_object = layers_object
-
-        self.list_layers_incoming.setModel(layers_incoming)
-        self.list_layers_incoming.setModelColumn(layers_incoming.giveActiveColumn())
-        self.list_layers_object.setModel(layers_object)
-        self.list_layers_object.setModelColumn(layers_object.giveActiveColumn())
-
-    
-        self.list_layers_incoming.setCurrentIndex(layers_incoming.giveCurrentProxyIndex())
-        self.list_layers_object.setCurrentIndex(layers_object.giveCurrentProxyIndex())
-
-    def accept(self):
-
-        self.selected_incoming = QtGui.QStandardItemModel()
-
-        for index in self.list_layers_incoming.selectedIndexes():
-            layer = wdg.SpriteLayer.fromLayer(self.layers_incoming.itemFromProxyIndex(index))
-            self.selected_incoming.appendRow(layer)
-
-        # Selected target layer row in base model
-        self.selected_row = self.list_layers_object.model().originalIndex(self.list_layers_object.currentIndex()).row()
-
-        super().accept()
-
 
 class EditAnimationSequenceUI(QDialog):
     def __init__(self, o):

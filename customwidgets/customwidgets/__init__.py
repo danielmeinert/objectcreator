@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -616,3 +616,9 @@ class AnimationSpinBox(QSpinBox):
 
     def stepBy(self, steps):
         self.setValue(int(self.value()*2**steps))
+        
+class ButtonEventFilter(QtCore.QObject):
+    def eventFilter(self, obj, event):
+        if event.type() in [QtCore.QEvent.HoverEnter, QtCore.QEvent.HoverMove]:
+            return True
+        return False

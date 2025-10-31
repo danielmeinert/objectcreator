@@ -1,6 +1,6 @@
 """
 *****************************************************************************
- * Copyright (c) 2024 Tolsimir
+ * Copyright (c) 2025 Tolsimir
  *
  * The program "Object Creator" and all subsequent modules are licensed
  * under the GNU General Public License version 3.
@@ -959,7 +959,6 @@ class LargeScenery(RCTObject):
                 sprite.overwriteOffsets(
                     int(sprite.x), int(sprite.y) - 15)
 
-            self.num_tiles = len(self.data['properties']['tiles'])
             self.tiles = []
             for i, tile_dict in enumerate(self['properties']['tiles']):
                 tile = self.Tile(o=self, dict_entry=tile_dict,
@@ -1002,6 +1001,22 @@ class LargeScenery(RCTObject):
         z = max_z - min_z
 
         return (int(x), int(y), int(z))
+    
+    def baseCoordinates(self):
+        # Coordinates of the base (0,0) tile in (unrotated) object space in tile grid coordinates from the object footprint
+        rotation_save = int(self.rotation)
+        self.setRotation(0)        
+        min_x = 0
+        min_y = 0
+        
+
+        for tile in self.tiles:
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            
+        self.setRotation(rotation_save)
+        
+        return int(min_x), int(min_y)
 
     def baseOffset(self):
         # Coordinates  of center of (0,0) tile in screen space of the sprite bounding box according to rotation
@@ -1089,12 +1104,21 @@ class LargeScenery(RCTObject):
     def setRotation(self, rot):
         self.rotateObject(rot-self.rotation)
 
-    def getDrawingOrder(self):
+    def getDrawingOrder(self, rotation=None):
+        if rotation is not None:
+            rotation_save = int(self.rotation)
+            self.setRotation(rotation)
+        else:
+            rotation_save = None    
+            
         order = {}
 
         for tile_index, tile in enumerate(self.tiles):
             score = tile.x + tile.y
             order[tile_index] = score
+            
+        if rotation_save is not None:
+            self.setRotation(rotation_save)
 
         return sorted(order, key=order.get)
 
@@ -1166,7 +1190,7 @@ class LargeScenery(RCTObject):
         for i, tile in enumerate(self.tiles):
             for view in range(4):
                 im = tile.images[view]
-                sprite = self.sprites.pop(im['path'])
+                sprite = self.sprites.pop(im['path'], spr.Sprite(None, (0, 0), self.palette))
                 im['path'] = f'images/tile_{i}_im_{view}.png'
                 new_dict[im['path']] = sprite
                 new_list.append(im)
@@ -1225,9 +1249,15 @@ class LargeScenery(RCTObject):
                           fill=1, width=1)
 
         return mask
+    
+    def numTiles(self):
+        return len(self.tiles)
 
     def addTile(self, coords, dict_entry=None, clearance=0):
-        # we expect that the image list is ordered
+        # we expect that the image list is ordered, coords are in unrotated object space
+                
+        if self.getTile(coords)[0]:
+            raise RuntimeError(f'Tile at coordinates {coords} already exists.')
 
         index = len(self.tiles)
 
@@ -1261,6 +1291,7 @@ class LargeScenery(RCTObject):
 
         tile = self.Tile(self, dict_entry, images, self.rotation)
         self.tiles.append(tile)
+        
 
     def removeTile(self, index):
         if index < 1:
@@ -1271,11 +1302,38 @@ class LargeScenery(RCTObject):
         self.updateImageList()
 
     def getTile(self, coords):
+        #corresponding in the original unrotated object space
         for i, tile in enumerate(self.tiles):
-            if (tile.x, tile.y) == coords:
+            if (tile.x_orig, tile.y_orig) == coords:
                 return tile, i
 
         return None, None
+
+    def fillShape(self, x_length, y_length, base_x = 0, base_y = 0, dict_entry=None, clearance=0):
+        # fill a rectangular shape with tiles, where base_x and base_y are the coordinates of the base (0,0) tile in tile grid coordinates from the desired footprint
+        for x in range(x_length):
+            for y in range(y_length):
+                if self.getTile((x-base_x, y-base_y))[0]:
+                    continue
+
+                self.addTile((x-base_x, y-base_y), dict_entry=dict_entry, clearance=clearance)
+                
+        self.updateImageList()
+        
+    def detectWalls(self):
+        # detect walls for all tiles based on neighboring tiles 
+        for tile in self.tiles:
+            neighbor_coords = [(tile.x_orig-1, tile.y_orig),  # North
+                               (tile.x_orig, tile.y_orig+1),  # East
+                               (tile.x_orig+1, tile.y_orig),  # South
+                               (tile.x_orig, tile.y_orig-1)]  # West
+
+            for i, n_coords in enumerate(neighbor_coords):
+                neighbor_tile, _ = self.getTile(n_coords)
+                if neighbor_tile:
+                    tile.walls[i] = False
+                else:
+                    tile.walls[i] = True
 
     def changeShape(self, width, length, height):
         # erase all tiles and set a rectangular shape
@@ -1294,12 +1352,14 @@ class LargeScenery(RCTObject):
         self.updateImageList()
 
     def copyTilesGeometry(self, tiles):
-        pass
-        # new_tiles = []
+        tiles_copy = []
+        
+        for tile in tiles:
+            tiles_copy.append(self.Tile(self, tile.giveDictEntry(), tile.images, rotation=self.rotation))
 
-        # for tile in tiles:
-
-       #     new_tile = self.Tile(self, tile.give)
+        self.tiles = tiles_copy
+        self.updateImageList()
+            
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
@@ -1320,9 +1380,14 @@ class LargeScenery(RCTObject):
 
             self.dict_entry = dict_entry
             self.x = dict_entry['x']//32
+            self.x_orig = dict_entry['x']//32
             self.y = dict_entry['y']//32
+            self.y_orig = dict_entry['y']//32
             self.z = dict_entry.get('z', 0)//8
             self.h = dict_entry['clearance']//8
+            
+            self.has_supports = dict_entry.get('hasSupports', False)
+            self.allow_supports_above = dict_entry.get('allowSupportsAbove', False)
             self.walls = [bool(dict_entry.get('walls', 0) & 0x1),
                           bool(dict_entry.get('walls', 0) & 0x2),
                           bool(dict_entry.get('walls', 0) & 0x4),
@@ -1371,15 +1436,25 @@ class LargeScenery(RCTObject):
             self.o.sprites[self.images[rotation]['path']].setFromSprite(sprite)
 
         def giveDictEntry(self):
-            tile_entry = {}
-            tile_entry['x'] = self.x*32
-            tile_entry['y'] = self.y*32
-            tile_entry['z'] = self.z*8
-            tile_entry['clearance'] = self.h*8
-            tile_entry['walls'] = self.giveWalls()
-            tile_entry['corners'] = self.giveCorners()
+            dict_entry = {}
 
-            return tile_entry
+            dict_entry['x'] = self.x*32
+            dict_entry['y'] = self.y*32
+            if self.z != 0:
+                dict_entry['z'] = self.z*8
+            dict_entry['clearance'] = self.h*8
+
+            if self.has_supports:
+                dict_entry['hasSupports'] = self.has_supports
+            if self.allow_supports_above:
+                dict_entry['allowSupportsAbove'] = self.allow_supports_above
+
+            if self.giveWalls() != 15:
+                dict_entry['walls'] = self.giveWalls()
+            if self.giveCorners() != 0:
+                dict_entry['corners'] = self.giveCorners()
+
+            return dict_entry
 
         def giveWalls(self):
             return int(self.walls[0])+int(self.walls[1])*2 + int(self.walls[2])*4 + int(self.walls[3])*8

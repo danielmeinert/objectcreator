@@ -594,6 +594,15 @@ QTabBar::tab:selected {
             <height>600</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true"> QTableWidget::item:selected:active{
+                                     background: lightblue;
+									font: black;
+                                }
+ QTableWidget::item:selected:!active{
+                                     background: lightblue;
+                                }</string>
+          </property>
           <property name="sizeAdjustPolicy">
            <enum>QAbstractScrollArea::AdjustToContents</enum>
           </property>
@@ -601,7 +610,7 @@ QTabBar::tab:selected {
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
           <property name="selectionMode">
-           <enum>QAbstractItemView::NoSelection</enum>
+           <enum>QAbstractItemView::SingleSelection</enum>
           </property>
           <property name="showGrid">
            <bool>true</bool>
@@ -624,10 +633,10 @@ QTabBar::tab:selected {
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
+          <attribute name="horizontalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="horizontalHeaderMinimumSectionSize">
+          <attribute name="horizontalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -642,10 +651,10 @@ QTabBar::tab:selected {
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderDefaultSectionSize">
+          <attribute name="verticalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="verticalHeaderMinimumSectionSize">
+          <attribute name="verticalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="verticalHeaderShowSortIndicator" stdset="0">
@@ -759,7 +768,7 @@ QTabBar::tab:selected {
            <string>Y</string>
           </property>
          </widget>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="groupBox_tilesettings">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -774,7 +783,7 @@ QTabBar::tab:selected {
           <property name="flat">
            <bool>true</bool>
           </property>
-          <widget class="QSpinBox" name="spinBox_baseh">
+          <widget class="QSpinBox" name="spinBox_tile_z">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -816,7 +825,7 @@ QTabBar::tab:selected {
             <string>Clearance</string>
            </property>
           </widget>
-          <widget class="QSpinBox" name="spinBox_clearance">
+          <widget class="QSpinBox" name="spinBox_tile_h">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -832,7 +841,7 @@ QTabBar::tab:selected {
             <number>31</number>
            </property>
           </widget>
-          <widget class="QCheckBox" name="checkBox_nosupports">
+          <widget class="QCheckBox" name="checkBox_hassupports">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -841,11 +850,14 @@ QTabBar::tab:selected {
              <height>17</height>
             </rect>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check if the selected tile should draw supports below&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
-            <string>No Supports</string>
+            <string>Has Supports</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
           <widget class="QCheckBox" name="checkBox_allowsupports">
@@ -857,6 +869,9 @@ QTabBar::tab:selected {
              <height>17</height>
             </rect>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the object has supports, check if supports coming from the top should draw until the object or not drawn at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>Allow Supports Above</string>
            </property>
@@ -865,6 +880,9 @@ QTabBar::tab:selected {
            </property>
           </widget>
           <widget class="QGroupBox" name="groupBox_2">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="geometry">
             <rect>
              <x>140</x>
@@ -879,7 +897,7 @@ QTabBar::tab:selected {
            <property name="title">
             <string>Quarter Tiles | Walls</string>
            </property>
-           <widget class="QToolButton" name="toolButton_q3">
+           <widget class="QPushButton" name="pushButton_q1">
             <property name="geometry">
              <rect>
               <x>40</x>
@@ -910,7 +928,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_q0">
+           <widget class="QPushButton" name="pushButton_q2">
             <property name="geometry">
              <rect>
               <x>40</x>
@@ -940,8 +958,11 @@ QTabBar::tab:selected {
             <property name="checked">
              <bool>true</bool>
             </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_q1">
+           <widget class="QPushButton" name="pushButton_q3">
             <property name="geometry">
              <rect>
               <x>60</x>
@@ -972,7 +993,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_q2">
+           <widget class="QPushButton" name="pushButton_q0">
             <property name="geometry">
              <rect>
               <x>60</x>
@@ -1003,7 +1024,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_w0">
+           <widget class="QPushButton" name="pushButton_w0">
             <property name="geometry">
              <rect>
               <x>50</x>
@@ -1024,6 +1045,9 @@ QTabBar::tab:selected {
               <height>20</height>
              </size>
             </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -1033,8 +1057,11 @@ QTabBar::tab:selected {
             <property name="checked">
              <bool>true</bool>
             </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_w3">
+           <widget class="QPushButton" name="pushButton_w3">
             <property name="geometry">
              <rect>
               <x>16</x>
@@ -1065,7 +1092,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_w2">
+           <widget class="QPushButton" name="pushButton_w2">
             <property name="geometry">
              <rect>
               <x>50</x>
@@ -1096,7 +1123,7 @@ QTabBar::tab:selected {
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_w1">
+           <widget class="QPushButton" name="pushButton_w1">
             <property name="geometry">
              <rect>
               <x>84</x>
@@ -1137,16 +1164,22 @@ QTabBar::tab:selected {
              <height>17</height>
             </rect>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Synchronize the for settings below among all tiles. Quarters and Walls not included.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>Sync with all Tiles</string>
            </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
           </widget>
           <zorder>groupBox_2</zorder>
-          <zorder>spinBox_baseh</zorder>
+          <zorder>spinBox_tile_z</zorder>
           <zorder>label_4</zorder>
           <zorder>label_6</zorder>
-          <zorder>spinBox_clearance</zorder>
-          <zorder>checkBox_nosupports</zorder>
+          <zorder>spinBox_tile_h</zorder>
+          <zorder>checkBox_hassupports</zorder>
           <zorder>checkBox_allowsupports</zorder>
           <zorder>checkBox_synctiles</zorder>
          </widget>
@@ -1207,15 +1240,18 @@ QTabBar::tab:selected {
          </widget>
          <widget class="QPushButton" name="pushButton_innerborders">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="geometry">
            <rect>
             <x>180</x>
-            <y>190</y>
+            <y>220</y>
             <width>101</width>
             <height>21</height>
            </rect>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For every tile, set its walls according to neighboring tiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Apply</string>
@@ -1225,13 +1261,13 @@ QTabBar::tab:selected {
           <property name="geometry">
            <rect>
             <x>180</x>
-            <y>160</y>
+            <y>200</y>
             <width>101</width>
-            <height>31</height>
+            <height>21</height>
            </rect>
           </property>
           <property name="text">
-           <string>Auto-detect Inner Tile Borders</string>
+           <string>Auto-detect Walls</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
