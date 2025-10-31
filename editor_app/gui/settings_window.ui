@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>434</width>
+    <width>519</width>
     <height>320</height>
    </rect>
   </property>
@@ -22,8 +22,17 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
      <property name="currentIndex">
       <number>0</number>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideNone</enum>
      </property>
      <widget class="QWidget" name="tab_mainsettings">
       <attribute name="title">
@@ -668,264 +677,438 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_SS_default">
+     <widget class="QWidget" name="tab_defaults">
       <attribute name="title">
-       <string>Small Scenery Defaults</string>
+       <string>Defaults</string>
       </attribute>
-      <widget class="QLabel" name="label_cursor">
+      <widget class="QTabWidget" name="tabWidget_defaults">
        <property name="geometry">
         <rect>
-         <x>220</x>
-         <y>10</y>
-         <width>51</width>
-         <height>16</height>
+         <x>-3</x>
+         <y>-3</y>
+         <width>511</width>
+         <height>271</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Cursor</string>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="comboBox_cursor">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>201</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="allowSupportsAbove">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>140</y>
-         <width>131</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>allowSupportsAbove</string>
-       </property>
-       <property name="text">
-        <string>Allow Supports Above</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="requiresFlatSurface">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>120</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>requiresFlatSurface</string>
-       </property>
-       <property name="text">
-        <string>Flat Surface Only</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VOFFSET_CENTRE">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</string>
-       </property>
-       <property name="text">
-        <string>Block Rain</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_price">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>50</y>
-         <width>62</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string notr="true"/>
-       </property>
-       <property name="minimum">
-        <number>-1000</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-       <property name="value">
+       <property name="currentIndex">
         <number>1</number>
        </property>
-      </widget>
-      <widget class="QCheckBox" name="isTree">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>80</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>isTree</string>
-       </property>
-       <property name="text">
-        <string>Is Tree</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="supportsHavePrimaryColour">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>120</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>supportsHavePrimaryColour</string>
-       </property>
-       <property name="text">
-        <string>Supports in Remap</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_removalPrice">
-       <property name="geometry">
-        <rect>
-         <x>200</x>
-         <y>50</y>
-         <width>71</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Removal Price</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_price">
-       <property name="geometry">
-        <rect>
-         <x>80</x>
-         <y>50</y>
-         <width>51</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Price</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="hasNoSupports">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>100</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>hasNoSupports</string>
-       </property>
-       <property name="text">
-        <string>No Supports</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="SMALL_SCENERY_FLAG27">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>160</y>
-         <width>171</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>SMALL_SCENERY_FLAG27</string>
-       </property>
-       <property name="text">
-        <string>Block Supports like Full Tile</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_removalPrice">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>50</y>
-         <width>62</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string notr="true"/>
-       </property>
-       <property name="minimum">
-        <number>-1000</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-       <property name="value">
-        <number>1</number>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="isStackable">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>100</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>isStackable</string>
-       </property>
-       <property name="text">
-        <string>Stackable</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="prohibitWalls">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>140</y>
-         <width>111</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string>prohibitWalls</string>
-       </property>
-       <property name="text">
-        <string>Prohibit Walls</string>
-       </property>
+       <widget class="QWidget" name="tab_SS_default">
+        <attribute name="title">
+         <string>Small Scenery</string>
+        </attribute>
+        <widget class="QSpinBox" name="spinBox_price_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>50</y>
+           <width>62</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
+         <property name="minimum">
+          <number>-1000</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="isStackable_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>100</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>isStackable</string>
+         </property>
+         <property name="text">
+          <string>Stackable</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_cursor_SS">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>10</y>
+           <width>51</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Cursor</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="requiresFlatSurface_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>120</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>requiresFlatSurface</string>
+         </property>
+         <property name="text">
+          <string>Flat Surface Only</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="SMALL_SCENERY_FLAG_VOFFSET_CENTRE_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</string>
+         </property>
+         <property name="text">
+          <string>Block Rain</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="hasNoSupports_SS">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>100</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>hasNoSupports</string>
+         </property>
+         <property name="text">
+          <string>No Supports</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="prohibitWalls_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>140</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>prohibitWalls</string>
+         </property>
+         <property name="text">
+          <string>Prohibit Walls</string>
+         </property>
+        </widget>
+        <widget class="QSpinBox" name="spinBox_removalPrice_SS">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>50</y>
+           <width>62</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
+         <property name="minimum">
+          <number>-1000</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_removalPrice_SS">
+         <property name="geometry">
+          <rect>
+           <x>200</x>
+           <y>50</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Removal Price</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="supportsHavePrimaryColour_SS">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>120</y>
+           <width>111</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>supportsHavePrimaryColour</string>
+         </property>
+         <property name="text">
+          <string>Supports in Remap</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="allowSupportsAbove_SS">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>140</y>
+           <width>131</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>allowSupportsAbove</string>
+         </property>
+         <property name="text">
+          <string>Allow Supports Above</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="isTree_SS">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>80</y>
+           <width>111</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>isTree</string>
+         </property>
+         <property name="text">
+          <string>Is Tree</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_price_SS">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>50</y>
+           <width>51</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Price</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="SMALL_SCENERY_FLAG27_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>160</y>
+           <width>171</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>SMALL_SCENERY_FLAG27</string>
+         </property>
+         <property name="text">
+          <string>Block Supports like Full Tile</string>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="comboBox_cursor_SS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>201</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="tab_LS_default">
+        <attribute name="title">
+         <string>Large Scenery</string>
+        </attribute>
+        <widget class="QSpinBox" name="spinBox_price_LS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>50</y>
+           <width>62</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
+         <property name="minimum">
+          <number>-1000</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="comboBox_cursor_LS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>201</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+        </widget>
+        <widget class="QSpinBox" name="spinBox_removalPrice_LS">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>50</y>
+           <width>62</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
+         <property name="minimum">
+          <number>-1000</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_cursor_4">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>10</y>
+           <width>51</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Cursor</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_removalPrice_SS_2">
+         <property name="geometry">
+          <rect>
+           <x>200</x>
+           <y>50</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Removal Price</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_price_SS_2">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>50</y>
+           <width>51</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Price</string>
+         </property>
+        </widget>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>151</width>
+           <height>80</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Tile Defaults</string>
+         </property>
+         <widget class="QCheckBox" name="hasNoSupports_LS">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>20</y>
+            <width>111</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>No Supports</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="allowSupportsAbove_LS">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>40</y>
+            <width>131</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Allow Supports Above</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </widget>
+        <zorder>groupBox</zorder>
+        <zorder>spinBox_price_LS</zorder>
+        <zorder>comboBox_cursor_LS</zorder>
+        <zorder>spinBox_removalPrice_LS</zorder>
+        <zorder>label_cursor_4</zorder>
+        <zorder>label_removalPrice_SS_2</zorder>
+        <zorder>label_price_SS_2</zorder>
+       </widget>
       </widget>
      </widget>
     </widget>
@@ -959,18 +1142,6 @@
   <tabstop>tabWidget</tabstop>
   <tabstop>pushButton_changeOpenDefault</tabstop>
   <tabstop>pushButton_changeOpenpath</tabstop>
-  <tabstop>comboBox_cursor</tabstop>
-  <tabstop>allowSupportsAbove</tabstop>
-  <tabstop>requiresFlatSurface</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG_VOFFSET_CENTRE</tabstop>
-  <tabstop>spinBox_price</tabstop>
-  <tabstop>isTree</tabstop>
-  <tabstop>supportsHavePrimaryColour</tabstop>
-  <tabstop>hasNoSupports</tabstop>
-  <tabstop>SMALL_SCENERY_FLAG27</tabstop>
-  <tabstop>spinBox_removalPrice</tabstop>
-  <tabstop>isStackable</tabstop>
-  <tabstop>prohibitWalls</tabstop>
  </tabstops>
  <resources/>
  <connections>

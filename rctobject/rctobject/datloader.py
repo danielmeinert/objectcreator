@@ -213,7 +213,8 @@ def large_scenery_scan_optional(data, pos):
         tile['y'] = int.from_bytes(data[pos+2:pos+4], 'little', signed=True)
         tile['z'] = int.from_bytes(data[pos+4:pos+6], 'little', signed=True)
         tile['clearance'] = data[pos+6]
-        tile['hasSupports'] = ((data[pos+7] & 0x10) == 0x10)
+        tile['hasSupports'] = not bool(data[pos+7] & 0x20)
+        tile['allowsSupportsAbove'] = bool(data[pos+7] & 0x40)
         tile['walls'] = (data[pos+8] & 0x0F)
         tile['corners'] = (data[pos+8] >> 4 & 0x0F)
 

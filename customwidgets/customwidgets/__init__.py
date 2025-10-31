@@ -616,3 +616,9 @@ class AnimationSpinBox(QSpinBox):
 
     def stepBy(self, steps):
         self.setValue(int(self.value()*2**steps))
+        
+class ButtonEventFilter(QtCore.QObject):
+    def eventFilter(self, obj, event):
+        if event.type() in [QtCore.QEvent.HoverEnter, QtCore.QEvent.HoverMove]:
+            return True
+        return False

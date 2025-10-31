@@ -167,7 +167,7 @@ QTabBar::tab:selected {
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="toolTip">
-          <string>Pull current object's view to a new sprite tab.</string>
+          <string>Open current object's view in a new locked sprite tab.</string>
          </property>
          <property name="text">
           <string/>
@@ -498,7 +498,7 @@ border: 1px solid darkgrey;}
   </action>
   <action name="actionLargeScenery">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Large Scenery</string>

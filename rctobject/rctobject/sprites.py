@@ -37,6 +37,9 @@ class Sprite:
             elif auto_offset_mode == 'center':
                 self.x = -int(image.size[0]/2)
                 self.y = -int(image.size[1]/2)
+            else:
+                self.x = 0
+                self.y = 0
 
             if offset:
                 self.x += offset[0]
@@ -46,6 +49,7 @@ class Sprite:
             self.y_base = int(self.y)
 
         self.crop()
+
         self.palette = palette
 
     @classmethod
@@ -56,20 +60,24 @@ class Sprite:
         image = Image.open(path).convert('RGBA')
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
-            selected_colors=selected_colors, alpha_threshold=alpha_threshold, auto_offset_mode=auto_offset_mode, offset=offset)
+            selected_colors=selected_colors, alpha_threshold=alpha_threshold, auto_offset_mode=auto_offset_mode, offset=offset, already_palettized=already_palettized)
 
-    def save(self, path: str, keep_palette: bool = False):
+    def save(self, path: str, keep_palette: bool = False, index_color=False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game
         if not keep_palette:
             if self.palette != pal.orct:
                 self.switchPalette(pal.orct)
-            # We convert the image to an indexed image to optimize storage
-            p = Image.new("P", (1, 1))
-            p.putpalette(pal.complete_palette_array.flatten())
 
-            image = self.image.convert('RGB').quantize(
-                palette=p)
-            image.save(path, transparency=0)
+            if index_color:
+                # We convert the image to an indexed image to optimize storage
+                p = Image.new("P", (1, 1))
+                p.putpalette(pal.complete_palette_array.flatten())
+
+                image = self.image.convert('RGB').quantize(
+                    palette=p)
+                image.save(path, transparency=0)
+            else:
+                self.image.save(path)
         else:
             self.image.save(path)
 
@@ -539,3 +547,4 @@ def spriteIsEmpty(sprite):
     if sprite.image.getbbox() is None:
         return True
     return False
+

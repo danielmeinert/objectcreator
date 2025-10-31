@@ -10,20 +10,6 @@
 
 from enum import Enum
 
-
-class Type(Enum):
-    SMALL = 'scenery_small'
-    LARGE = 'scenery_large'
-    WALL = "scenery_wall"
-    BANNER = "footpath_banner"
-    PATH = "footpath"
-    PATHITEM = "footpath_item"
-    GROUP = "scenery_group"
-    ENTRANCE = "park_entrance"
-    PALETTE = "water"
-    TEXT = "scenario text"
-
-
 cursors = [
     "CURSOR_ARROW",
     "CURSOR_BLANK",
@@ -195,7 +181,10 @@ data_template_large = {
         {
           "x": 0,
           "y": 0,
-          "clearance": 1
+          "z": 0,
+          "clearance": 1,
+          "walls": 0,
+          "corners": 15
         }]},
     "images": [
         {
@@ -220,6 +209,21 @@ data_template_large = {
         },
         {
             "path": "images/4.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/5.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/6.png",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "path": "images/7.png",
             "x": 0,
             "y": 0
         }

@@ -1,0 +1,26 @@
+{
+  "template_type": "path_tile_small",
+  "json": {
+    "id": "quarter_halfdiagonal_right_1",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_small",
+    "properties": {
+      "price": 1,
+      "removalPrice": -1,
+      "cursor": "CURSOR_PATH_DOWN",
+      "height": 8,
+      "shape": "1/4",
+      "isRotatable": true,
+      "hasPrimaryColour": true,
+      "isStackable": true,
+      "hasNoSupports": true
+    },
+    "strings": {
+      "name": {
+        "en-GB": "Quarter Half Diagonal Right 1"
+      }
+    }
+  }
+}

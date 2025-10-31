@@ -20,9 +20,11 @@ Created 09/26/2021; 16:58:33
 from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd, remove, walk
+from os import mkdir, makedirs, replace, getcwd, remove, walk
 from os.path import splitext, exists
+from pkgutil import get_data
 import copy
-from PIL import Image
+from PIL import Image, ImageDraw
 from shutil import unpack_archive, make_archive, move, rmtree
 from tempfile import TemporaryDirectory
 from subprocess import run
@@ -39,6 +41,19 @@ OPENRCTPATH = '%USERPROFILE%\\Documents\\OpenRCT2'
 
 def is_power_of_two(n):
     return (n != 0) and (n & (n-1) == 0)
+
+
+class Type(Enum):
+    SMALL = 'scenery_small'
+    LARGE = 'scenery_large'
+    WALL = "scenery_wall"
+    BANNER = "footpath_banner"
+    PATH = "footpath"
+    PATHITEM = "footpath_item"
+    GROUP = "scenery_group"
+    ENTRANCE = "park_entrance"
+    PALETTE = "water"
+    TEXT = "scenario text"
 
 
 class RCTObject:
@@ -139,9 +154,30 @@ class RCTObject:
                         i += 1
                 else:
                     raise RuntimeError(
-                        'Image was not a valid type. G1, G2, CSG, LGX not supported')
+                        'Image was not a valid type. G1, G2, CSG not supported')
 
             data['images'] = images
+
+        elif isinstance(data['images'], str):
+            s = data['images']
+            images = []
+            sprites = {}
+            i = 0
+            if s.startswith('$LGX:'):
+                source = s[5:s.find(".lgx")]
+                index_range = s[s.find('[')+1:-1].split('..')
+                indices = [k for k in range(
+                    int(index_range[0]), int(index_range[-1])+1)]
+
+                for index in indices:
+                    im = copy.copy(lgx_buffer[source][0][index])
+                    sprite = copy.copy(lgx_buffer[source][1][im['path']])
+                    im['path'] = f'images/{i}.png'
+                    sprites[im['path']] = sprite
+                    images.append(im)
+                    i += 1
+            data['images'] = images
+
         else:
             raise RuntimeError('Cannot extract images.')
 
@@ -163,7 +199,7 @@ class RCTObject:
             raise RuntimeError('Forbidden to save object without id!')
 
         # Reset object to default rotation
-        self.rotateObject(-self.rotation)
+        self.setRotation(0)
 
         # If sprites have changed, they have to be updated
         self.updateImageList()
@@ -279,6 +315,9 @@ class RCTObject:
             elif remap == '3rd Remap':
                 self.current_third_remap = color
 
+    def changeFlag(self, flag, value):
+        self.data['properties'][flag] = value
+
     def updateImageOffsets(self):
         for im in self.data['images']:
             im['x'] = self.sprites[im['path']].x
@@ -288,7 +327,7 @@ class RCTObject:
         new_dict = {}
 
         for i, im in enumerate(self['images']):
-            sprite = self.sprites.pop(im['path'])
+            sprite = self.sprites[im['path']]
             im['path'] = f'images/{i}.png'
             new_dict[im['path']] = sprite
 
@@ -298,6 +337,8 @@ class RCTObject:
         self.sprites[self.data['images'][sprite_index]
                      ['path']].setFromSprite(sprite_in.image)
 
+    def changeFlag(self, flag, value):
+        self.data['properties'][flag] = value
 
 ###### Small scenery subclass ######
 
@@ -309,7 +350,7 @@ class SmallScenery(RCTObject):
             if data['objectType'] != 'scenery_small':
                 raise TypeError("Object is not small scenery.")
 
-            self.object_type = cts.Type.SMALL
+            self.object_type = Type.SMALL
             self.has_preview = False
             self.num_image_sets = 1
 
@@ -424,8 +465,17 @@ class SmallScenery(RCTObject):
             im['x'] = sprite.x
             im['y'] = sprite.y + offset
 
-    def show(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = True):
+    def show(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = True, no_remaps=False):
         """Still need to implement all possible animation cases and glass objects."""
+
+        if no_remaps:
+            first_remap = 'NoColor'
+            second_remap = 'NoColor'
+            third_remap = 'NoColor'
+        else:
+            first_remap = self.current_first_remap
+            second_remap = self.current_second_remap
+            third_remap = self.current_third_remap
 
         if self.subtype == self.Subtype.GLASS and glass:
             if isinstance(rotation, int):
@@ -438,10 +488,10 @@ class SmallScenery(RCTObject):
             sprite = self.sprites[self.data['images'][sprite_index]['path']]
             mask = self.sprites[self.data['images'][mask_index]['path']]
 
-            color_remap = self.current_first_remap if self.current_first_remap != 'NoColor' else '1st Remap'
+            color_remap = first_remap if first_remap != 'NoColor' else '1st Remap'
             image_paste = spr.colorAllInRemap(
-                sprite.show('NoColor', self.current_second_remap,
-                            self.current_third_remap),
+                sprite.show('NoColor', second_remap,
+                            third_remap),
                 color_remap, sprite.palette)
 
             s1 = mask
@@ -464,7 +514,7 @@ class SmallScenery(RCTObject):
             canvas_top.paste(image_paste, (s2.x+canvas_size_x,
                              s2.y+canvas_size_y), mask=image_paste)
 
-            canvas.paste(s2.show('NoColor', self.current_second_remap, self.current_third_remap),
+            canvas.paste(s2.show('NoColor', second_remap, third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
             canvas.paste((color[0], color[1], color[2], 124), (s1.x + canvas_size_x, s1.y + canvas_size_y),
                          mask=s1.image)
@@ -511,16 +561,16 @@ class SmallScenery(RCTObject):
 
             canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
 
-            canvas.paste(s1.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+            canvas.paste(s1.show(first_remap, second_remap, third_remap),
                          (s1.x+canvas_size_x, s1.y+canvas_size_y), mask=s1.image)
-            canvas.paste(s2.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+            canvas.paste(s2.show(first_remap, second_remap, third_remap),
                          (s2.x+canvas_size_x, s2.y+canvas_size_y), mask=s2.image)
 
             if self.animation_type == self.AnimationType.FOUNTAIN4:
 
-                canvas.paste(s3.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                canvas.paste(s3.show(first_remap, second_remap, third_remap),
                              (s3.x+canvas_size_x, s3.y+canvas_size_y), mask=s3.image)
-                canvas.paste(s4.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
+                canvas.paste(s4.show(first_remap, second_remap, third_remap),
                              (s4.x+canvas_size_x, s4.y+canvas_size_y), mask=s4.image)
 
             bbox = canvas.getbbox()
@@ -537,7 +587,7 @@ class SmallScenery(RCTObject):
         else:
             sprite = self.giveSprite(rotation, animation_frame, wither)
             return sprite.show(
-                self.current_first_remap, self.current_second_remap, self.current_third_remap), sprite.x, sprite.y
+                first_remap, second_remap, third_remap), sprite.x, sprite.y
 
     def giveIndex(self, rotation=None, animation_frame: int = 0, wither: int = 0, glass: bool = False):
         if isinstance(rotation, int):
@@ -578,11 +628,11 @@ class SmallScenery(RCTObject):
 
         self.setSpriteFromIndex(sprite_in, sprite_index)
 
-    def rotateObject(self, rot=None):
-        if not isinstance(rot, int):
-            self.rotation = (self.rotation + 1) % 4
-        else:
-            self.rotation = rot % 4
+    def rotateObject(self, rot: int = 1):
+        self.rotation = (self.rotation + rot) % 4
+
+    def setRotation(self, rot):
+        self.rotateObject(rot-self.rotation)
 
     def cycleSpritesRotation(self, step: int = 1):
         for i in range(int(len(self.data['images'])/4)):
@@ -592,8 +642,46 @@ class SmallScenery(RCTObject):
 
         self.updateImageList()
 
-    def changeFlag(self, flag, value):
-        self.data['properties'][flag] = value
+    def addTile(self, coords, dict_entry=None):
+        # we expect that the image list is ordered
+
+        index = len(self.tiles)
+
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+
+            images.append(im)
+
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                          'y': coords[1]*32,
+                          'z': 0,
+                          'clearance': 0,
+                          'hasSupports': False,
+                          'allowSupportsAbove': False,
+                          'walls': 0,
+                          'corners': 15}
+        else:
+            # we adjust the coordinates of the diven dict
+            dict_entry['x'] = coords[0]*32
+            dict_entry['y'] = coords[1]*32
+
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+
+    def removeTile(self, index):
+        if index < 1:
+            raise RuntimeError('Cannot remove anchor tile.')
+
+        self.tiles.pop(index)
+
+        self.updateImageList()
 
     # tbf
     def changeSubtype(self, subtype):
@@ -855,9 +943,7 @@ class LargeScenery(RCTObject):
             if data['objectType'] != 'scenery_large':
                 raise TypeError("Object is not large scenery.")
 
-            self.object_type = cts.Type.LARGE
-
-            self.num_tiles = len(self.data['properties']['tiles'])
+            self.object_type = Type.LARGE
 
             if data['properties'].get('3dFont', False):
                 self.subtype = self.Subtype.SIGN
@@ -865,16 +951,14 @@ class LargeScenery(RCTObject):
                 self.glyphs = self.font['glyphs']
                 self.num_glyph_sprites = self.font['numImages'] * \
                     2*(2-int(self.font.get('isVertical', 0)))
-
             else:
                 self.subtype = self.Subtype.SIMPLE
                 self.num_glyph_sprites = 0
 
-        for _, sprite in self.sprites.items():
-            sprite.overwriteOffsets(
-                int(sprite.x), int(sprite.y) - 15)
+            for _, sprite in self.sprites.items():
+                sprite.overwriteOffsets(
+                    int(sprite.x), int(sprite.y) - 15)
 
-            self.num_tiles = len(self.data['properties']['tiles'])
             self.tiles = []
             for i, tile_dict in enumerate(self['properties']['tiles']):
                 tile = self.Tile(o=self, dict_entry=tile_dict,
@@ -886,6 +970,7 @@ class LargeScenery(RCTObject):
             self.updateImageList()
 
     def save(self, path: str = None, name: str = None, no_zip: bool = False,   include_originalId: bool = False, compress_sprites: bool = False, openpath: str = OPENRCTPATH):
+        self.setRotation(0)
         tile_list = []
         for tile in self.tiles:
             tile_list.append(tile.giveDictEntry())
@@ -898,85 +983,186 @@ class LargeScenery(RCTObject):
         max_x = 0
         max_y = 0
         max_z = 0
-        for tile in self.data['properties']['tiles']:
-            max_x = max(tile['x'], max_x)
-            max_y = max(tile['y'], max_y)
-            max_z = max(tile.get('z', 0) + tile['clearance'], max_z)
+        min_x = 0
+        min_y = 0
+        min_z = 0
 
-        x = (max_x + 32)/32
-        y = (max_y + 32)/32
-        z = max_z / 8
+        for tile in self.tiles:
+            max_x = max(tile.x, max_x)
+            max_y = max(tile.y, max_y)
+            max_z = max(tile.z + tile.h, max_z)
+
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            min_z = min(tile.z, min_z)
+
+        x = max_x - min_x + 1
+        y = max_y - min_y + 1
+        z = max_z - min_z
 
         return (int(x), int(y), int(z))
+    
+    def baseCoordinates(self):
+        # Coordinates of the base (0,0) tile in (unrotated) object space in tile grid coordinates from the object footprint
+        rotation_save = int(self.rotation)
+        self.setRotation(0)        
+        min_x = 0
+        min_y = 0
+        
 
-    def show(self):
-        x_size, y_size, z_size = self.size()
-        canvas = Image.new('RGBA', self.spriteBoundingBox())
+        for tile in self.tiles:
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            
+        self.setRotation(rotation_save)
+        
+        return int(min_x), int(min_y)
 
-        tiles = self.data['properties']['tiles']
-        tile_index = 0
+    def baseOffset(self):
+        # Coordinates  of center of (0,0) tile in screen space of the sprite bounding box according to rotation
+        max_x = 0
+        max_y = 0
+        max_z = 0
+        min_x = 0
+        min_y = 0
+        min_z = 0
 
-        view = self.rotation
+        for tile in self.tiles:
+            max_x = max(tile.x, max_x)
+            max_y = max(tile.y, max_y)
+            max_z = max(tile.z + tile.h, max_z)
 
-        drawing_order = self.getDrawingOrder()
+            min_x = min(tile.x, min_x)
+            min_y = min(tile.y, min_y)
+            min_z = min(tile.z, min_z)
 
-        # Set base point of (0,0) tile according to rotation
-        if view == 0:
-            y_baseline = z_size*8
-            x_baseline = x_size*32
-        elif view == 1:
-            y_baseline = z_size*8+(x_size-1)*16
-            x_baseline = x_size*32+(y_size-1)*32
-        elif view == 2:
-            y_baseline = z_size*8+(x_size-1)*16+(y_size-1)*16
-            x_baseline = y_size*32
-        elif view == 3:
-            y_baseline = z_size*8+(y_size-1)*16
-            x_baseline = 32
+        x = (max_x-min_y)*32+32
+        y = (-min_x-min_y)*16+max_z*8+15
 
-        for tile_index in drawing_order:
-            tile = tiles[tile_index]
-            y_base = y_baseline + \
-                int(tile['x']/2) + int(tile['y']/2) - tile.get('z', 0)
-            x_base = x_baseline - tile['x'] + tile['y']
+        return x, y
 
-            sprite_index = 4 + 4*tile_index + view + self.num_glyph_sprites
-            sprite = self.sprites[self.data['images'][sprite_index]['path']]
-            canvas.paste(sprite.show(self.current_first_remap, self.current_second_remap, self.current_third_remap),
-                         (x_base+sprite.x, y_base+sprite.y), sprite.image)
+    def centerOffset(self):
+        '''Coordinates of the center of ground base in screen space of the sprite bounding box according to rotation.'''
 
-        return canvas
+        x_obj, y_obj, z_obj = self.size()
+
+        x = int(x_obj*16 + y_obj*16)
+        y = int(-1 + x_obj*8 + y_obj*8 + z_obj*8)
+
+        return x, y
+
+    def show(self, rotation=None, no_remaps=False):
+        if no_remaps:
+            first_remap = 'NoColor'
+            second_remap = 'NoColor'
+            third_remap = 'NoColor'
+        else:
+            first_remap = self.current_first_remap
+            second_remap = self.current_second_remap
+            third_remap = self.current_third_remap
+
+        tiles_list = self.getOrderedTileSprites(rotation)
+        width, height, left, right, top, bottom = self.computeCanvasOverlap(
+            tiles_list, rotation)
+        canvas = Image.new('RGBA', (width, height))
+
+        for tile_entry in tiles_list:
+            sprite = tile_entry[0]
+            canvas.paste(sprite.show(first_remap,
+                                     second_remap,
+                                     third_remap),
+                         (tile_entry[1]+sprite.x+left, tile_entry[2]+sprite.y+top), sprite.image)
+
+        x, y = self.centerOffset()
+
+        return canvas, -x-left, -y-top
+
+    def computeCanvasOverlap(self, tiles_list, rotation=None):
+        'Computes the overlap of the object sprite to the sprite bounding box'
+        left = 0
+        right = 0
+        top = 0
+        bottom = 0
+
+        width, height = self.spriteBoundingBox(rotation)
+
+        for tile_entry in tiles_list:
+            s = tile_entry[0]
+            left = max(left, -s.x-tile_entry[1])
+            right = max(right, s.image.width+s.x-(width-tile_entry[1]))
+            top = max(top, -s.y-tile_entry[2])
+            bottom = max(bottom, s.image.height+s.y-(height-tile_entry[2]))
+
+        return (width+left+right, height+top+bottom, left, right, top, bottom)
 
     def rotateObject(self, rot: int = 1):
         self.rotation = (self.rotation + rot) % 4
-        if self.num_tiles == 1:
-            return
 
-        rot_mat = self.rotation_matrices[rot % 4]
+        for tile in self.tiles:
+            tile.rotate(rot)
 
-        for tile in self.data['properties']['tiles']:
-            pos = np.array([tile['x'], tile['y']])
+    def setRotation(self, rot):
+        self.rotateObject(rot-self.rotation)
 
-            pos = rot_mat.dot(pos)
-            tile['x'], tile['y'] = int(pos[0]), int(pos[1])
-
-    def getDrawingOrder(self):
+    def getDrawingOrder(self, rotation=None):
+        if rotation is not None:
+            rotation_save = int(self.rotation)
+            self.setRotation(rotation)
+        else:
+            rotation_save = None    
+            
         order = {}
 
-        for tile_index, tile in enumerate(self.data['properties']['tiles']):
-            score = tile['x'] + tile['y']
+        for tile_index, tile in enumerate(self.tiles):
+            score = tile.x + tile.y
             order[tile_index] = score
+            
+        if rotation_save is not None:
+            self.setRotation(rotation_save)
 
         return sorted(order, key=order.get)
+
+    def getOrderedTileSprites(self, rotation=None):
+        if rotation is not None:
+            rotation_save = int(self.rotation)
+            self.setRotation(rotation)
+        else:
+            rotation_save = None
+
+        x_baseline, y_baseline = self.baseOffset()
+
+        tile_index = 0
+        drawing_order = self.getDrawingOrder()
+
+        ret = []
+
+        for tile_index in drawing_order:
+            tile = self.tiles[tile_index]
+            y = y_baseline + \
+                tile.x*16 + tile.y*16 - tile.z*8
+            x = x_baseline - tile.x*32 + tile.y*32
+
+            sprite = tile.giveSprite(rotation)
+
+            ret.append([sprite, x, y, tile_index])
+
+        if rotation_save is not None:
+            self.setRotation(rotation_save)
+
+        return ret
 
     def createThumbnails(self):
         if self.subtype != self.Subtype.SIGN:
             for rot in range(4):
                 im = self.data['images'][rot]
-                image = self.show()
-                image.thumbnail((64, 112), Image.NEAREST)
-                x = -int(image.size[0]/2)
-                y = image.size[1]
+                image = self.show()[0]
+                bbox = image.getbbox()
+                if bbox:
+                    image = image.crop(bbox)
+
+                image.thumbnail((64, 78), Image.NEAREST)
+                x = -image.size[0]//2
+                y = (78 - image.size[1])//2
                 self.sprites[im['path']] = spr.Sprite(image, (x, y))
                 self.rotateObject()
         else:
@@ -986,20 +1172,194 @@ class LargeScenery(RCTObject):
     # Override base class
     def updateImageOffsets(self):
         offset = 15
-        for i, im in enumerate(self.data['images']):
-            # Update the non-preview sprites
-            if i > 3:
-                im['x'] = self.sprites[im['path']].x
-                im['y'] = self.sprites[im['path']].y + offset
-            # preview sprites have different offsets
-            else:
-                image = self.sprites[im['path']].show()
-                im['x'] = -int(image.size[0]/2)
-                im['y'] = image.size[1]
+        for im in self.data['images']:
+            im['x'] = self.sprites[im['path']].x
+            im['y'] = self.sprites[im['path']].y + offset
 
-    # for now we override this method to do nothing
     def updateImageList(self):
-        return
+        new_dict = {}
+        new_list = []
+
+        for view in range(4):
+            im = self['images'][view]
+            sprite = self.sprites.pop(im['path'])
+            im['path'] = f'images/preview_{view}.png'
+            new_dict[im['path']] = sprite
+            new_list.append(im)
+
+        for i, tile in enumerate(self.tiles):
+            for view in range(4):
+                im = tile.images[view]
+                sprite = self.sprites.pop(im['path'], spr.Sprite(None, (0, 0), self.palette))
+                im['path'] = f'images/tile_{i}_im_{view}.png'
+                new_dict[im['path']] = sprite
+                new_list.append(im)
+
+        self['images'] = new_list
+        self.sprites = new_dict
+
+    def projectSpriteToTiles(self, sprite, rotation=None):
+        x_baseline, y_baseline = self.centerOffset()
+
+        if not sprite.palette == self.palette:
+            sprite.switchPalette(self.palette)
+
+        im_paste = Image.new('RGBA', self.spriteBoundingBox())
+        im_paste.paste(
+            sprite.image, (sprite.x+x_baseline, sprite.y+y_baseline))
+
+        self.projectImageToTiles(im_paste, rotation, already_palettized=True)
+
+    def projectImageToTiles(self, im_paste, rotation=None, already_palettized=False):
+        rotation_save = int(self.rotation)
+
+        if rotation is not None:
+            self.setRotation(rotation)
+
+        for i, tile in enumerate(self.tiles):
+            im = Image.new('RGBA', self.spriteBoundingBox())
+            mask = self.giveMask(tile)
+
+            im.paste(im_paste, mask=mask)
+            bbox = mask.getbbox()
+
+            sprite_tile = spr.Sprite(
+                im, coords=(-bbox[0]-32, -bbox[1]-tile.h*8-15), palette=self.palette, already_palettized=already_palettized)
+            tile.setSprite(sprite_tile)
+
+        self.setRotation(rotation_save)
+
+    def giveMask(self, tile):
+        x_baseline, y_baseline = self.baseOffset()
+
+        mask = Image.new('1', self.spriteBoundingBox())
+        draw = ImageDraw.Draw(mask)
+
+        x = x_baseline - tile.x*32+tile.y*32-32
+        y = y_baseline + tile.x*16+tile.y*16-tile.z*8
+
+        for i in range(64):
+            if i < 32:
+                draw.line([(x+i, y-i//2-tile.h*8),
+                           (x+i, y+i//2)],
+                          fill=1, width=1)
+            else:
+                draw.line([(x+i, y-(63-i)//2-tile.h*8),
+                           (x+i, y+(63-i)//2)],
+                          fill=1, width=1)
+
+        return mask
+    
+    def numTiles(self):
+        return len(self.tiles)
+
+    def addTile(self, coords, dict_entry=None, clearance=0):
+        # we expect that the image list is ordered, coords are in unrotated object space
+                
+        if self.getTile(coords)[0]:
+            raise RuntimeError(f'Tile at coordinates {coords} already exists.')
+
+        index = len(self.tiles)
+
+        images = []
+        for i in range(4):
+            path = f'images/tile_{index}_im_{i}.png'
+            try:
+                im = self['images'][4*(index+1)+i]
+            except IndexError:
+                im = {'path': path, 'x': 0, 'y': 0}
+                self.sprites[path] = spr.Sprite(None, (0, 0), self.palette)
+
+            images.append(im)
+
+        if not dict_entry:
+            dict_entry = {'x': coords[0]*32,
+                          'y': coords[1]*32,
+                          'z': 0,
+                          'clearance': 0,
+                          'hasSupports': False,
+                          'allowSupportsAbove': False,
+                          'walls': 0,
+                          'corners': 15}
+        else:
+            # we adjust the coordinates of the diven dict
+            dict_entry['x'] = coords[0]*32
+            dict_entry['y'] = coords[1]*32
+
+        if clearance:
+            dict_entry['clearance'] = clearance*8
+
+        tile = self.Tile(self, dict_entry, images, self.rotation)
+        self.tiles.append(tile)
+        
+
+    def removeTile(self, index):
+        if index < 1:
+            raise RuntimeError('Cannot remove anchor tile.')
+
+        self.tiles.pop(index)
+
+        self.updateImageList()
+
+    def getTile(self, coords):
+        #corresponding in the original unrotated object space
+        for i, tile in enumerate(self.tiles):
+            if (tile.x_orig, tile.y_orig) == coords:
+                return tile, i
+
+        return None, None
+
+    def fillShape(self, x_length, y_length, base_x = 0, base_y = 0, dict_entry=None, clearance=0):
+        # fill a rectangular shape with tiles, where base_x and base_y are the coordinates of the base (0,0) tile in tile grid coordinates from the desired footprint
+        for x in range(x_length):
+            for y in range(y_length):
+                if self.getTile((x-base_x, y-base_y))[0]:
+                    continue
+
+                self.addTile((x-base_x, y-base_y), dict_entry=dict_entry, clearance=clearance)
+                
+        self.updateImageList()
+        
+    def detectWalls(self):
+        # detect walls for all tiles based on neighboring tiles 
+        for tile in self.tiles:
+            neighbor_coords = [(tile.x_orig-1, tile.y_orig),  # North
+                               (tile.x_orig, tile.y_orig+1),  # East
+                               (tile.x_orig+1, tile.y_orig),  # South
+                               (tile.x_orig, tile.y_orig-1)]  # West
+
+            for i, n_coords in enumerate(neighbor_coords):
+                neighbor_tile, _ = self.getTile(n_coords)
+                if neighbor_tile:
+                    tile.walls[i] = False
+                else:
+                    tile.walls[i] = True
+
+    def changeShape(self, width, length, height):
+        # erase all tiles and set a rectangular shape
+
+        for i in range(1, len(self.tiles)):
+            self.removeTile(i)
+
+        self.tiles[0].h = height
+
+        for x in range(width):
+            for y in range(length):
+                if x == 0 and y == 0:
+                    continue
+                self.addTile((x, y), clearance=height)
+
+        self.updateImageList()
+
+    def copyTilesGeometry(self, tiles):
+        tiles_copy = []
+        
+        for tile in tiles:
+            tiles_copy.append(self.Tile(self, tile.giveDictEntry(), tile.images, rotation=self.rotation))
+
+        self.tiles = tiles_copy
+        self.updateImageList()
+            
 
     class Subtype(Enum):
         SIMPLE = 0, 'Simple'
@@ -1014,8 +1374,96 @@ class LargeScenery(RCTObject):
         def __int__(self):
             return self.value
 
+    class Tile:
+        def __init__(self, o, dict_entry, images, rotation=0):
+            self.o = o
 
-# Wrapper to load any object type and instantiate is as the correct subclass
+            self.dict_entry = dict_entry
+            self.x = dict_entry['x']//32
+            self.x_orig = dict_entry['x']//32
+            self.y = dict_entry['y']//32
+            self.y_orig = dict_entry['y']//32
+            self.z = dict_entry.get('z', 0)//8
+            self.h = dict_entry['clearance']//8
+            
+            self.has_supports = dict_entry.get('hasSupports', False)
+            self.allow_supports_above = dict_entry.get('allowSupportsAbove', False)
+            self.walls = [bool(dict_entry.get('walls', 0) & 0x1),
+                          bool(dict_entry.get('walls', 0) & 0x2),
+                          bool(dict_entry.get('walls', 0) & 0x4),
+                          bool(dict_entry.get('walls', 0) & 0x8)]
+            self.corners = [bool(dict_entry.get('corners', 15) & 0x1),
+                            bool(dict_entry.get('corners', 15) & 0x2),
+                            bool(dict_entry.get('corners', 15) & 0x4),
+                            bool(dict_entry.get('corners', 15) & 0x8)]
+
+            self.images = images
+
+            self.rotation = 0
+            self.rotation_matrices = [
+                np.array([[1, 0], [0, 1]]),   # R^0
+                np.array([[0, 1], [-1, 0]]),  # R
+                np.array([[-1, 0], [0, -1]]),  # R^2
+                np.array([[0, -1], [1, 0]])   # R^3
+            ]
+
+            self.rotate(rotation)
+
+        def rotate(self, rot):
+            self.rotation = (self.rotation + rot) % 4
+
+            rot_mat = self.rotation_matrices[rot % 4]
+
+            pos = np.array([self.x, self.y])
+
+            pos = rot_mat.dot(pos)
+            self.x, self.y = int(pos[0]), int(pos[1])
+
+        def giveSprite(self, rotation=None):
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+
+            return self.o.sprites[self.images[rotation]['path']]
+
+        def setSprite(self, sprite, rotation=None):
+            if isinstance(rotation, int):
+                rotation = rotation % 4
+            else:
+                rotation = self.rotation
+
+            self.o.sprites[self.images[rotation]['path']].setFromSprite(sprite)
+
+        def giveDictEntry(self):
+            dict_entry = {}
+
+            dict_entry['x'] = self.x*32
+            dict_entry['y'] = self.y*32
+            if self.z != 0:
+                dict_entry['z'] = self.z*8
+            dict_entry['clearance'] = self.h*8
+
+            if self.has_supports:
+                dict_entry['hasSupports'] = self.has_supports
+            if self.allow_supports_above:
+                dict_entry['allowSupportsAbove'] = self.allow_supports_above
+
+            if self.giveWalls() != 15:
+                dict_entry['walls'] = self.giveWalls()
+            if self.giveCorners() != 0:
+                dict_entry['corners'] = self.giveCorners()
+
+            return dict_entry
+
+        def giveWalls(self):
+            return int(self.walls[0])+int(self.walls[1])*2 + int(self.walls[2])*4 + int(self.walls[3])*8
+
+        def giveCorners(self):
+            return int(self.corners[0])+int(self.corners[1])*2 + int(self.corners[2])*4 + int(self.corners[3])*8
+
+
+# Wrapper to load any object type and instantiate it as the correct subclass
 
 def load(filepath: str, openpath=OPENRCTPATH):
     """Instantiates a new object from a .parkobj  or .dat file."""
@@ -1033,8 +1481,8 @@ def load(filepath: str, openpath=OPENRCTPATH):
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(obj.data, obj.sprites, obj.old_id)
-   # elif obj_type == 'scenery_large':
-   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
         raise NotImplementedError(
             f"Object type {obj_type} unsupported by now.")
@@ -1052,8 +1500,8 @@ def loadFromId(identifier: str, openpath=OPENRCTPATH):
     obj_type = obj.data.get("objectType", False)
     if obj_type == 'scenery_small':
         return SmallScenery(obj.data, obj.sprites, obj.old_id)
-   # elif obj_type == 'scenery_large':
-   #     return LargeScenery(obj.data, obj.sprites, obj.old_id)
+    elif obj_type == 'scenery_large':
+        return LargeScenery(obj.data, obj.sprites, obj.old_id)
     else:
         raise NotImplementedError(
             f"Object type {obj_type} unsupported by now.")
@@ -1072,14 +1520,14 @@ def new(data, sprites):
             f"Object type {object_type} unsupported by now.")
 
 
-def newEmpty(object_type: cts.Type):
+def newEmpty(object_type: Type):
     """Instantiates a new empty object of given type."""
 
     data = {}
 
-    if object_type == cts.Type.SMALL:
+    if object_type == Type.SMALL:
         data = copy.deepcopy(cts.data_template_small)
-    elif object_type == cts.Type.LARGE:
+    elif object_type == Type.LARGE:
         data = copy.deepcopy(cts.data_template_large)
     else:
         raise NotImplementedError(

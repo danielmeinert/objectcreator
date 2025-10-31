@@ -257,6 +257,9 @@ def addPalette(image, palette: Palette = orct, dither=True, transparent_color=(0
         if palette.has_sparkles:
             selected_colors.append('Sparkles')
 
+    # we don't want to quantize to the 1st Remap since it is not ingame colors
+    selected_colors.remove('1st Remap')
+    
     pal_in = palette.getReducedArray(selected_colors)
 
     if pal_in.size > 0:
