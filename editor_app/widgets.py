@@ -121,6 +121,8 @@ class ObjectTab(QWidget):
             self.unlockSpriteTab()
 
         self.locked = True
+        self.sprites_tab.createLayers()
+        
         self.locked_sprite_tab = locked_sprite_tab
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
@@ -129,7 +131,7 @@ class ObjectTab(QWidget):
     def unlockSpriteTab(self):
         self.locked = False
         self.locked_sprite_tab.layerUpdated.disconnect()
-        self.activeLayerRowChanged.disconnect()
+        #self.activeLayerRowChanged.disconnect()
         self.locked_sprite_tab = None
 
     def giveLayers(self):
@@ -833,7 +835,7 @@ class SpriteTab(QWidget):
         layer = self.giveLayers().takeProxyRow(row)[0]
         self.view.scene.removeItem(layer.item)
         del (layer)
-
+        
         self.layersChanged.emit()
 
     def mergeLayer(self, index):
@@ -1489,6 +1491,9 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
 
     def originalIndex(self, index):
         # Get the index in the original model for a given index in the proxy model
+        if index.row() >= self.rowCount():
+            return QtCore.QModelIndex()
+        
         return self.index(self.orders[index.column()][index.row()], index.column())
     
     def originalRow(self, row, column = None):
@@ -1530,15 +1535,17 @@ class SpriteLayerModel(QtGui.QStandardItemModel):
     def takeProxyRow(self, row):
         # For now this only works for single column models with reversed order
         original_row = self.orders[0][row]
+        item = self.takeRow(original_row)
         self.orders[0] = self.orders[0][1:]
-        
         if original_row == self.active_row:
             if row >= len(self.orders[0]):
                 self.active_row = self.orders[0][-1]
             else:
                 self.active_row = self.orders[0][row]
+                        
         
-        return self.takeRow(original_row)
+
+        return item
     
     def setActiveRow(self, row, emit_signal=True):
         self.active_row = row
