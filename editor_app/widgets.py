@@ -2086,10 +2086,12 @@ class ChangeSettingsUi(QDialog):
             int(settings.get('small_scenery_defaults', {}).get('removalPrice', 1)))
 
     def loadLSSettings(self, settings):
-        for flag in ['hasNoSupports_LS', 'allowSupportsAbove_LS']:
+        for flag in ['allowSupportsAbove_LS', 'hasSupports_LS']:
             checkbox = self.tab_LS_default.findChild(QCheckBox, flag)
+            checkbox.stateChanged.connect(lambda state, f=flag: self.tileFlagChanged(state, f))
             checkbox.setChecked(settings.get(
                                 'large_scenery_defaults', {}).get(flag, False))
+            self.tileFlagChanged(checkbox.checkState(), flag)
 
         cursor_box = self.tab_LS_default.findChild(
             QComboBox, "comboBox_cursor_LS")
@@ -2109,12 +2111,17 @@ class ChangeSettingsUi(QDialog):
             int(settings.get('large_scenery_defaults', {}).get('removalPrice', 1)))
 
     def clickChangeFolder(self, sender):
-
         directory = sender.text() if sender.text() != '' else "%USERPROFILE%/Documents/"
         folder = QFileDialog.getExistingDirectory(
             self, "Select Output Directory", directory=directory)
         if folder:
             sender.setText(folder)
+            
+    def tileFlagChanged(self, state, flag):
+        if flag == 'hasSupports_LS':
+            self.tab_LS_default.findChild(QCheckBox, 'allowSupportsAbove_LS').setEnabled((state == QtCore.Qt.Checked))
+            if state != QtCore.Qt.Checked:
+                self.tab_LS_default.findChild(QCheckBox, 'allowSupportsAbove_LS').setChecked(False)
 
     def retrieveInputs(self):
         settings = {}
@@ -2165,7 +2172,7 @@ class ChangeSettingsUi(QDialog):
         settings['small_scenery_defaults'] = ss_defaults
 
         ls_defaults = {}
-        for flag in ['hasNoSupports_LS', 'allowSupportsAbove_LS']:
+        for flag in ['hasSupports_LS', 'allowSupportsAbove_LS']:
             checkbox = self.tab_LS_default.findChild(QCheckBox, flag)
             if checkbox:
                 ls_defaults[flag] = checkbox.isChecked()

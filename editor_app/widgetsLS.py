@@ -161,7 +161,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             dummy_o = obj.newEmpty(obj.Type.LARGE)
             size = self.o.size()
             dummy_o.copyTilesGeometry(self.o.tiles)
-            dummy_o.setRotation(self.o.rotation)
+            #dummy_o.setRotation(self.o.rotation)
 
             dummy_o['properties']['height'] = int(size[2]*8)
 
@@ -297,6 +297,12 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
             settings_LS.get('cursor', 'CURSOR_BLANK')))
+        
+        for tile in self.o.tiles:
+            tile.has_supports = settings_LS.get('hasSupports_LS', False)
+            tile.allow_supports_above = settings_LS.get('allowSupportsAbove_LS', False)
+            
+        self.updateTilesTable()
 
     def sizeChanged(self, x=None, y=None):
         x_size, y_size, _ = self.o.size()
@@ -434,10 +440,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         tile_dict = {
             'clearance': self.spinbox_tile_h.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
             'z': self.spinbox_tile_z.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
-            'has_supports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
-            'allow_supports_above': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+            'hasSupports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('hasSupports_LS', False),
+            'allowSupportsAbove': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('allowSupportsAbove_LS', False)
         }
-        
+        print(tile_dict)
         self.o.addTile((x, y), tile_dict)
         self.current_tile_index = len(self.o.tiles) - 1
         
@@ -466,8 +472,8 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         tile_dict = {
             'clearance': self.spinbox_tile_h.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
             'z': self.spinbox_tile_z.value()*8 if self.checkbox_tile_sync.isChecked() else 0,
-            'has_supports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
-            'allow_supports_above': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else False,
+            'hasSupports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('hasSupports_LS', False),
+            'allowSupportsAbove': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('allowSupportsAbove_LS', False)
         }
 
         self.o.fillShape(x_length, y_length, base_x=x_base, base_y=y_base, dict_entry=tile_dict)
@@ -509,7 +515,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.updateAllViews()
 
     def save(self):
-        self.projectSprites()
+        if self.view_mode == self.ViewMode.PROJECTION:
+            self.projectSprites()
 
         self.o.createThumbnails()
 

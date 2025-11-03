@@ -1155,15 +1155,15 @@ class LargeScenery(RCTObject):
         if self.subtype != self.Subtype.SIGN:
             for rot in range(4):
                 im = self.data['images'][rot]
-                image = self.show()[0]
+                image = self.show(rotation=rot, no_remaps=True)[0]
                 bbox = image.getbbox()
                 if bbox:
                     image = image.crop(bbox)
 
                 image.thumbnail((64, 78), Image.NEAREST)
                 x = -image.size[0]//2
-                y = (78 - image.size[1])//2
-                self.sprites[im['path']] = spr.Sprite(image, (x, y))
+                y = 25-image.size[1]//2
+                self.sprites[im['path']] = spr.Sprite(image, (x, y), palette = self.palette, already_palettized=True)
                 self.rotateObject()
         else:
             raise NotImplementedError(

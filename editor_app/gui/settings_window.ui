@@ -691,7 +691,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_SS_default">
         <attribute name="title">
@@ -1055,6 +1055,35 @@
          <property name="text">
           <string>Price</string>
          </property>
+        </widget>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>151</width>
+           <height>73</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Tile Defaults</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QCheckBox" name="hasSupports_LS">
+            <property name="text">
+             <string>Has Supports</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="allowSupportsAbove_LS">
+            <property name="text">
+             <string>Allow Supports Above</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </widget>

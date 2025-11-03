@@ -469,6 +469,8 @@ def read_image_table(data, graphic_base):
                     pixel += 1
 
         images.append(im)
+        
+        image = pal.removeColorWhenImport(image)
         sprites[im['path']] = spr.Sprite(
             image, (im['x'], im['y']), already_palettized=True)
 
