@@ -443,7 +443,6 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             'hasSupports': self.checkbox_has_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('hasSupports_LS', False),
             'allowSupportsAbove': self.checkbox_allow_supports.isChecked() if self.checkbox_tile_sync.isChecked() else self.main_window.settings.get('large_scenery_defaults', {}).get('allowSupportsAbove_LS', False)
         }
-        print(tile_dict)
         self.o.addTile((x, y), tile_dict)
         self.current_tile_index = len(self.o.tiles) - 1
         

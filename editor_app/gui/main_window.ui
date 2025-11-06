@@ -438,8 +438,16 @@ border: 1px solid darkgrey;}
     <addaction name="actionCheckForUpdates"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuGenerator">
+    <property name="title">
+     <string>Generator</string>
+    </property>
+    <addaction name="actionPathTileGenerator"/>
+    <addaction name="actionBaseBlockGenerator"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
+   <addaction name="menuGenerator"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -648,6 +656,19 @@ border: 1px solid darkgrey;}
    </property>
    <property name="text">
     <string>Tile Center</string>
+   </property>
+  </action>
+  <action name="actionPathTileGenerator">
+   <property name="text">
+    <string>Path Tile Generator</string>
+   </property>
+  </action>
+  <action name="actionBaseBlockGenerator">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Base Block Generator</string>
    </property>
   </action>
  </widget>

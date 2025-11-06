@@ -33,7 +33,7 @@ LicenseFile={#License}
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir={#SourcePath}\output\installer
+OutputDir={#SourcePath}\dist
 OutputBaseFilename=ObjectCreatorInstaller-windows-v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
@@ -49,8 +49,8 @@ Name: "mypAssociation2"; Description: "{cm:AssocFileExtension,{#MyAppName},{#MyA
 
 
 [Files]
-Source: "{#SourcePath}\output\Object Creator\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourcePath}\output\Object Creator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourcePath}\dist\Object Creator\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\dist\Object Creator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

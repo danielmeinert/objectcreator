@@ -40,6 +40,8 @@ import customwidgets as cwdg
 import widgets as wdg
 import auxiliaries as aux
 
+import pathgenerator.widget as pg_wdg
+
 from rctobject import constants as cts
 from rctobject import objects as obj
 from rctobject import palette as pal
@@ -50,7 +52,7 @@ from rctobject import palette as pal
 # pyi_splash.update_text("Loading Object Creator")
 
 
-VERSION = 'v0.2.1'
+VERSION = 'v0.2.2'
 
 myappname = 'Object Creator'
 myappid = f'objectcreator.{VERSION}'  # arbitrary string
@@ -173,6 +175,8 @@ class MainWindowUi(QMainWindow):
             lambda x, mode=0: self.setCurrentImportOffsetMode(mode))
         self.actionTileCenter.triggered.connect(
             lambda x, mode=1: self.setCurrentImportOffsetMode(mode))
+        
+        self.actionPathTileGenerator.triggered.connect(self.openPathTileGenerator)
 
         self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
         self.actionAbout.triggered.connect(self.aboutPage)
@@ -640,7 +644,7 @@ class MainWindowUi(QMainWindow):
         sprite_tab.layersChanged.connect(self.layer_widget.updateList)
         sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
 
-        object_tab.lockWithSpriteTab(sprite_tab)
+        #object_tab.lockWithSpriteTab(sprite_tab)
 
         object_tab.settings_tab.setDefaults()
 
@@ -739,6 +743,11 @@ class MainWindowUi(QMainWindow):
             self.sprite_clipboard = None
 
         self.sprite_clipboard_reset = True
+        
+    def openPathTileGenerator(self):
+        widget = pg_wdg.PathGeneratorWidget(self)
+        widget.show()
+
 
     def aboutPage(self):
         url = "https://github.com/danielmeinert/objectcreator"
@@ -795,6 +804,12 @@ class MainWindowUi(QMainWindow):
 
             if extension in ['.parkobj', '.dat', '.json']:
                 self.loadObjectFromPath(filepath)
+                
+    def closeEvent(self, event):
+        # Close all other top-level windows
+        QApplication.closeAllWindows()
+
+        
 
     def handleMessage(self, message):
         for filepath in message.split(' '):
