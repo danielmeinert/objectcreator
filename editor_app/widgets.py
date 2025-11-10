@@ -942,6 +942,7 @@ class SpriteTab(QWidget):
 
                 if image:
                     selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
+                    print(selected_colors)
 
                     if self.main_window.current_import_offset_mode == 'bottom':
                         o, _ = self.giveDummy()

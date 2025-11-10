@@ -230,9 +230,9 @@ def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
     return Image.fromarray(pic_ar)
 
 
-def mergeSprites(image1: Image.Image, image2: Image.Image, palette: pal.Palette = pal.orct):
+def mergeSprites(image1: Image.Image, image2: Image.Image, palette: pal.Palette = pal.orct, selected_colors: list = None):
     im = Image.alpha_composite(image2, image1)
-    im = pal.addPalette(im, palette, dither=True)
+    im = pal.addPalette(im, palette, dither=True, selected_colors=selected_colors)
     return im
 
 
