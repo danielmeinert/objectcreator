@@ -91,7 +91,8 @@ class Palette(np.ndarray):
     
     def giveShade(self, r,g,b,a):
         if a == 0 or (r,g,b) == (0,0,0):
-                return None
+            return None
+        
         try:
             arr = self.arr()
             red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
