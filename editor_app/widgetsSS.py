@@ -68,50 +68,6 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.clearance_box = self.findChild(QSpinBox, "spinBox_clearance")
         self.clearance_box.valueChanged.connect(self.clearanceChanged)
 
-        # Curser combobox
-        self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
-
-        for cursor in cts.cursors:
-            self.cursor_box.addItem(cursor.replace('_', ' '))
-
-        self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
-
-        # Names
-        self.author_field = self.findChild(QLineEdit, "lineEdit_author")
-        self.author_id_field = self.findChild(QLineEdit, "lineEdit_authorID")
-        self.object_id_field = self.findChild(QLineEdit, "lineEdit_objectID")
-        self.object_original_id_field = self.findChild(
-            QLineEdit, "lineEdit_originalID")
-        self.object_name_field = self.findChild(
-            QLineEdit, "lineEdit_objectName")
-        self.object_name_lang_field = self.findChild(
-            QLineEdit, "lineEdit_nameInput")
-        self.scenery_group_id_field = self.findChild(
-            QLineEdit, "lineEdit_sceneryGroupID")
-        self.mirror_object_id_field = self.findChild(
-            QLineEdit, "lineEdit_mirrorID")
-
-        self.button_copy_id = self.findChild(QPushButton, "pushButton_copyID")
-
-        self.name_lang_box = self.findChild(
-            QComboBox, "comboBox_languageSelect")
-        self.name_lang_box.currentIndexChanged.connect(self.languageChanged)
-        self.language_index = 0
-
-        self.button_clear_all_languages = self.findChild(
-            QPushButton, "pushButton_clearAllLang")
-        self.button_clear_all_languages.clicked.connect(self.clearAllLanguages)
-
-        self.author_field.textChanged.connect(self.authorChanged)
-        self.author_id_field.textEdited.connect(self.authorIdChanged)
-        self.object_id_field.textChanged.connect(self.idChanged)
-        self.object_name_field.textChanged.connect(self.nameChanged)
-        self.object_name_lang_field.textChanged.connect(self.nameChangedLang)
-        self.scenery_group_id_field.textChanged.connect(
-            self.sceneryGroupIdChanged)
-        self.mirror_object_id_field.textChanged.connect(self.mirrorIdChanged)
-
-        self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Flags
         for flag in cts.Jsmall_flags:
@@ -266,78 +222,6 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             self.main_window.layer_widget.button_bounding_box.isChecked(), backbox, coords)
 
         self.sprites_tab.updateMainView()
-
-    def cursorChanged(self):
-        value = self.cursor_box.currentIndex()
-
-        self.o['properties']['cursor'] = cts.cursors[value]
-
-    def authorChanged(self, value):
-        self.o['authors'] = [name.strip() for name in value.split(',')]
-
-    def authorIdChanged(self, value):
-        object_id = self.object_id_field.text()
-        object_type = self.o.object_type.value
-        self.o['id'] = f'{value}.{object_type}.{object_id}'
-        self.object_tab.saved = False
-
-    def idChanged(self, value):
-        author_id = self.author_id_field.text()
-        object_type = self.o.object_type.value
-        self.o['id'] = f'{author_id}.{object_type}.{value}'
-        self.object_tab.saved = False
-
-    def sceneryGroupIdChanged(self, value):
-        self.o['properties']['sceneryGroup'] = value
-
-    def mirrorIdChanged(self, value):
-        self.o['properties']['mirrorObjectId'] = value
-
-    def copyIdToClipboard(self):
-        QApplication.clipboard().setText(self.o['id'])
-
-    def nameChanged(self, value):
-        self.o['strings']['name']['en-GB'] = value
-
-    def clearAllLanguages(self):
-        for lang in self.o['strings']['name'].keys():
-            if lang != 'en-GB':
-                self.o['strings']['name'][lang] = ''
-        if self.language_index != 0:
-            self.object_name_lang_field.setText('')
-
-    def spinBoxChanged(self, value, name):
-        if name == 'version':
-            self.o['version'] = str(value)
-        else:
-            self.o['properties'][name] = value
-
-    def nameChangedLang(self, value):
-        if self.language_index == 0:
-            self.o['strings']['name']['en-GB'] = value
-            self.object_name_field.setText(value)
-        else:
-            lang = list(cts.languages)[self.language_index]
-            self.o['strings']['name'][lang] = value
-
-    def languageChanged(self, value):
-        lang = list(cts.languages)[self.language_index]
-        self.o['strings']['name'][lang] = self.object_name_lang_field.text()
-
-        self.language_index = value
-        lang = list(cts.languages)[value]
-        self.object_name_lang_field.setText(
-            self.o['strings']['name'].get(lang, ''))
-
-    def flagChanged(self, value, flag):
-        self.o.changeFlag(flag, bool(value))
-
-        self.sprites_tab.updateMainView()
-
-    def flagRemapChanged(self, value):
-        self.hasPrimaryColour.setEnabled(not bool(value))
-        self.hasSecondaryColour.setEnabled(not bool(value))
-        self.hasTertiaryColour.setEnabled(not bool(value))
 
     def clickAnimationSequence(self):
         dialog = EditAnimationSequenceUI(self.o)

@@ -89,7 +89,7 @@ class SettingsTabAll(QWidget):
 
         self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
-        # Curser combobox
+        # Cursor combobox
         self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
 
         for cursor in cts.cursors:
