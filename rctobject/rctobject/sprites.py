@@ -203,24 +203,7 @@ class Sprite:
         except IndexError:
             return None
 
-        if a == 0:
-            return None
-
-        try:
-            arr = self.palette.arr()
-            red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
-            truth_arr = (red == r) & (green == g) & (blue == b)
-            index = list(truth_arr.flatten()).index(True)
-            color = list(self.palette.color_dict.keys())[index//12]
-            index = index % 12
-        except ValueError:
-            arr = self.palette.sparkles
-            red, green, blue = arr[:, 0], arr[:, 1], arr[:, 2]
-            truth_arr = (red == r) & (green == g) & (blue == b)
-            index = list(truth_arr.flatten()).index(True)
-            color = 'Sparkles'
-
-        return (color, index)
+        return self.palette.giveShade(r, g, b, a)
 
 
 def pasteOnMask(mask: Image.Image, pic_in: Image.Image):

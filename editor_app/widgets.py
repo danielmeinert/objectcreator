@@ -586,13 +586,14 @@ class SpriteTab(QWidget):
         self.draw(x, y, (0, 0, 0, 0))
 
     def eyedrop(self, x, y):
-        layer = self.currentActiveLayer()
-        sprite = layer.sprite
+        item = self.view.itemAt(self.view.mapFromScene(QtCore.QPointF(x, y)))
+        
+        if item in [self.view.layer_boundingbox, self.view.layer_symm_axes, self.view.background]:
+            return
+        
+        r,g,b = item.pixmap().toImage().pixelColor(x - item.offset().x(), y - item.offset().y()).getRgb()[:3]
 
-        coords = (layer.base_x+sprite.x,
-                  layer.base_y+sprite.y)
-
-        indices = sprite.giveShade((x-coords[0], y-coords[1]))
+        indices = self.main_window.current_palette.giveShade(r, g, b, 255)
 
         if not indices:
             return
@@ -942,7 +943,7 @@ class SpriteTab(QWidget):
 
                 if image:
                     selected_colors = self.main_window.tool_widget.color_select_panel.selectedColors()
-                    print(selected_colors)
+                    
 
                     if self.main_window.current_import_offset_mode == 'bottom':
                         o, _ = self.giveDummy()

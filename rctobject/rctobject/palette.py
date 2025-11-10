@@ -88,6 +88,27 @@ class Palette(np.ndarray):
 
     def arr(self):
         return np.array(self)
+    
+    def giveShade(self, r,g,b,a):
+        if a == 0 or (r,g,b) == (0,0,0):
+                return None
+        try:
+            arr = self.arr()
+            red, green, blue = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+            truth_arr = (red == r) & (green == g) & (blue == b)
+            index = list(truth_arr.flatten()).index(True)
+            color = list(self.color_dict.keys())[index//12]
+            index = index % 12
+        except ValueError:
+            if not self.has_sparkles:
+                return None
+            arr = self.sparkles
+            red, green, blue = arr[:, 0], arr[:, 1], arr[:, 2]
+            truth_arr = (red == r) & (green == g) & (blue == b)
+            index = list(truth_arr.flatten()).index(True)
+            color = 'Sparkles'
+
+        return (color, index)
 
 
 def allColors(sparkles=False):
