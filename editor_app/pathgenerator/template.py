@@ -44,9 +44,11 @@ class PathTemplate:
             data = data_raw['json']
 
             images = {}
+            i = 0 if is_small else 4
             for im_path in next(walk(f'{temp}/images'))[2]:
-                images[f'images/{im_path}'] = Image.open(
+                images[f'images/{i}.png'] = Image.open(
                     f'{temp}/images/{im_path}').convert('RGBA')
+                i += 1
 
         return cls(data=data, images=images, is_small=is_small)
 
