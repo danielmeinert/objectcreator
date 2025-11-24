@@ -7,6 +7,7 @@ output/
 test/
 auto-py-to-exe_editor.json
 auto-py-to-exe_editor_updater.json
+*.template
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -147,5 +148,4 @@ build_files/auto-py-to-exe_editor.json
 
 # Mac stuff
 .DS_Store
-rctobject/rctobject/ani.py
 build_files/build_editor.bat

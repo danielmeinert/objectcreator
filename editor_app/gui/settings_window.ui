@@ -701,7 +701,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>50</y>
+           <y>70</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -723,7 +723,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>100</y>
+           <y>120</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -741,7 +741,7 @@
         <widget class="QLabel" name="label_cursor_SS">
          <property name="geometry">
           <rect>
-           <x>220</x>
+           <x>80</x>
            <y>10</y>
            <width>51</width>
            <height>16</height>
@@ -755,7 +755,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>120</y>
+           <y>140</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -771,7 +771,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>80</y>
+           <y>100</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -787,7 +787,7 @@
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>100</y>
+           <y>120</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -806,7 +806,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>140</y>
+           <y>160</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -822,7 +822,7 @@
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>50</y>
+           <y>70</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -844,7 +844,7 @@
          <property name="geometry">
           <rect>
            <x>200</x>
-           <y>50</y>
+           <y>70</y>
            <width>71</width>
            <height>21</height>
           </rect>
@@ -860,7 +860,7 @@
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>120</y>
+           <y>140</y>
            <width>111</width>
            <height>17</height>
           </rect>
@@ -876,7 +876,7 @@
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>140</y>
+           <y>160</y>
            <width>131</width>
            <height>17</height>
           </rect>
@@ -895,7 +895,7 @@
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>80</y>
+           <y>100</y>
            <width>111</width>
            <height>16</height>
           </rect>
@@ -911,7 +911,7 @@
          <property name="geometry">
           <rect>
            <x>80</x>
-           <y>50</y>
+           <y>70</y>
            <width>51</width>
            <height>21</height>
           </rect>
@@ -924,7 +924,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>160</y>
+           <y>180</y>
            <width>171</width>
            <height>17</height>
           </rect>
@@ -936,13 +936,13 @@
           <string>Block Supports like Full Tile</string>
          </property>
         </widget>
-        <widget class="QComboBox" name="comboBox_cursor_SS">
+        <widget class="CursorComboBox" name="comboBox_cursor_SS">
          <property name="geometry">
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>201</width>
-           <height>21</height>
+           <width>61</width>
+           <height>41</height>
           </rect>
          </property>
          <property name="autoFillBackground">
@@ -961,7 +961,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>50</y>
+           <y>70</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -977,29 +977,13 @@
          </property>
          <property name="value">
           <number>1</number>
-         </property>
-        </widget>
-        <widget class="QComboBox" name="comboBox_cursor_LS">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>10</y>
-           <width>201</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"/>
          </property>
         </widget>
         <widget class="QSpinBox" name="spinBox_removalPrice_LS">
          <property name="geometry">
           <rect>
            <x>130</x>
-           <y>50</y>
+           <y>70</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -1017,24 +1001,11 @@
           <number>1</number>
          </property>
         </widget>
-        <widget class="QLabel" name="label_cursor_4">
-         <property name="geometry">
-          <rect>
-           <x>220</x>
-           <y>10</y>
-           <width>51</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Cursor</string>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_removalPrice_SS_2">
          <property name="geometry">
           <rect>
            <x>200</x>
-           <y>50</y>
+           <y>70</y>
            <width>71</width>
            <height>21</height>
           </rect>
@@ -1047,7 +1018,7 @@
          <property name="geometry">
           <rect>
            <x>80</x>
-           <y>50</y>
+           <y>70</y>
            <width>51</width>
            <height>21</height>
           </rect>
@@ -1060,7 +1031,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>80</y>
+           <y>100</y>
            <width>151</width>
            <height>73</height>
           </rect>
@@ -1085,6 +1056,35 @@
           </item>
          </layout>
         </widget>
+        <widget class="CursorComboBox" name="comboBox_cursor_LS">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>61</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_cursor_SS_2">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>10</y>
+           <width>51</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Cursor</string>
+         </property>
+        </widget>
        </widget>
       </widget>
      </widget>
@@ -1103,6 +1103,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>CursorComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">customwidgets</header>
+  </customwidget>
   <customwidget>
    <class>RemapColorSelectButton</class>
    <extends>QPushButton</extends>

@@ -591,7 +591,7 @@ class SpriteTab(QWidget):
         if item in [self.view.layer_boundingbox, self.view.layer_symm_axes, self.view.background]:
             return
         
-        r,g,b = item.pixmap().toImage().pixelColor(x - item.offset().x(), y - item.offset().y()).getRgb()[:3]
+        r,g,b = item.pixmap().toImage().pixelColor(int(x - item.offset().x()), int(y - item.offset().y())).getRgb()[:3]
 
         indices = self.main_window.current_palette.giveShade(r, g, b, 255)
 
@@ -2071,13 +2071,10 @@ class ChangeSettingsUi(QDialog):
             'small_scenery_defaults', {}).get('isTree', False))
 
         cursor_box = self.tab_SS_default.findChild(
-            QComboBox, "comboBox_cursor_SS")
+            cwdg.CursorComboBox, "comboBox_cursor_SS")
 
-        for cursor in cts.cursors:
-            cursor_box.addItem(cursor.replace('_', ' '))
-
-        cursor_box.setCurrentText(settings.get(
-            'small_scenery_defaults', {}).get('cursor', 'CURSOR BLANK').replace('_', ' '))
+        cursor_box.setCurrentIndex(cts.cursors.index(settings.get(
+            'small_scenery_defaults', {}).get('cursor', 'CURSOR_BLANK')))
 
         spinbox = self.tab_SS_default.findChild(QSpinBox, "spinBox_price_SS")
         spinbox.setValue(
@@ -2096,13 +2093,10 @@ class ChangeSettingsUi(QDialog):
             self.tileFlagChanged(checkbox.checkState(), flag)
 
         cursor_box = self.tab_LS_default.findChild(
-            QComboBox, "comboBox_cursor_LS")
-
-        for cursor in cts.cursors:
-            cursor_box.addItem(cursor.replace('_', ' '))
-
-        cursor_box.setCurrentText(settings.get(
-            'large_scenery_defaults', {}).get('cursor', 'CURSOR BLANK').replace('_', ' '))
+            cwdg.CursorComboBox, "comboBox_cursor_LS")
+            
+        cursor_box.setCurrentIndex(cts.cursors.index(settings.get(
+            'large_scenery_defaults', {}).get('cursor', 'CURSOR_BLANK')))
 
         spinbox = self.tab_LS_default.findChild(QSpinBox, "spinBox_price_LS")
         spinbox.setValue(
@@ -2168,8 +2162,8 @@ class ChangeSettingsUi(QDialog):
             QSpinBox, "spinBox_removalPrice_SS")
         ss_defaults['removalPrice'] = spinbox.value()
 
-        ss_defaults['cursor'] = self.tab_SS_default.findChild(
-            QComboBox, "comboBox_cursor_SS").currentText().replace(' ', '_')
+        ss_defaults['cursor'] = cts.cursors[self.tab_SS_default.findChild(
+            cwdg.CursorComboBox, "comboBox_cursor_SS").currentIndex()]
 
         settings['small_scenery_defaults'] = ss_defaults
 
@@ -2185,8 +2179,8 @@ class ChangeSettingsUi(QDialog):
             QSpinBox, "spinBox_removalPrice_LS")
         ls_defaults['removalPrice'] = spinbox.value()
 
-        ls_defaults['cursor'] = self.tab_LS_default.findChild(
-            QComboBox, "comboBox_cursor_LS").currentText().replace(' ', '_')
+        ls_defaults['cursor'] = cts.cursors[self.tab_LS_default.findChild(
+            cwdg.CursorComboBox, "comboBox_cursor_LS").currentIndex()]
 
         settings['large_scenery_defaults'] = ls_defaults
 

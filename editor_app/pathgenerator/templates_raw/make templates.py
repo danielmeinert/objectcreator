@@ -13,4 +13,5 @@ dirs = next(os.walk('.'))[1]
 
 for dir in dirs:
     make_archive(base_name=dir, root_dir=dir, format='zip')
-    os.replace(f'{dir}.zip', f'{dir}.template')
+    os.replace(f'{dir}.zip', f'../templates/{dir}.template')
+    

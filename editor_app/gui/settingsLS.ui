@@ -337,30 +337,14 @@ QTabBar::tab:selected {
          <widget class="QLabel" name="label_cursor">
           <property name="geometry">
            <rect>
-            <x>230</x>
-            <y>130</y>
+            <x>90</x>
+            <y>100</y>
             <width>51</width>
             <height>16</height>
            </rect>
           </property>
           <property name="text">
            <string>Cursor</string>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="comboBox_cursor">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>130</y>
-            <width>201</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
           </property>
          </widget>
          <widget class="QGroupBox" name="groupBox_remap">
@@ -530,10 +514,10 @@ QTabBar::tab:selected {
          <widget class="QCheckBox" name="isPhotogenic">
           <property name="geometry">
            <rect>
-            <x>20</x>
-            <y>100</y>
-            <width>111</width>
-            <height>17</height>
+            <x>130</x>
+            <y>130</y>
+            <width>91</width>
+            <height>20</height>
            </rect>
           </property>
           <property name="toolTip">
@@ -579,6 +563,22 @@ QTabBar::tab:selected {
           </property>
           <property name="value">
            <double>1.000000000000000</double>
+          </property>
+         </widget>
+         <widget class="CursorComboBox" name="comboBox_cursor">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>100</y>
+            <width>61</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
           </property>
          </widget>
         </widget>
@@ -640,10 +640,10 @@ QTabBar::tab:selected {
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
+          <attribute name="horizontalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="horizontalHeaderMinimumSectionSize">
+          <attribute name="horizontalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -658,10 +658,10 @@ QTabBar::tab:selected {
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderDefaultSectionSize">
+          <attribute name="verticalHeaderMinimumSectionSize">
            <number>20</number>
           </attribute>
-          <attribute name="verticalHeaderMinimumSectionSize">
+          <attribute name="verticalHeaderDefaultSectionSize">
            <number>20</number>
           </attribute>
           <attribute name="verticalHeaderShowSortIndicator" stdset="0">
@@ -1288,9 +1288,15 @@ QTabBar::tab:selected {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CursorComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">customwidgets</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>comboBox_subtype</tabstop>
-  <tabstop>comboBox_cursor</tabstop>
   <tabstop>checkBox_remapCheck</tabstop>
   <tabstop>hasPrimaryColour</tabstop>
   <tabstop>hasSecondaryColour</tabstop>
