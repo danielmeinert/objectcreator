@@ -18,8 +18,11 @@ from PIL.ImageQt import ImageQt
 from enum import Enum
 from pkgutil import get_data
 
+from matplotlib.backend_tools import cursors
+
 
 from rctobject import palette as pal
+from rctobject import constants as cts
 
 
 class ToolCursors(QtGui.QCursor):
@@ -622,3 +625,50 @@ class ButtonEventFilter(QtCore.QObject):
         if event.type() in [QtCore.QEvent.HoverEnter, QtCore.QEvent.HoverMove]:
             return True
         return False
+
+
+class CursorComboBox(QComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(QtCore.QSize(61,41,))
+        
+        self.setIconSize(QtCore.QSize(32, 32))
+
+        for cursor in cts.cursors:
+            pixmap = self.createObjectCursorImage(cursor)
+            icon = QtGui.QIcon()
+            icon.addPixmap(pixmap)
+            
+            self.addItem(icon, '', userData=cursor)
+        
+    
+
+    def createObjectCursorImage(self, cursor: str) -> QtGui.QImage:    
+        image =QtGui.QImage(32, 32, QtGui.QImage.Format_ARGB32)
+        image.fill(QtCore.Qt.transparent)  # Start with a transparent background
+        
+        if cursor == 'CURSOR_ARROW':
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(
+                get_data("customwidgets", f'res/cursor_arrow.png'), 'png')
+            return pixmap
+        elif cursor == 'CURSOR_HAND_POINT':
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(
+                get_data("customwidgets", f'res/cursor_hand.png'), 'png')
+            return pixmap
+            
+        bitmap_data = cts.cursors_data[cursor]
+        # Map characters to colors
+        for y in range(32):
+            for x in range(32):
+                char = bitmap_data[x + y*32]
+                if char == 'X':
+                    image.setPixelColor(x, y, QtGui.QColor(0,0,0,255))
+                elif char == '.':
+                    image.setPixelColor(x, y, QtGui.QColor(255,255,255,255))
+                # Spaces are left transparent
+
+        return QtGui.QPixmap.fromImage(image)
+        
+        

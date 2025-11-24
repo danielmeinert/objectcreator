@@ -89,11 +89,7 @@ class SettingsTabAll(QWidget):
         self.button_copy_id.clicked.connect(self.copyIdToClipboard)
 
         # Cursor combobox
-        self.cursor_box = self.findChild(QComboBox, "comboBox_cursor")
-
-        for cursor in cts.cursors:
-            self.cursor_box.addItem(cursor.replace('_', ' '))
-
+        self.cursor_box = self.findChild(cwdg.CursorComboBox, "comboBox_cursor")
         self.cursor_box.currentIndexChanged.connect(self.cursorChanged)
 
         # Remap check

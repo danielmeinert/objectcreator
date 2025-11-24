@@ -45,9 +45,13 @@ class PathTemplate:
 
             images = {}
             i = 0 if is_small else 4
-            for im_path in next(walk(f'{temp}/images'))[2]:
+            
+            # Template images have to be named i.png with i ordered numbers
+            image_file_numbers = sorted( int(name[:-4]) for name in next(walk(f'{temp}/images'))[2])
+            
+            for n in image_file_numbers:
                 images[f'images/{i}.png'] = Image.open(
-                    f'{temp}/images/{im_path}').convert('RGBA')
+                    f'{temp}/images/{n}.png').convert('RGBA')
                 i += 1
 
         return cls(data=data, images=images, is_small=is_small)
