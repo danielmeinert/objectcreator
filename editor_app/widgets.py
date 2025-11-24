@@ -591,7 +591,7 @@ class SpriteTab(QWidget):
         if item in [self.view.layer_boundingbox, self.view.layer_symm_axes, self.view.background]:
             return
         
-        r,g,b = item.pixmap().toImage().pixelColor(x - item.offset().x(), y - item.offset().y()).getRgb()[:3]
+        r,g,b = item.pixmap().toImage().pixelColor(int(x - item.offset().x()), int(y - item.offset().y())).getRgb()[:3]
 
         indices = self.main_window.current_palette.giveShade(r, g, b, 255)
 

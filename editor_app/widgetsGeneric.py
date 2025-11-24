@@ -15,9 +15,8 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
 from copy import copy, deepcopy
-import io
+import re
 import os.path
-import sip
 from os import getcwd
 import numpy as np
 from pkgutil import get_data
@@ -153,7 +152,8 @@ class SettingsTabAll(QWidget):
         self.hasTertiaryColour.setEnabled(not bool(value))
 
     def authorChanged(self, value):
-        self.o['authors'] = value.replace(' ', '').split(',')
+        self.o['authors'] = re.split('\,\s*', value)
+        print(self.o['authors'])
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()
