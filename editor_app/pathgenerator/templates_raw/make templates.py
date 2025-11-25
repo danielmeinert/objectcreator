@@ -12,6 +12,7 @@ from shutil import unpack_archive, make_archive, move, rmtree
 dirs = next(os.walk('.'))[1]
 
 for dir in dirs:
+    if dir.endswith('wip'):
+        continue
     make_archive(base_name=dir, root_dir=dir, format='zip')
     os.replace(f'{dir}.zip', f'../templates/{dir}.template')
-    

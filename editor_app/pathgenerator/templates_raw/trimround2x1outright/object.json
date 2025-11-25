@@ -1,0 +1,51 @@
+{
+  "template_type": "path_tile",
+  "json": {
+    "id": "trim_round2x1outright",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+      "price": 1,
+      "removalPrice": -1,
+      "cursor": "CURSOR_PATH_DOWN",
+      "tiles": [
+      {
+        "x": 0,
+        "y": 0,
+        "clearance": 8,
+        "walls": 9,
+        "corners": 9
+      },
+      {
+        "x": 32,
+        "y": 0,
+        "clearance": 8,
+        "walls": 12,
+        "corners": 8
+      },
+      {
+        "x": 0,
+        "y": 32,
+        "clearance": 8,
+        "walls": 3,
+        "corners": 6
+      },
+      {
+        "x": 32,
+        "y": 32,
+        "clearance": 8,
+        "walls": 6,
+        "corners": 7
+      }
+      ]
+    },
+    "images": [],
+    "strings": {
+      "name": {
+        "en-GB": "Trim Round 2x1 Outside Right"
+      }
+    }
+  }
+}

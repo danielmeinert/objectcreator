@@ -1,0 +1,37 @@
+{
+  "template_type": "path_tile",
+  "json": {
+    "id": "trim_round2x1inright",
+    "authors": "",
+    "version": "1.0",
+    "sourceGame": "custom",
+    "objectType": "scenery_large",
+    "properties": {
+      "price": 1,
+      "removalPrice": -1,
+      "cursor": "CURSOR_PATH_DOWN",
+      "tiles": [
+      {
+        "x": 0,
+        "y": 0,
+        "clearance": 8,
+        "walls": 11,
+        "corners": 11
+      },
+      {
+        "x": 32,
+        "y": 0,
+        "clearance": 8,
+        "walls": 14,
+        "corners": 14
+      }
+     ]
+    },
+    "images": [],
+    "strings": {
+      "name": {
+        "en-GB": "Trim Round 2x1 Inside Right"
+      }
+    }
+  }
+}

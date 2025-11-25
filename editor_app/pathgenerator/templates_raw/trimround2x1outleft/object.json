@@ -12,35 +12,40 @@
       "cursor": "CURSOR_PATH_DOWN",
       "tiles": [
         {
-        "x": 0,
-        "y": 0,
-        "clearance": 8,
-        "walls": 13,
-        "corners": 9
-      	},
-      	{
-        "x": 32,
-        "y": 0,
-        "clearance": 8,
-        "corners": 8
-      	},
-      	{
-        "x": 0,
-        "y": 32,
-        "clearance": 8,
-        "walls": 3,
-        "corners": 2
-      	},
-      	{
-        "x": 32,
-        "y": 32,
-        "clearance": 8,
-        "walls": 14,
-        "corners": 7
-      	}
+          "x": 0,
+          "y": 0,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15,
+          "corners": 9
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15,
+          "corners": 8
+        },
+        {
+          "x": 0,
+          "y": 32,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15,
+          "corners": 6
+        },
+        {
+          "x": 32,
+          "y": 32,
+          "clearance": 8,
+          "hasSupports": false,
+          "walls": 15,
+          "corners": 7
+        }
       ]
     },
-    "images": [],      
+    "images": [],
     "strings": {
       "name": {
         "en-GB": "Trim Round 2x1 Outside Left"

@@ -135,7 +135,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         checkbox.stateChanged.connect(self.animationChangePreviewImage)
 
         self.loadObjectSettings(author=author, author_id=author_id)
-
+        
     def giveDummy(self):
         dummy_o = obj.newEmpty(obj.Type.SMALL)
         dummy_o.changeShape(self.o.shape)
