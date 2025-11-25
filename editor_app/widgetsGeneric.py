@@ -149,7 +149,6 @@ class SettingsTabAll(QWidget):
 
     def authorChanged(self, value):
         self.o['authors'] = re.split('\,\s*', value)
-        print(self.o['authors'])
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()

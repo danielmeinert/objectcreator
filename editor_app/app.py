@@ -10,7 +10,7 @@
 
 
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWidget, QStyle, QProxyStyle, QGridLayout, \
-    QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, \
+    QVBoxLayout, QHBoxLayout, QTabWidget, QDial, QSlider, QScrollBar, QGroupBox, QToolButton, QComboBox, QShortcut, \
     QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog, qApp
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
@@ -180,6 +180,7 @@ class MainWindowUi(QMainWindow):
 
         self.actionCheckForUpdates.triggered.connect(self.checkForUpdates)
         self.actionAbout.triggered.connect(self.aboutPage)
+        
 
         # Left bar
         container = self.container_left_bar.layout()
@@ -191,6 +192,15 @@ class MainWindowUi(QMainWindow):
         container.addWidget(self.layer_widget)
 
         self.sprite_tabs.currentChanged.connect(self.layer_widget.updateList)
+        
+        self.actionUp = QShortcut(QtGui.QKeySequence("Up"), self)
+        self.actionUp.activated.connect(lambda : self.layer_widget.clickSpriteControl('up'))
+        self.actionDown = QShortcut(QtGui.QKeySequence("Down"), self)
+        self.actionDown.activated.connect(lambda : self.layer_widget.clickSpriteControl('down'))
+        self.actionLeft = QShortcut(QtGui.QKeySequence("Left"), self)
+        self.actionLeft.activated.connect(lambda : self.layer_widget.clickSpriteControl('left'))
+        self.actionRight = QShortcut(QtGui.QKeySequence("Right"), self)
+        self.actionRight.activated.connect(lambda : self.layer_widget.clickSpriteControl('right'))
 
         # Right bar
         self.import_offset = (0, 0)
