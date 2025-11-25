@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Object Creator"
-#define MyAppVersion "0.2.3"
+#define MyAppVersion "0.2.4"
 #define MyAppPublisher "Daniel Meinert (Tolsimir)"
 #define MyAppURL "https://github.com/danielmeinert/objectcreator"
 #define MyAppExeName "Object Creator.exe"
