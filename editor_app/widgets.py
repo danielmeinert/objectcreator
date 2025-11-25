@@ -447,41 +447,97 @@ class SpriteTab(QWidget):
 
         self.dummyChanged.emit()
 
-    def colorRemap(self, color_remap, selected_colors):
-        layer = self.currentActiveLayer()
-        layer.addSpriteToHistory()
-        sprite = layer.sprite
+    def colorRemap(self, color_remap, selected_colors, all_layers=False, all_views=False):
+        layers = self.giveLayers()
+        
+        num_rows = layers.rowCount() if all_layers else 1
+        num_columns = layers.columnCount() if all_views else 1
+        current_row = layers.giveActiveRow()
+        current_column = layers.giveActiveColumn()
+        
+        for row in range(num_rows):
+            for col in range(num_columns):
+                layer = layers.item((row+current_row) % layers.rowCount(), (col+current_column) % layers.columnCount())
+                layer.addSpriteToHistory()
+                sprite = layer.sprite
 
-        for color in selected_colors:
-            sprite.remapColor(color, color_remap)
+                for color in selected_colors:
+                    sprite.remapColor(color, color_remap)
+                    
+                layer.updateLayer()
 
+        if all_views and self.locked:
+            self.object_tab.sprites_tab.updateAllViews()
+        
         self.updateView()
 
-    def colorChangeBrightness(self, step, selected_colors):
-        layer = self.currentActiveLayer()
-        layer.addSpriteToHistory()
-        sprite = layer.sprite
 
-        sprite.changeBrightnessColor(step, selected_colors)
+    def colorChangeBrightness(self, step, selected_colors, all_layers=False, all_views=False):
+        layers = self.giveLayers()
+        
+        num_rows = layers.rowCount() if all_layers else 1
+        num_columns = layers.columnCount() if all_views else 1
+        current_row = layers.giveActiveRow()
+        current_column = layers.giveActiveColumn()
+        
+        for row in range(num_rows):
+            for col in range(num_columns):
+                layer = layers.item((row+current_row) % layers.rowCount(), (col+current_column) % layers.columnCount())        
+                layer.addSpriteToHistory()
+                sprite = layer.sprite
+                sprite.changeBrightnessColor(step, selected_colors)
+                    
+                layer.updateLayer()
 
+        if all_views and self.locked:
+            self.object_tab.sprites_tab.updateAllViews()
+        
         self.updateView()
 
-    def colorRemove(self, selected_colors):
-        layer = self.currentActiveLayer()
-        layer.addSpriteToHistory()
-        sprite = layer.sprite
+    def colorRemove(self, selected_colors, all_layers=False, all_views=False):
+        layers = self.giveLayers()
+        
+        num_rows = layers.rowCount() if all_layers else 1
+        num_columns = layers.columnCount() if all_views else 1
+        current_row = layers.giveActiveRow()
+        current_column = layers.giveActiveColumn()
+        
+        for row in range(num_rows):
+            for col in range(num_columns):
+                layer = layers.item((row+current_row) % layers.rowCount(), (col+current_column) % layers.columnCount())
+        
+        
+                layer.addSpriteToHistory()
+                sprite = layer.sprite
+                sprite.removeColor(selected_colors)
+                    
+                layer.updateLayer()
 
-        sprite.removeColor(selected_colors)
-
+        if all_views and self.locked:
+            self.object_tab.sprites_tab.updateAllViews()
+        
         self.updateView()
 
-    def colorInvertShading(self, selected_colors):
-        layer = self.currentActiveLayer()
-        layer.addSpriteToHistory()
-        sprite = layer.sprite
+    def colorInvertShading(self, selected_colors, all_layers=False, all_views=False):
+        layers = self.giveLayers()
+        
+        num_rows = layers.rowCount() if all_layers else 1
+        num_columns = layers.columnCount() if all_views else 1
+        current_row = layers.giveActiveRow()
+        current_column = layers.giveActiveColumn()
+        
+        for row in range(num_rows):
+            for col in range(num_columns):
+                layer = layers.item((row+current_row) % layers.rowCount(), (col+current_column) % layers.columnCount())
+                layer.addSpriteToHistory()
+                sprite = layer.sprite
+                sprite.invertShadingColor(selected_colors)
+                    
+                layer.updateLayer()
 
-        sprite.invertShadingColor(selected_colors)
-
+        if all_views and self.locked:
+            self.object_tab.sprites_tab.updateAllViews()
+        
         self.updateView()
 
     def changeSpriteOffset(self, direction: str):
@@ -1910,6 +1966,9 @@ class ToolWidgetSprite(QWidget):
         self.widget_color_panel.layout().addWidget(self.color_select_panel)
 
         # Color Manipulations
+        self.checkbox_all_layers = self.findChild(
+            QCheckBox, "checkBox_allLayers")
+        
         self.checkbox_all_views = self.findChild(
             QCheckBox, "checkBox_allViews")
 
@@ -1947,48 +2006,31 @@ class ToolWidgetSprite(QWidget):
         color_remap = self.combobox_remap_to_color.currentText()
         selected_colors = self.color_select_panel.selectedColors()
 
-        if self.checkbox_all_views.isChecked():
-            widget = self.main_window.object_tabs.currentWidget()
-            widget.colorRemapToAll(self.main_window.layer_widget.layers_list.currentIndex().row(), color_remap, selected_colors)
-
-        else:
-            widget = self.main_window.sprite_tabs.currentWidget()
-
-            widget.colorRemap(color_remap, selected_colors)
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            widget.colorRemap(color_remap, selected_colors, all_layers=self.checkbox_all_layers.isChecked(), all_views=self.checkbox_all_views.isChecked())
 
     def colorChangeBrightness(self, step):
         selected_colors = self.color_select_panel.selectedColors()
 
-        if self.checkbox_all_views.isChecked():
-            widget = self.main_window.object_tabs.currentWidget()
-            widget.colorChangeBrightnessAll(self.main_window.layer_widget.layers_list.currentIndex().row(), step, selected_colors)
-
-        else:
-            widget = self.main_window.sprite_tabs.currentWidget()
-            widget.colorChangeBrightness(step, selected_colors)
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            widget.colorChangeBrightness(step, selected_colors, all_layers=self.checkbox_all_layers.isChecked(), all_views=self.checkbox_all_views.isChecked())
+        
 
     def colorRemove(self):
         selected_colors = self.color_select_panel.selectedColors()
 
-        if self.checkbox_all_views.isChecked():
-            widget = self.main_window.object_tabs.currentWidget()
-            widget.colorRemoveAll(self.main_window.layer_widget.layers_list.currentIndex().row(), selected_colors)
-
-        else:
-            widget = self.main_window.sprite_tabs.currentWidget()
-            widget.colorRemove(selected_colors)
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            widget.colorRemove(selected_colors, all_layers=self.checkbox_all_layers.isChecked(), all_views=self.checkbox_all_views.isChecked())
 
     def colorInvertShading(self):
         selected_colors = self.color_select_panel.selectedColors()
 
-        if self.checkbox_all_views.isChecked():
-            widget = self.main_window.object_tabs.currentWidget()
-            widget.colorInvertShadingAll(self.main_window.layer_widget.layers_list.currentIndex().row(), selected_colors)
-
-        else:
-            widget = self.main_window.sprite_tabs.currentWidget()
-
-            widget.colorInvertShading(selected_colors)
+        widget = self.main_window.sprite_tabs.currentWidget()
+        if widget:
+            widget.colorInvertShading(selected_colors, all_layers=self.checkbox_all_layers.isChecked(), all_views=self.checkbox_all_views.isChecked())
 
         # Settings window
 

@@ -445,11 +445,17 @@ border: 1px solid darkgrey;}
     <addaction name="actionPathTileGenerator"/>
     <addaction name="actionBaseBlockGenerator"/>
    </widget>
+   <widget class="QMenu" name="menutest">
+    <property name="title">
+     <string>test</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuGenerator"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
+   <addaction name="menutest"/>
   </widget>
   <action name="actionSaveObjectAt">
    <property name="text">
@@ -669,38 +675,6 @@ border: 1px solid darkgrey;}
    </property>
    <property name="text">
     <string>Base Block Generator</string>
-   </property>
-  </action>
-  <action name="actionUp">
-   <property name="text">
-    <string>Up</string>
-   </property>
-   <property name="shortcut">
-    <string>Up</string>
-   </property>
-  </action>
-  <action name="actionDown">
-   <property name="text">
-    <string>Down</string>
-   </property>
-   <property name="shortcut">
-    <string>Down</string>
-   </property>
-  </action>
-  <action name="actionLeft">
-   <property name="text">
-    <string>Left</string>
-   </property>
-   <property name="shortcut">
-    <string>Left</string>
-   </property>
-  </action>
-  <action name="actionRight">
-   <property name="text">
-    <string>Right</string>
-   </property>
-   <property name="shortcut">
-    <string>Right</string>
    </property>
   </action>
  </widget>
