@@ -18,9 +18,6 @@ from PIL.ImageQt import ImageQt
 from enum import Enum
 from pkgutil import get_data
 
-from matplotlib.backend_tools import cursors
-
-
 from rctobject import palette as pal
 from rctobject import constants as cts
 

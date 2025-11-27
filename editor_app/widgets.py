@@ -644,7 +644,7 @@ class SpriteTab(QWidget):
     def eyedrop(self, x, y):
         item = self.view.itemAt(self.view.mapFromScene(QtCore.QPointF(x, y)))
         
-        if item in [self.view.layer_boundingbox, self.view.layer_symm_axes, self.view.background]:
+        if item is None or item in [self.view.layer_boundingbox, self.view.layer_symm_axes, self.view.background]:
             return
         
         r,g,b = item.pixmap().toImage().pixelColor(int(x - item.offset().x()), int(y - item.offset().y())).getRgb()[:3]

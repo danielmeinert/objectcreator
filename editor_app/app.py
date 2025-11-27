@@ -71,12 +71,11 @@ class MainWindowUi(QMainWindow):
         uic.loadUi(aux.resource_path('gui/main_window.ui'), self)
         self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
         self.setWindowTitle(f'Object Creator - {VERSION}')
-
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
-        qApp.focusChanged.connect(self.onFocusChanged)
+        
 
         self.app_data_path = app_data_path
         self.loadSettings()
+ 
         self.bounding_boxes = aux.BoundingBoxes()
         self.symm_axes = aux.SymmetryAxes()
 
@@ -215,13 +214,15 @@ class MainWindowUi(QMainWindow):
         self.giveActiveShade = self.tool_widget.color_select_panel.giveActiveShade
 
         # Load empty object if not started with objects
-
         if not opening_objects:
             self.objectNew(obj_type=obj.Type.SMALL)
             #self.loadObjectFromId(dat_id='TOLSPINE')
         else:
             for filepath in opening_objects:
                 self.loadObjectFromPath(filepath)
+                
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        qApp.focusChanged.connect(self.onFocusChanged)
 
         self.show()
         self.checkForUpdates(silent=True)
