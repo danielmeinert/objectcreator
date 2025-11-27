@@ -1261,23 +1261,7 @@ QTabBar::tab:selected {
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For every tile, set its walls according to neighboring tiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Apply</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_5">
-          <property name="geometry">
-           <rect>
-            <x>180</x>
-            <y>200</y>
-            <width>101</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="text">
            <string>Auto-detect Walls</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
           </property>
          </widget>
         </widget>

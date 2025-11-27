@@ -507,6 +507,9 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             lambda: self.changeViewMode(self.ViewMode.PROJECTION))
         self.button_tiles_mode.clicked.connect(
             lambda: self.changeViewMode(self.ViewMode.TILES))
+        
+        self.checkbox_only_selected_tile = self.findChild(QCheckBox, "checkBox_onlySelected")
+        self.checkbox_only_selected_tile.stateChanged.connect(self.updateLockedSpriteLayersModel)
 
         self.createLayers()
 
@@ -542,16 +545,36 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             self.createProjectionSprites()
             self.object_tab.settings_tab.checkbox_tile_sync.setChecked(True)
             self.object_tab.settings_tab.checkbox_tile_sync.setEnabled(False)
+            self.checkbox_only_selected_tile.setEnabled(False)
         elif mode == self.ViewMode.TILES:
             self.projectSprites()
             self.object_tab.settings_tab.checkbox_tile_sync.setEnabled(True)
+            self.checkbox_only_selected_tile.setEnabled(True)
             
         self.updateBoundingBox()
         self.updateLockedSpriteLayersModel()
+        
+    def updateTileVisibility(self):
+        if self.view_mode != self.ViewMode.TILES:
+            return
+        
+        active_row = self.layers.giveActiveRow()
+        for row in range(self.layers.rowCount()):
+            for col in range(4):
+                layer_vis = self.layers.item(row, col)
+                if self.checkbox_only_selected_tile.checkState() == QtCore.Qt.Checked:
+                    if row == active_row:
+                        layer_vis.setVisible(True)
+                    else:
+                        layer_vis.setVisible(False)
+
+        if self.object_tab.locked:
+            self.object_tab.locked_sprite_tab.layersChanged.emit()
 
     def activeLayerRowChanged(self, row):
         if self.view_mode == self.ViewMode.TILES:
             self.object_tab.settings_tab.setCurrentTile(row)
+            self.updateTileVisibility()
 
         self.updateBoundingBox()
 
@@ -577,7 +600,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
             for rot in range(4):
                 for tile_entry in self.o.getOrderedTileSprites(rotation=rot):
                     layer = wdg.SpriteLayer(
-                        tile_entry[0], self.main_window, 0, 0, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')
+                        tile_entry[0], self.main_window, 0, 0, -center_x+tile_entry[1], -center_y+tile_entry[2], name=f'View {rot+1} Tile {tile_entry[3]+1}')                    
                     self.layers.setItem(tile_entry[3], rot, layer)
             
             try:
@@ -587,10 +610,13 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                     self.layers.setActiveRow(0, emit_signal=False)
             except AttributeError:
                 self.layers.setActiveRow(0, emit_signal=False)
+            
+            self.updateTileVisibility()            
                 
             self.layers.activeRowChanged.connect(self.activeLayerRowChanged)
             
         self.layers.setActiveColumn(self.o.rotation)
+        
 
     def requestNumberOfLayers(self):
         return self.o.numTiles() if self.view_mode == self.ViewMode.TILES else 1

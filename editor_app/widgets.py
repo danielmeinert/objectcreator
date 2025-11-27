@@ -120,12 +120,12 @@ class ObjectTab(QWidget):
         if self.locked:
             self.unlockSpriteTab()
 
-        self.locked = True
-        self.sprites_tab.createLayers()
-        
+        self.locked = True        
         self.locked_sprite_tab = locked_sprite_tab
         self.locked_sprite_tab.layerUpdated.connect(
             lambda: self.updateCurrentMainView(emit_signal=False))
+        
+        self.sprites_tab.createLayers()
 
 
     def unlockSpriteTab(self):

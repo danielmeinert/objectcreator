@@ -488,6 +488,9 @@ border: 1px solid darkgrey;}
    <property name="text">
     <string>DAT Identifier...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
   </action>
   <action name="actionNewSprite">
    <property name="enabled">
