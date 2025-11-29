@@ -314,7 +314,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             'hasTertiaryColour', False))
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
-            self.o['properties'].get('cursor', 'CURSOR_BLANK')))
+            self.o['properties'].get('cursor', 'CURSOR_STATUE_DOWN')))
 
         if not author:
             author = self.o.data.get('authors', '')

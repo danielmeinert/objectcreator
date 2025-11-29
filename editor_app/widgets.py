@@ -687,8 +687,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (layer.base_x+sprite.x,
-                  layer.base_y+sprite.y)
+        coords = (int(layer.base_x+sprite.x),
+                  int(layer.base_y+sprite.y))
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -786,8 +786,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (layer.base_x+sprite.x,
-                  layer.base_y+sprite.y)
+        coords = (int(layer.base_x+sprite.x),
+                  int(layer.base_y+sprite.y))
 
         canvas.paste(working_sprite.image, coords, mask=working_sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -867,8 +867,8 @@ class SpriteTab(QWidget):
         canvas_protect = Image.new(
             'RGBA', (self.canvas_width, self.canvas_height))
 
-        coords = (layer.base_x+sprite.x,
-                  layer.base_y+sprite.y)
+        coords = (int(layer.base_x+sprite.x),
+                  int(layer.base_y+sprite.y))
 
         canvas.paste(sprite.image, coords, mask=sprite.image)
         canvas_protect.paste(sprite.image, coords, mask=sprite.image)
@@ -897,9 +897,9 @@ class SpriteTab(QWidget):
         layer = self.currentActiveLayer()
         sprite = layer.sprite
 
-        coords = (layer.base_x+sprite.x,
-                  layer.base_y+sprite.y)
-
+        coords = (int(layer.base_x+sprite.x),
+                  int(layer.base_y+sprite.y))
+        
         self.protected_pixels = Image.new(
             '1', (self.canvas_width, self.canvas_height))
         self.protected_pixels.paste(sprite.giveProtectedPixelMask(
@@ -1174,9 +1174,9 @@ class SpriteTab(QWidget):
         pixmap = QtGui.QPixmap.fromImage(image)
 
         QApplication.clipboard().setPixmap(pixmap)
-        layers = QtGui.QStandardItemModel()
+        layers = SpriteLayerModel(1,1)
 
-        layers.insertRow(0, SpriteLayer.fromLayer(self.currentActiveLayer()))
+        layers.setItem(0, SpriteLayer.fromLayer(self.currentActiveLayer()))
 
         self.main_window.sprite_clipboard = layers
         self.main_window.sprite_clipboard_reset = False
