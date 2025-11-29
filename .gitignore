@@ -9,6 +9,8 @@ test/
 auto-py-to-exe_editor.json
 auto-py-to-exe_editor_updater.json
 *.template
+build_files/build_editor.bat
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -149,4 +151,3 @@ build_files/auto-py-to-exe_editor.json
 
 # Mac stuff
 .DS_Store
-build_files/build_editor.bat
