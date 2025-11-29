@@ -138,9 +138,12 @@ class MainWindowUi(QMainWindow):
         self.actionDATIdentifier.triggered.connect(
             self.objectOpenFileFromIdentifier)
         self.actionSave.triggered.connect(self.saveObject)
-        self.actionSaveObjectAt.triggered.connect(self.saveObjectAt)
+        self.actionSaveObjectAs.triggered.connect(self.saveObjectAs)
 
         self.actionNewSprite.triggered.connect(self.spriteNew)
+        self.actionLoadSprite.triggered.connect(self.spriteOpenFile)
+        self.actionSaveSprite.triggered.connect(self.spriteSave)
+        self.actionSaveSpriteAs.triggered.connect(self.spriteSaveAs)
         self.actionUndo.triggered.connect(self.spriteUndo)
         self.actionRedo.triggered.connect(self.spriteRedo)
         self.actionPasteSprite.triggered.connect(self.spritePaste)
@@ -307,7 +310,8 @@ class MainWindowUi(QMainWindow):
                 self.settings['small_scenery_defaults'] = {}
 
         self.openpath = self.settings['openpath']
-        self.last_open_folder = self.settings.get('opendefault', None)
+        self.last_open_folder_objects = self.settings.get('opendefault', None)
+        self.last_open_folder_sprites = None
         self.setCurrentImportColor(self.settings['transparency_color'])
         self.setCurrentPalette(self.settings['palette'], update_widgets=False)
         self.setCurrentBackgroundColor(self.settings.get(
@@ -475,7 +479,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
 
-        self.last_open_folder = filepath
+        self.last_open_folder_objects = filepath
 
     def loadObjectFromId(self, dat_id):
         try:
@@ -493,7 +497,7 @@ class MainWindowUi(QMainWindow):
         if not self.current_palette == pal.orct:
             o.switchPalette(self.current_palette)
 
-        object_tab = wdg.ObjectTab(o, self, self.last_open_folder)
+        object_tab = wdg.ObjectTab(o, self, self.last_open_folder_objects)
         object_tab.activeLayerRowChanged.connect(self.layer_widget.setActiveLayerRow)
 
         sprite_tab = wdg.SpriteTab(self, object_tab)
@@ -504,6 +508,28 @@ class MainWindowUi(QMainWindow):
         self.object_tabs.setCurrentWidget(object_tab)
         self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
+        
+    def loadSpriteFromPath(self, filepath):
+        try:
+            sprite_tab = wdg.SpriteTab.fromFile(
+                filepath, self)
+            name = sprite_tab.objectName()
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error Trapper")
+            msg.setText("Failed to load sprite")
+            msg.setInformativeText(str(traceback.format_exc()))
+            msg.show()
+            return
+        
+        sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+        sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+        
+        self.sprite_tabs.addTab(sprite_tab, name)
+        self.sprite_tabs.setCurrentWidget(sprite_tab)
+            
+        
 
     # Tab actions
     def changeObjectTab(self, index):
@@ -688,7 +714,7 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.removeTab(index)
 
     def objectOpenFile(self):
-        folder = self.last_open_folder
+        folder = self.last_open_folder_objects
         if not folder:
             folder = self.settings.get('opendefault', None)
         if not folder:
@@ -713,7 +739,7 @@ class MainWindowUi(QMainWindow):
         if widget is not None:
             widget.saveObject(get_path=False)
 
-    def saveObjectAt(self):
+    def saveObjectAs(self):
         widget = self.object_tabs.currentWidget()
 
         if widget is not None:
@@ -728,6 +754,30 @@ class MainWindowUi(QMainWindow):
 
         self.sprite_tabs.addTab(sprite_tab, f"{name}")
         self.sprite_tabs.setCurrentWidget(sprite_tab)
+        
+    def spriteOpenFile(self):
+        folder = self.last_open_folder_sprites
+        if not folder:
+            folder = getcwd()
+        filepaths, _ = QFileDialog.getOpenFileNames(
+            self, "Open Sprite", folder,
+            "All Sprite Type Files (*.ocsprite);; Object Creator Sprites Files (*.ocsprite);; All Files (*.*)")
+
+        if filepaths:
+            for filepath in filepaths:
+                self.loadSpriteFromPath(filepath)
+        
+    def spriteSave(self):
+        widget = self.sprite_tabs.currentWidget()
+
+        if widget is not None:
+            widget.saveSprite(get_path=False)
+            
+    def spriteSaveAs(self):
+        widget = self.sprite_tabs.currentWidget()
+
+        if widget is not None:
+            widget.saveSprite(get_path=True)
 
     def spriteUndo(self):
         widget = self.sprite_tabs.currentWidget()

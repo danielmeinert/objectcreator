@@ -20,9 +20,7 @@ Created 09/26/2021; 16:58:33
 from json import dump, loads
 from json import load as jload
 from os import mkdir, makedirs, replace, getcwd, remove, walk
-from os import mkdir, makedirs, replace, getcwd, remove, walk
 from os.path import splitext, exists
-from pkgutil import get_data
 import copy
 from PIL import Image, ImageDraw
 from shutil import unpack_archive, make_archive, move, rmtree

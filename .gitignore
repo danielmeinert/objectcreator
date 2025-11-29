@@ -2,6 +2,7 @@
 *.parkobj
 *.DAT
 *.lnk
+*.ocsprite
 config.json
 output/
 test/

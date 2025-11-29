@@ -193,6 +193,37 @@ class Sprite:
             self.y = y_offset
 
         self.crop()
+        
+    def mask(self, sprite_mask, offset_x, offset_y):
+        s1 = self
+        s2 = sprite_mask
+        s2.x += offset_x
+        s2.y += offset_y
+
+        canvas_size_x = max(abs(s1.x), abs(s1.image.width+s1.x),
+                            abs(s2.x), abs(s2.image.width+s2.x))
+        canvas_size_y = max(abs(s1.y), abs(s1.image.height+s1.y),
+                            abs(s2.y), abs(s2.image.height+s2.y))
+        canvas = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+        mask = Image.new('RGBA', (canvas_size_x*2, canvas_size_y*2))
+        canvas.paste(s1.image, (s1.x+canvas_size_x, s1.y+canvas_size_y))
+        mask.paste(s2.image, (s2.x+canvas_size_x, s2.y+canvas_size_y))
+        
+        canvas  = pasteOnMask(mask, canvas)
+        
+        bbox = canvas.getbbox()
+
+        if bbox:
+            canvas = canvas.crop(bbox)
+            x_offset = -canvas_size_x + bbox[0]
+            y_offset = -canvas_size_y + bbox[1]
+
+            self.image = canvas
+            self.x = x_offset
+            self.y = y_offset
+
+        self.crop()
+        
 
     def giveShade(self, coords):
         if coords[0] < 0 or coords[1] < 0:
@@ -209,7 +240,11 @@ class Sprite:
 def pasteOnMask(mask: Image.Image, pic_in: Image.Image):
     mask_ar = np.array(mask)
     pic_ar = np.array(pic_in)
-    pic_ar[:, :, 3] = mask_ar[:, :, 3]
+    
+    # Preserve alpha=0 regions in pic_in
+    alpha_mask = pic_ar[:, :, 3] == 0
+    pic_ar[:, :, 3] = np.where(alpha_mask, 0, mask_ar[:, :, 3])
+    
     return Image.fromarray(pic_ar)
 
 

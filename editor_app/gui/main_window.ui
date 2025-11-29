@@ -377,7 +377,7 @@ border: 1px solid darkgrey;}
     <addaction name="menuNew_Object"/>
     <addaction name="menuLoad_Object_from"/>
     <addaction name="actionSave"/>
-    <addaction name="actionSaveObjectAt"/>
+    <addaction name="actionSaveObjectAs"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -385,6 +385,8 @@ border: 1px solid darkgrey;}
     </property>
     <addaction name="actionNewSprite"/>
     <addaction name="actionLoadSprite"/>
+    <addaction name="actionSaveSprite"/>
+    <addaction name="actionSaveSpriteAs"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionPasteSprite"/>
@@ -457,9 +459,9 @@ border: 1px solid darkgrey;}
    <addaction name="menuHelp"/>
    <addaction name="menutest"/>
   </widget>
-  <action name="actionSaveObjectAt">
+  <action name="actionSaveObjectAs">
    <property name="text">
-    <string>Save Object at...</string>
+    <string>Save Object As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -497,15 +499,15 @@ border: 1px solid darkgrey;}
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>New Image</string>
+    <string>New Sprite</string>
    </property>
   </action>
   <action name="actionLoadSprite">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Open Image</string>
+    <string>Open Sprite</string>
    </property>
   </action>
   <action name="actionSmallScenery">
@@ -678,6 +680,16 @@ border: 1px solid darkgrey;}
    </property>
    <property name="text">
     <string>Base Block Generator</string>
+   </property>
+  </action>
+  <action name="actionSaveSprite">
+   <property name="text">
+    <string>Save Sprite</string>
+   </property>
+  </action>
+  <action name="actionSaveSpriteAs">
+   <property name="text">
+    <string>Save Sprite As...</string>
    </property>
   </action>
  </widget>

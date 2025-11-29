@@ -17,12 +17,17 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
 from PIL.ImageQt import ImageQt
 from copy import copy, deepcopy
-import io
+from json import dump, loads
+from json import load as jload
+from os import mkdir, makedirs, replace, getcwd, remove, walk
 import os.path
 import sip
 from os import getcwd
 import numpy as np
 from pkgutil import get_data
+
+from shutil import unpack_archive, make_archive, move, rmtree
+from tempfile import TemporaryDirectory
 
 
 import auxiliaries as aux
@@ -252,6 +257,120 @@ class SpriteTab(QWidget):
         self.toolChanged(self.main_window.tool_widget.toolbox)
 
         self.updateView()
+        
+    @classmethod
+    def fromFile(cls, filepath, main_window):
+        with TemporaryDirectory() as temp:
+            unpack_archive(filepath, temp, format='zip')
+
+            with open(f'{temp}/data.json', mode='r') as file:
+                data = jload(file)
+
+            sprite_tab = cls(main_window, filepath=filepath)
+            sprite_tab.setObjectName(data.get('name', 'Unnamed Sprite'))
+            
+            sprite_tab.canvas_width = data.get('canvas_width', 200)
+            sprite_tab.canvas_height = data.get('canvas_height', 200)
+            sprite_tab.base_x = data.get('base_x', int(sprite_tab.canvas_width/2))
+            sprite_tab.base_y = data.get('base_y', sprite_tab.canvas_height-70)
+            
+            sprite_tab.bounding_boxes_active = data.get('bounding_boxes_active', False)
+            sprite_tab.symm_axes_active = data.get('symm_axes_active', False)
+            sprite_tab.dummy_coords = data.get('dummy_coords', (0, 0))
+            
+            sprite_tab.view.updateCanvasSize()
+            
+            layers_data = data.get('layers', [])
+            if not layers_data:
+                raise RuntimeError('No layers found in sprite file.')
+            
+            
+            for row, layer_data in enumerate(layers_data):
+                image_path = layer_data.pop('image_path', None)
+                if not image_path:
+                    raise RuntimeError(
+                        'Layer image path not found in sprite file.')
+
+                sprite = spr.Sprite.fromFile(
+                    f'{temp}/{image_path}', palette=main_window.current_palette,
+                    already_palettized=True)
+
+                
+                layer = SpriteLayer.fromData(
+                    layer_data, sprite, main_window)
+                                
+                sprite_tab.addLayer(layer)
+            else:
+                layer = sprite_tab.giveLayers().takeProxyRow(row+1)[0]
+                sprite_tab.view.scene.removeItem(layer.item)
+                del (layer)
+                
+            return sprite_tab
+            
+        
+    def saveSprite(self, get_path):
+        name = self.main_window.sprite_tabs.tabText(self.main_window.sprite_tabs.currentIndex())
+        
+        data_save = {
+                    'name': name,
+                    'canvas_width': self.canvas_width,
+                    'canvas_height': self.canvas_height,
+                    'base_x': self.base_x,
+                    'base_y': self.base_y,
+                    'bounding_boxes_active': self.bounding_boxes_active,
+                    'symm_axes_active': self.symm_axes_active,
+                    'dummy_coords': self.dummy_coords,
+                }
+        
+        if get_path or not self.saved:
+            if self.lastpath:
+                folder = self.lastpath
+                path = f"{self.lastpath}/{name}.ocsprite"
+            else:
+                folder = self.main_window.settings.get('savedefault', '')
+                if not folder:
+                    folder = getcwd()
+                path = f"{folder}/{name}.ocsprite"
+
+            filepath, _ = QFileDialog.getSaveFileName(
+                self, "Save Sprite", path, "Object Creator Sprites Files (*.ocsprite)")
+            while filepath.endswith('.ocsprite'):
+                filepath = filepath[:-9]
+            filepath, name = os.path.split(filepath)
+        else:
+            filepath = self.lastpath
+
+        if filepath:
+            self.lastpath = filepath
+            
+            with TemporaryDirectory() as temp:
+                mkdir(f'{temp}/images')
+                
+                
+                layers = []
+                
+                for row in range(self.giveLayers().rowCount()):
+                    layer = self.giveLayers().giveLayerFromProxyRow(row)
+                    data = layer.dataForSave()
+                    data['image_path'] = f'images/layer_{row}.png'
+                    
+                    layers.append(data)
+                    
+                    layer.sprite.save(f"{temp}/images/layer_{row}.png")
+                
+
+                data_save['layers'] = layers
+                with open(f'{temp}/data.json', mode='w') as file:
+                    dump(obj=data_save, fp=file, indent=2)
+                    
+                
+
+                make_archive(base_name=f'{filepath}/{name}',
+                            root_dir=temp, format='zip')
+
+                replace(f'{filepath}/{name}.zip', f'{filepath}/{name}.ocsprite')
+            
+            self.saved = True    
 
     def lockWithObjectTab(self, object_tab):
         if object_tab:
@@ -882,6 +1001,19 @@ class SpriteTab(QWidget):
         self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
 
         self.layersChanged.emit()
+        
+    def duplicateLayer(self, index):
+        if self.locked:
+            return
+
+        layer_old = self.giveLayers().itemFromProxyIndex(index)
+        layer = SpriteLayer.fromLayer(layer_old)
+
+        self.addLayer(layer, index.row()+1)
+
+        self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
+
+        self.layersChanged.emit()
 
     def deleteLayer(self, index):
         if self.locked:
@@ -908,6 +1040,20 @@ class SpriteTab(QWidget):
         layer_bottom.merge(layer_top)
 
         self.deleteLayer(index)
+
+        self.layersChanged.emit()
+        
+    def maskLayer(self, index):
+        if self.locked:
+            return
+
+        layer_top = self.giveLayers().itemFromProxyIndex(index)
+        if (index.row() + 1) == self.giveLayers().rowCount():
+            return
+
+        layer_bottom = self.giveLayers().itemFromProxyRow(index.row()+1)
+
+        layer_top.mask(layer_bottom)
 
         self.layersChanged.emit()
 
@@ -1380,7 +1526,7 @@ class SpriteViewWidget(QGraphicsView):
 
 
 class SpriteLayer(QtGui.QStandardItem):
-    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", parent=None):
+    def __init__(self, sprite, main_window, base_x, base_y, offset_x=0, offset_y=0, name="Layer", visible=True, parent=None):
         super().__init__(name)
         self.item = QGraphicsPixmapItem()
 
@@ -1392,7 +1538,8 @@ class SpriteLayer(QtGui.QStandardItem):
         self.offset_x = offset_x
         self.offset_y = offset_y
 
-        self.visible = True
+        self.visible = visible
+        self.item.setVisible(visible)
 
         self.sprite = sprite
         self.history = []
@@ -1416,6 +1563,33 @@ class SpriteLayer(QtGui.QStandardItem):
         name = new_name if new_name else layer.text()
 
         return cls(sprite, layer.main_window, base_x, base_y, offset_x, offset_y, name)
+    
+    @classmethod
+    def fromData(cls, data, sprite, main_window):
+        base_x = data.get('base_x', 0)
+        base_y = data.get('base_y', 0)
+        offset_x = data.get('offset_x', 0)
+        offset_y = data.get('offset_y', 0)
+        name = data.get('name', 'Layer')
+        visible = data.get('visible', True)
+        
+        sprite.overwriteOffsets(data.get('sprite_x', 0), data.get('sprite_y', 0))
+
+        return cls(sprite, main_window, base_x, base_y, offset_x, offset_y, name, visible)
+    
+    def dataForSave(self):
+        data = {
+            'base_x': self.base_x,
+            'base_y': self.base_y,
+            'offset_x': self.offset_x,
+            'offset_y': self.offset_y,
+            'name': self.text(),
+            'visible': self.visible,
+            'sprite_x': self.sprite.x,
+            'sprite_y': self.sprite.y,
+        }
+        
+        return data
 
     def isVisible(self):
         return self.visible
@@ -1475,6 +1649,17 @@ class SpriteLayer(QtGui.QStandardItem):
         self.sprite.merge(sprite_top, layer.base_x-self.base_x,
                           layer.base_y-self.base_y)
 
+        self.updateOffset()
+        self.updateLayer()
+        
+    def mask(self, layer):
+        self.addSpriteToHistory()
+
+        sprite_top = copy(layer.sprite)
+        
+        self.sprite.mask(sprite_top, layer.base_x - self.base_x,
+                         layer.base_y - self.base_y)
+        
         self.updateOffset()
         self.updateLayer()
 
@@ -1737,8 +1922,10 @@ class LayersWidget(QWidget):
         self.layers_list.checked.connect(self.layerChecked)
 
         self.button_new.clicked.connect(self.newLayer)
+        self.button_duplicate.clicked.connect(self.duplicateLayer)
         self.button_merge.clicked.connect(self.mergeLayer)
         self.button_delete.clicked.connect(self.deleteLayer)
+        self.button_mask.clicked.connect(self.maskLayer)
         self.button_up.clicked.connect(lambda: self.moveLayer('up'))
         self.button_down.clicked.connect(lambda: self.moveLayer('down'))
 
@@ -1796,6 +1983,12 @@ class LayersWidget(QWidget):
 
         if widget:
             widget.newLayer()
+            
+    def duplicateLayer(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.duplicateLayer(self.layers_list.currentIndex())
 
     def mergeLayer(self):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1814,6 +2007,12 @@ class LayersWidget(QWidget):
                 return
 
             widget.deleteLayer(self.layers_list.currentIndex())
+            
+    def maskLayer(self):
+        widget = self.main_window.sprite_tabs.currentWidget()
+
+        if widget:
+            widget.maskLayer(self.layers_list.currentIndex())
 
     def moveLayer(self, direction):
         widget = self.main_window.sprite_tabs.currentWidget()
@@ -1928,11 +2127,8 @@ class LayersWidget(QWidget):
             self.button_bounding_box.setChecked(widget.bounding_boxes_active)
             self.button_symm_axes.setChecked(widget.symm_axes_active)
 
-        self.button_new.setEnabled(val)
-        self.button_delete.setEnabled(val)
-        self.button_merge.setEnabled(val)
-        self.button_up.setEnabled(val)
-        self.button_down.setEnabled(val)
+        self.widget_layer_actions.setEnabled(val)
+        
 
         self.button_rotate.setEnabled(val)
         self.combo_box_shape.setEnabled(val)
