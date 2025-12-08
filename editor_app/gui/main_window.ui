@@ -447,17 +447,11 @@ border: 1px solid darkgrey;}
     <addaction name="actionPathTileGenerator"/>
     <addaction name="actionBaseBlockGenerator"/>
    </widget>
-   <widget class="QMenu" name="menutest">
-    <property name="title">
-     <string>test</string>
-    </property>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuGenerator"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
-   <addaction name="menutest"/>
   </widget>
   <action name="actionSaveObjectAs">
    <property name="text">

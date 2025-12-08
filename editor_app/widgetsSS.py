@@ -125,6 +125,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             lambda value, name='animationDelay': self.spinBoxChanged(value, name))
         self.spinbox_anim_delay.valueChanged.connect(
             self.animationDelayChanged)
+        self.spinbox_anim_num_image_sets.setKeyboardTracking(False)
         self.spinbox_anim_num_image_sets.valueChanged.connect(
             self.animationNumImageSetsChanged)
 
@@ -605,11 +606,6 @@ class EditAnimationSequenceUI(QDialog):
         self.button_descending.clicked.connect(self.descending)
         self.button_back_forth.clicked.connect(self.backForth)
 
-        for i in range(self.table.rowCount()):
-            self.table.setRowHeight(i, 10)
-
-        for i in range(self.table.columnCount()):
-            self.table.setColumnWidth(i, 10)
 
         self.resize(self.layout().sizeHint())
         self.updateTable()
@@ -629,8 +625,6 @@ class EditAnimationSequenceUI(QDialog):
             self.sequence = self.sequence[:value]
 
         self.table.setRowCount(value)
-        for i in range(self.table.rowCount()):
-            self.table.setRowHeight(i, 10)
 
         self.resize(self.layout().sizeHint())
         self.updateTable()
@@ -643,8 +637,6 @@ class EditAnimationSequenceUI(QDialog):
                              old_len else x for x in self.sequence]
 
         self.table.setColumnCount(value)
-        for i in range(self.table.columnCount()):
-            self.table.setColumnWidth(i, 10)
 
         self.num_image_sets = value
 
@@ -679,9 +671,6 @@ class EditAnimationSequenceUI(QDialog):
         self.updateTable()
 
     def updateTable(self):
-        self.table.clearContents()
-
-        for row, column in enumerate(self.sequence):
-            item = QTableWidgetItem()
-            self.table.setItem(row, column, item)
-            item.setBackground(QtCore.Qt.green)
+        self.table.update(self.sequence)
+            
+    

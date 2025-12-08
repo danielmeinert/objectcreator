@@ -9,7 +9,8 @@
 """
 from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBoxLayout, \
     QApplication, QWidget, QSlider, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, \
-    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial, QSpinBox
+    QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QGroupBox, QDial, QSpinBox, QTableWidget, \
+    QTableWidgetItem, QHeaderView
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
@@ -613,9 +614,72 @@ class AnimationSpinBox(QSpinBox):
         self.lineEdit().setEnabled(False)
         self.lineEdit().setStyleSheet('color: black; background-color: white;')
         self.lineEdit().setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        
+        self.sequence = [0]
 
     def stepBy(self, steps):
         self.setValue(int(self.value()*2**steps))
+        
+class AnimationSequenceTable(QTableWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        self.currentCellChanged.connect(self.selectedCellChanged)
+        
+    def setRowCount(self, rows):
+        super().setRowCount(rows)    
+        
+        for i in range(self.rowCount()):
+            self.setRowHeight(i, 20)
+            
+    def setColumnCount(self, columns):
+        super().setColumnCount(columns)    
+        
+        for i in range(self.columnCount()):
+            self.setColumnWidth(i, 20)
+            
+    def selectedCellChanged(self, current_row, current_column, previous_row, previous_column):
+        if previous_row != -1 and previous_column != -1:
+            for col in range(self.columnCount()):
+                if col != self.sequence[previous_row]:
+                    row_item = self.takeItem(previous_row, col)
+                        
+
+            for row in range(self.rowCount()):
+                col_item = self.item(row, previous_column)
+                if col_item:
+                    if previous_column == self.sequence[row]:
+                        col_item.setBackground(QtCore.Qt.green)
+                    else:
+                        col_item.setBackground(QtCore.Qt.white)
+        
+        if current_row != -1 and current_column != -1:
+            for col in range(self.columnCount()):
+                if col != self.sequence[current_row]:
+                    item = QTableWidgetItem()
+                    self.setItem(current_row, col, item)
+                    item.setBackground(QtCore.Qt.yellow)
+                        
+
+            for row in range(self.rowCount()):
+                if current_column != self.sequence[row]:
+                    item = QTableWidgetItem()
+                    self.setItem(row, current_column, item)
+                    item.setBackground(QtCore.Qt.yellow)
+            
+        
+    def update(self, sequence):
+        self.clearContents()
+        
+        self.sequence = sequence
+
+        for row, column in enumerate(sequence):
+            item = QTableWidgetItem()
+            self.setItem(row, column, item)
+            item.setBackground(QtCore.Qt.green)
+        
+        
+        
         
 class ButtonEventFilter(QtCore.QObject):
     def eventFilter(self, obj, event):
