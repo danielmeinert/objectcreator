@@ -308,6 +308,7 @@ class MainWindowUi(QMainWindow):
                 self.settings['import_offset_mode'] = 0
 
                 self.settings['small_scenery_defaults'] = {}
+                self.settings['large_scenery_defaults'] = {}
 
         self.openpath = self.settings['openpath']
         self.last_open_folder_objects = self.settings.get('opendefault', None)
@@ -1011,6 +1012,7 @@ def main():
         sys.exit(1)
 
     app.setApplicationName(myappname)
+    
 
     app_data_path = QtCore.QStandardPaths.writableLocation(
         QtCore.QStandardPaths.AppDataLocation)

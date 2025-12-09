@@ -679,6 +679,14 @@ class SpriteTab(QWidget):
                 Image.FLIP_TOP_BOTTOM)
 
         self.updateView()
+        
+    def moveCurrentLayer(self, x, y):
+        layer = self.currentActiveLayer()
+        sprite = layer.sprite
+
+        layer.setSpriteOffset(sprite.x + x, sprite.y + y)
+
+        self.updateView()
 
     def draw(self, x, y, shade):
         layer = self.currentActiveLayer()
@@ -1200,12 +1208,13 @@ class SpriteViewWidget(QGraphicsView):
 
         self.scene = QGraphicsScene()
         self.viewport().setMouseTracking(True)
+        
 
         # Panning flags
         self.is_panning = False
         self.mouse_pressed = False
         self.space_pressed = False
-
+        
         self.stored_cursor = QtCore.Qt.ArrowCursor
 
         self.slider_zoom = None
@@ -1289,7 +1298,9 @@ class SpriteViewWidget(QGraphicsView):
             if not self.mouse_pressed:
                 self.is_panning = False
                 self.viewport().setCursor(self.stored_cursor)
-
+        elif event.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
+                             QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
+            return
         else:
             super().keyPressEvent(event)
 
@@ -1336,6 +1347,15 @@ class SpriteViewWidget(QGraphicsView):
             if self.is_panning:
                 self.viewport().setCursor(QtCore.Qt.ClosedHandCursor)
                 self._dragPos = event.pos()
+                event.accept()
+                return
+            
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.stored_cursor = self.viewport().cursor()
+                self.viewport().setCursor(QtCore.Qt.SizeAllCursor)
+                screen_pos = self.mapToScene(event.localPos().toPoint())
+                self._x_move_layer_start = round(screen_pos.x())
+                self._y_move_layer_start = round(screen_pos.y())
                 event.accept()
                 return
 
@@ -1452,6 +1472,7 @@ class SpriteViewWidget(QGraphicsView):
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - diff.y())
             event.accept()
             return
+        
 
         screen_pos = self.mapToScene(event.localPos().toPoint())
         x = round(screen_pos.x())
@@ -1464,7 +1485,17 @@ class SpriteViewWidget(QGraphicsView):
         self.tab.label_y.setText(f'Y   {y_display}')
 
         if event.buttons() == QtCore.Qt.LeftButton:
-
+            if modifiers == QtCore.Qt.ControlModifier:
+                newPos = event.pos()
+                diff_x = x - self._x_move_layer_start
+                diff_y = y - self._y_move_layer_start
+                self._x_move_layer_start = x
+                self._y_move_layer_start = y
+                self.tab.moveCurrentLayer(diff_x, diff_y)
+                event.accept()
+                return
+                
+                
             if self.main_window.giveTool() == cwdg.Tools.PEN:
                 shade = self.main_window.giveActiveShade()
                 if not shade:
@@ -1513,12 +1544,18 @@ class SpriteViewWidget(QGraphicsView):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+        
         if event.button() == QtCore.Qt.LeftButton:
             if self.space_pressed:
                 self.viewport().setCursor(QtCore.Qt.OpenHandCursor)
             elif self.is_panning:
                 self.is_panning = False
                 self.viewport().setCursor(self.stored_cursor)
+            
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.viewport().setCursor(self.stored_cursor)
+                
             self.mouse_pressed = False
         super().mouseReleaseEvent(event)
 
