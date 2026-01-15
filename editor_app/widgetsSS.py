@@ -380,10 +380,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         self.spinbox_price.setValue(settings_SS.get('price', 1))
         self.spinbox_removal_price.setValue(settings_SS.get('removalPrice', 1))
-        self.spinbox_version.setValue(settings_SS.get('version', 1.0))
+        self.spinbox_version.setValue(self.main_window.settings.get('version', 1.0))
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
-            settings_SS.get('cursor', 'CURSOR_BLANK')))
+            settings_SS.get('cursor', 'CURSOR_ARROW')))
 
 
 class SpritesTab(widgetsGeneric.SpritesTabAll):
@@ -391,11 +391,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         super().__init__(o, object_tab)
         uic.loadUi(aux.resource_path('gui/spritesSS.ui'), self)
 
-        self.initializeWidgets(151, 268)
-
         self.button_cycle_animation_frame = self.findChild(
             QPushButton, "pushButton_cycleFrame")
-
         self.button_cycle_animation_frame.clicked.connect(
             self.cycleAnimationFrame)
 
@@ -407,6 +404,8 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
         self.widget_frame_controls = self.findChild(
             QWidget, "groupBox_frame_controls")
         self.widget_frame_controls.setEnabled(False)
+        
+        self.initializeWidgets(151, 268)
 
         self.createLayers()
         self.previewClicked(0)
@@ -430,6 +429,11 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                 num_rows = 4
         elif self.o.subtype == self.o.Subtype.GLASS:
             num_rows = 2
+        
+        if hasattr(self, 'layers'):
+            active_row = self.layers.giveActiveRow()
+        else:
+            active_row = 0
         
         self.layers = wdg.SpriteLayerModel(num_rows, 4)
 
@@ -522,6 +526,7 @@ class SpritesTab(widgetsGeneric.SpritesTabAll):
                 self.layers.setItem(0, rot, layer)
 
         self.layers.setActiveColumn(self.o.rotation)
+        self.layers.setActiveRow(active_row)
 
 
     def requestNumberOfLayers(self):

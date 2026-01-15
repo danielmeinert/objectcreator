@@ -389,8 +389,9 @@ border: 1px solid darkgrey;}
     <addaction name="actionSaveSpriteAs"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
+    <addaction name="actionCopyLayer"/>
+    <addaction name="actionCopyAllLayers"/>
     <addaction name="actionPasteSprite"/>
-    <addaction name="actionCopySprite"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -605,9 +606,9 @@ border: 1px solid darkgrey;}
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="actionCopySprite">
+  <action name="actionCopyLayer">
    <property name="text">
-    <string>Copy</string>
+    <string>Copy Active Layer</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -684,6 +685,14 @@ border: 1px solid darkgrey;}
   <action name="actionSaveSpriteAs">
    <property name="text">
     <string>Save Sprite As...</string>
+   </property>
+  </action>
+  <action name="actionCopyAllLayers">
+   <property name="text">
+    <string>Copy All Layers</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
  </widget>

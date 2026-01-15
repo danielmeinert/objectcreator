@@ -1178,7 +1178,7 @@ QTabBar::tab:selected {
             <string>Sync with all Tiles</string>
            </property>
            <property name="checked">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
           </widget>
           <zorder>groupBox_2</zorder>

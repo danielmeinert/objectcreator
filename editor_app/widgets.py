@@ -1136,13 +1136,17 @@ class SpriteTab(QWidget):
         else:
             if self.main_window.sprite_clipboard:
                 for i in range(self.main_window.sprite_clipboard.rowCount()):
-                    layer = self.main_window.sprite_clipboard.item(i, 0)
+                    layer = SpriteLayer.fromLayer(self.main_window.sprite_clipboard.item(i, 0))
                     self.addLayer(layer)
                 else:
                     self.giveLayers().setActiveRowFromIndex(self.giveLayers().indexFromItem(layer))
 
             else:
                 image = ImageGrab.grabclipboard()
+                
+                if image is None:
+                    return
+                
                 if type(image) == list:
                     try:
                         image = Image.open(image[0])
@@ -1176,15 +1180,35 @@ class SpriteTab(QWidget):
                     self.addLayer(layer)
                     self.giveLayers().setActiveRowFromIndex(
                         self.giveLayers().indexFromItem(layer))
+                    
+                self.layercount += 1
 
-    def copy(self):
-        image = ImageQt(self.currentActiveLayer().sprite.image)
-        pixmap = QtGui.QPixmap.fromImage(image)
 
-        QApplication.clipboard().setPixmap(pixmap)
-        layers = SpriteLayerModel(1,1)
+        self.layersChanged.emit()
 
-        layers.setItem(0, SpriteLayer.fromLayer(self.currentActiveLayer()))
+    def copy(self, all = False):
+        if all:
+            if self.locked:
+                self.object_tab.sprites_tab.copySpriteToClipboard()
+                return
+            
+            pixmap = self.view.givePixmap()
+            QApplication.clipboard().setPixmap(pixmap)
+            
+            source_layers = self.giveLayers()
+            row_count = source_layers.rowCount()
+            layers = SpriteLayerModel(row_count, 1)
+
+            for i in range(row_count):
+                layers.setItem(row_count - i - 1, 0, SpriteLayer.fromLayer(source_layers.item(i)))
+
+        else:
+            image = ImageQt(self.currentActiveLayer().sprite.image)
+            pixmap = QtGui.QPixmap.fromImage(image)
+            QApplication.clipboard().setPixmap(pixmap)
+
+            layers = SpriteLayerModel(1,1)
+            layers.setItem(0, 0, SpriteLayer.fromLayer(self.currentActiveLayer()))
 
         self.main_window.sprite_clipboard = layers
         self.main_window.sprite_clipboard_reset = False
@@ -1282,6 +1306,23 @@ class SpriteViewWidget(QGraphicsView):
                                           self.tab.main_window.current_background_color[1],
                                           self.tab.main_window.current_background_color[2]))
         self.background.setBrush(brush)
+        
+    def givePixmap(self):
+        # Create a QPixmap with the size of the scene's bounding rectangle
+        scene_rect = self.scene.itemsBoundingRect()  # Get the bounding rectangle of all items
+        pixmap = QtGui.QPixmap(scene_rect.size().toSize())
+        pixmap.fill(QtCore.Qt.transparent)  # Fill with transparent background
+
+        # Use a QPainter to render the scene's content onto the QPixmap
+        painter = QtGui.QPainter(pixmap)
+
+        # Render only the items that are not background or auxiliaries
+        for item in self.scene.items():
+            if item not in [self.background, self.layer_boundingbox, self.layer_symm_axes]:
+                item.paint(painter, QtWidgets.QStyleOptionGraphicsItem(), None)
+
+        painter.end()
+        return pixmap
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Space and not self.mouse_pressed:

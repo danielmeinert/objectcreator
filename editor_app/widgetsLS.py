@@ -293,10 +293,10 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
 
         self.spinbox_price.setValue(settings_LS.get('price', 1))
         self.spinbox_removal_price.setValue(settings_LS.get('removalPrice', 1))
-        self.spinbox_version.setValue(settings_LS.get('version', 1.0))
+        self.spinbox_version.setValue(self.main_window.settings.get('version', 1.0))
 
         self.cursor_box.setCurrentIndex(cts.cursors.index(
-            settings_LS.get('cursor', 'CURSOR_BLANK')))
+            settings_LS.get('cursor', 'CURSOR_ARROW')))
         
         for tile in self.o.tiles:
             tile.has_supports = settings_LS.get('hasSupports_LS', False)

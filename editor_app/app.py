@@ -147,7 +147,9 @@ class MainWindowUi(QMainWindow):
         self.actionUndo.triggered.connect(self.spriteUndo)
         self.actionRedo.triggered.connect(self.spriteRedo)
         self.actionPasteSprite.triggered.connect(self.spritePaste)
-        self.actionCopySprite.triggered.connect(self.spriteCopy)
+        self.actionCopyLayer.triggered.connect(lambda: self.spriteCopy(all=False))
+        self.actionCopyAllLayers.triggered.connect(
+            lambda: self.spriteCopy(all=True))
 
         self.actionSettings.triggered.connect(
             lambda: self.changeSettings(update_widgets=True))
@@ -795,10 +797,10 @@ class MainWindowUi(QMainWindow):
 
         widget.paste()
 
-    def spriteCopy(self):
+    def spriteCopy(self, all=False):
         widget = self.sprite_tabs.currentWidget()
 
-        widget.copy()
+        widget.copy(all=all)
 
     def clipboardChanged(self):
         if self.sprite_clipboard_reset == True:
