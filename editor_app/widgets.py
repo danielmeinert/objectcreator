@@ -83,6 +83,9 @@ class ObjectTab(QWidget):
         layout.addWidget(self.settings_tab)
 
         self.setLayout(layout)
+        
+    def isObject(self):
+        return True
 
     def saveObject(self, get_path):
 
@@ -161,23 +164,6 @@ class ObjectTab(QWidget):
     def setCurrentLayers(self, layers):
         self.sprites_tab.setCurrentLayers(layers)
 
-    def colorRemapToAll(self, index, color_remap, selected_colors):
-        if self.locked:
-            self.sprites_tab.colorRemapToAll(
-                index, color_remap, selected_colors)
-
-    def colorChangeBrightnessAll(self, index, step, selected_colors):
-        if self.locked:
-            self.sprites_tab.colorChangeBrightnessAll(
-                index, step, selected_colors)
-
-    def colorRemoveAll(self, index, selected_colors):
-        if self.locked:
-            self.sprites_tab.colorRemoveAll(index, selected_colors)
-            
-    def colorInvertShadingAll(self, index, selected_colors):
-        if self.locked:
-            self.sprites_tab.colorInvertShadingAll(index, selected_colors)
 
 # Sprites Tab
 

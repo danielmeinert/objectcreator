@@ -8,7 +8,11 @@
  *****************************************************************************
 """
 
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
+
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout, \
+    QHBoxLayout, QApplication, QWidget, QTabWidget, QToolButton, QComboBox, QScrollArea, \
+    QScrollBar, QPushButton, QLineEdit, QLabel, QCheckBox, QSpinBox, QDoubleSpinBox, \
+    QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageEnhance
 from PIL.ImageQt import ImageQt
@@ -16,6 +20,7 @@ from customwidgets import ColorSelectWidget
 import sys
 import io
 from os import getcwd
+import re
 
 import pathgenerator.generator as gen
 import auxiliaries as aux
@@ -25,237 +30,198 @@ from rctobject import sprites as spr
 
 # om.rotate(-45, Image.NEAREST).resize((64,31),Image.NEAREST)
 
-
-class PathGeneratorWidget(QWidget):
+class PathGeneratorTab(QWidget):
+    mainViewUpdated = QtCore.pyqtSignal()
+    rotationChanged = QtCore.pyqtSignal(int)
+    boundingBoxChanged = QtCore.pyqtSignal(
+        [bool, object, tuple], [bool, object, tuple, tuple])
+    symmAxesChanged = QtCore.pyqtSignal(bool, object, tuple)
+    activeLayerRowChanged = QtCore.pyqtSignal(int)
+    
     def __init__(self, main_window: QMainWindow):
         super().__init__()
-        uic.loadUi(aux.resource_path("pathgenerator/gui/pathtile_generator.ui"), self)
-        self.setWindowIcon(QtGui.QIcon(aux.resource_path("gui/icon.png")))
-
         self.main_window = main_window
         self.generator = gen.PathGenerator(self.loadFixMask(), main_window)
         self.loadFrame()
+        
+        self.locked = False
+        self.locked_sprite_tab = False
 
-        # Define Widgets
-        self.spriteViewLabel = self.findChild(QLabel, "sprite_view")
+        layout = QHBoxLayout()
 
-        self.buttonLoadBase = self.findChild(
-            QPushButton, "pushButton_loadImageButton")
-        self.buttonImportTexture = self.findChild(
-            QPushButton, "pushButton_importTexture")
-        self.buttonFixToMask = self.findChild(
-            QPushButton, "pushButton_fixToMask")
+        self.sprites_tab = SpritesTab(self, main_window)
+        self.settings_tab = SettingsTab(self, main_window, self.sprites_tab)
+        
 
-        self.buttonChangeOutputFolder = self.findChild(
+        layout.addWidget(self.sprites_tab)
+        layout.addWidget(self.settings_tab)
+
+        self.setLayout(layout)
+        
+    def isObject(self):
+        return False
+    
+    def giveDummy(self):
+        return self.settings_tab.giveDummy()
+
+    def lockWithSpriteTab(self, locked_sprite_tab):
+        if self.locked:
+            self.unlockSpriteTab()
+
+        self.locked = True        
+        self.locked_sprite_tab = locked_sprite_tab
+        self.locked_sprite_tab.layerUpdated.connect(
+            lambda: self.updateCurrentMainView(emit_signal=False))
+        
+        self.sprites_tab.createLayers()
+
+
+    def unlockSpriteTab(self):
+        self.locked = False
+        self.locked_sprite_tab.layerUpdated.disconnect()
+        #self.activeLayerRowChanged.disconnect()
+        self.locked_sprite_tab = None
+
+    def giveLayers(self):
+        return self.sprites_tab.giveLayers()
+
+    def giveCurrentMainViewSprite(self):
+        return self.o.giveSprite()
+
+    def updateCurrentMainView(self, emit_signal=True):
+        self.sprites_tab.updateMainView(emit_signal)
+
+    def addSpriteToHistoryAllViews(self):
+        self.sprites_tab.addSpriteToHistoryAllViews()
+
+    def setCurrentSprite(self, sprite):
+        self.o.setSprite(sprite)
+        self.updateCurrentMainView()
+
+    def requestNumberOfLayers(self):
+        return self.sprites_tab.requestNumberOfLayers()
+
+    def setCurrentLayers(self, layers):
+        self.sprites_tab.setCurrentLayers(layers)
+
+
+
+
+class SettingsTab(QWidget):
+    def __init__(self, generator_tab: PathGeneratorTab, sprites_tab: QWidget):
+        super().__init__()
+        uic.loadUi(aux.resource_path("pathgenerator/gui/settingsPTG.ui"), self)
+
+        self.generator_tab = generator_tab
+        self.sprites_tab = sprites_tab
+        self.main_window = generator_tab.main_window
+        
+        self.button_change_output_folder = self.findChild(
             QPushButton, "pushButton_changeOutputFolder")
-        self.buttonGenerate = self.findChild(
+        self.button_generate = self.findChild(
             QPushButton, "pushButton_generate")
-        self.buttonSelectAllTemplates = self.findChild(
+        self.button_select_all_templates = self.findChild(
             QPushButton, "pushButton_selectAllTemplates")
-        self.buttonClearAllTemplates = self.findChild(
+        self.button_clear_all_templates = self.findChild(
             QPushButton, "pushButton_clearAllTemplates")
-
-        self.buttonRemapTo = self.findChild(
-            QPushButton, "pushButton_remapTo")
-        self.buttonIncrBrightness = self.findChild(
-            QPushButton, "pushButton_incrBrightness")
-        self.buttonDecrBrightness = self.findChild(
-            QPushButton, "pushButton_decrBrightness")
-        self.buttonImportTemplate = self.findChild(
+        self.button_import_template = self.findChild(
             QPushButton, "pushButton_importTemplate")
 
-        self.checkboxAllViews = self.findChild(
-            QCheckBox, "checkBox_allViews")
-        self.checkboxAutoNaming = self.findChild(
+        self.checkbox_auto_naming = self.findChild(
             QCheckBox, "checkBox_autoNaming")
         self.checkbox_raised = self.findChild(
             QCheckBox, "checkBox_raised")
 
-        self.comboboxRotation = self.findChild(
+        self.combobox_rotation = self.findChild(
             QComboBox, "comboBox_rotation")
-        self.buttonAutoRotate1 = self.findChild(
-            QPushButton, "pushButton_autoRotate1")
-        self.buttonAutoRotate2 = self.findChild(
-            QPushButton, "pushButton_autoRotate2")
 
-        self.labelDisplayName = self.findChild(QLabel, "label_displayName")
-        self.labelPrefix = self.findChild(QLabel, "label_prefix")
-        self.labelSuffix = self.findChild(QLabel, "label_suffix")
-        self.labelGenerateReturn = self.findChild(
+        self.label_display_name = self.findChild(QLabel, "label_displayName")
+        self.label_prefix = self.findChild(QLabel, "label_prefix")
+        self.label_suffix = self.findChild(QLabel, "label_suffix")
+        self.label_generate_return = self.findChild(
             QLabel, "label_GenerateReturn")
 
-        self.comboboxRemapToColor = self.findChild(
+        self.combobox_remap_to_color = self.findChild(
             QComboBox, "comboBox_remapToColor")
 
-        self.lineeditAuthor = self.findChild(QLineEdit, "lineEdit_author")
-        self.lineeditAuthorID = self.findChild(QLineEdit, "lineEdit_authorID")
-        self.lineeditObjectID = self.findChild(QLineEdit, "lineEdit_objectID")
-        self.lineeditPrefix = self.findChild(QLineEdit, "lineEdit_prefix")
-        self.lineeditSuffix = self.findChild(QLineEdit, "lineEdit_suffix")
-        self.lineeditOutputFolder = self.findChild(
+        self.lineedit_author = self.findChild(QLineEdit, "lineEdit_author")
+        self.lineedit_author_id = self.findChild(QLineEdit, "lineEdit_authorID")
+        self.lineedit_object_id = self.findChild(QLineEdit, "lineEdit_objectID")
+        self.lineedit_prefix = self.findChild(QLineEdit, "lineEdit_prefix")
+        self.lineedit_suffix = self.findChild(QLineEdit, "lineEdit_suffix")
+        self.lineedit_output_folder = self.findChild(
             QLineEdit, "lineEdit_outputFolder")
-
-        # Color Panel
-        self.widgetColorPanel = self.findChild(
-            QGroupBox, "groupBox_selectedColor")
-        self.colorSelectPanel = ColorSelectWidget(pal.orct)
-        self.widgetColorPanel.layout().addWidget(self.colorSelectPanel)
-
-        # Sprite control buttons
-        self.buttonSpriteLeft = self.findChild(
-            QToolButton, "toolButton_left")
-        self.buttonSpriteDown = self.findChild(
-            QToolButton, "toolButton_down")
-        self.buttonSpriteRight = self.findChild(
-            QToolButton, "toolButton_right")
-        self.buttonSpriteUp = self.findChild(
-            QToolButton, "toolButton_up")
-        self.buttonSpriteLeftRight = self.findChild(
-            QToolButton, "toolButton_leftright")
-        self.buttonSpriteUpDown = self.findChild(
-            QToolButton, "toolButton_updown")
-
-        # Rotation buttons
-        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
-                               self.sprite_view_preview2, self.sprite_view_preview3]
-
-        for rot, widget in enumerate(self.sprite_preview):
-            widget.mousePressEvent = (
-                lambda e, rot=rot: self.previewClicked(rot))
-            widget.hide()
-
-            self.updatePreview(rot)
-
-        self.previewClicked(0)
-
-        self.listwidgetTemplateList = self.findChild(
+     
+        self.listwidget_template_list = self.findChild(
             QListWidget, "listWidget_templateList")
 
         # Set defaults
-        self.lineeditAuthor.setText(self.generator.settings['author'])
-        self.lineeditAuthorID.setText(self.generator.settings['author_id'])
-        self.lineeditSuffix.hide()
-        self.labelSuffix.hide()
-        self.labelPrefix.setText('')
-
-        self.lineeditOutputFolder.setText(f'{getcwd()}\\output')
-
-        self.comboboxRemapToColor.addItems(
-            list(self.generator.current_palette.color_dict))
-        self.comboboxRemapToColor.setCurrentIndex(
-            self.generator.current_palette.color_dict['1st Remap'])
-
+        self.setDefaults()
         self.loadTemplates()
 
         # Add functions
-        self.buttonLoadBase.clicked.connect(self.clickLoadBase)
-        self.buttonImportTexture.clicked.connect(self.importBase)
-        self.buttonFixToMask.clicked.connect(self.clickFixToMask)
-        self.buttonSelectAllTemplates.clicked.connect(
-            self.listwidgetTemplateList.selectAll)
-        self.buttonClearAllTemplates.clicked.connect(
-            self.listwidgetTemplateList.clearSelection)
-        self.buttonImportTemplate.clicked.connect(self.clickImportTemplate)
-        self.buttonChangeOutputFolder.clicked.connect(
+        self.button_select_all_templates.clicked.connect(
+            self.listwidget_template_list.selectAll)
+        self.button_clear_all_templates.clicked.connect(
+            self.listwidget_template_list.clearSelection)
+        self.button_import_template.clicked.connect(self.clickImportTemplate)
+        self.button_change_output_folder.clicked.connect(
             self.clickChangeOutputFolder)
-        self.buttonGenerate.clicked.connect(self.clickGenerate)
+        self.button_generate.clicked.connect(self.clickGenerate)
 
-        self.buttonRemapTo.clicked.connect(self.clickRemapTo)
-        self.buttonIncrBrightness.clicked.connect(self.clickIncrBrightness)
-        self.buttonDecrBrightness.clicked.connect(self.clickDecrBrightness)
+        self.checkbox_auto_naming.stateChanged.connect(self.clickBoxAutoNaming)
+        self.combobox_rotation.currentIndexChanged.connect(self.rotationChanged)
 
-        self.checkboxAutoNaming.stateChanged.connect(self.clickBoxAutoNaming)
-        self.comboboxRotation.currentIndexChanged.connect(self.rotationChanged)
+        self.lineedit_prefix.textChanged.connect(self.updateDisplayName)
+        self.lineedit_suffix.textChanged.connect(self.updateDisplayName)
 
-        self.lineeditPrefix.textChanged.connect(self.updateDisplayName)
-        self.lineeditSuffix.textChanged.connect(self.updateDisplayName)
+    def setDefaults(self):
+        settings = self.main_window.settings
 
-        self.buttonSpriteLeft.clicked.connect(
-            lambda x: self.clickSpriteControl('left'))
-        self.buttonSpriteDown.clicked.connect(
-            lambda x: self.clickSpriteControl('down'))
-        self.buttonSpriteRight.clicked.connect(
-            lambda x: self.clickSpriteControl('right'))
-        self.buttonSpriteUp.clicked.connect(
-            lambda x: self.clickSpriteControl('up'))
-        self.buttonSpriteLeftRight.clicked.connect(
-            lambda x: self.clickSpriteControl('leftright'))
-        self.buttonSpriteUpDown.clicked.connect(
-            lambda x: self.clickSpriteControl('updown'))
+        self.lineedit_author.setText(settings.get('author', ''))
+        self.lineedit_author_id.setText(settings.get('author_id', ''))
+        
+        self.lineedit_suffix.hide()
+        self.label_suffix.hide()
+        self.label_prefix.setText('')
 
-        self.buttonSpriteLeft.setAutoRepeat(True)
-        self.buttonSpriteDown.setAutoRepeat(True)
-        self.buttonSpriteRight.setAutoRepeat(True)
-        self.buttonSpriteUp.setAutoRepeat(True)
-
-        self.buttonAutoRotate1.clicked.connect(
-            lambda x: self.clickGenerateRotations(0))
-        self.buttonAutoRotate2.clicked.connect(
-            lambda x: self.clickGenerateRotations(1))
-
-
-        self.show()
-
-    # Event functions
-    def clickLoadBase(self):
-
-        filepath, _ = QFileDialog.getOpenFileName(
-            self, "Open Base Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
-
-        if filepath:
-            self.generator.loadBase(filepath)
-
-        self.updateMainView()
-
-    def clickFixToMask(self):
-
-        self.generator.fixBaseToMask()
-        self.updateMainView()
-
-    # def clickResetBase(self):
-
-    #    self.generator.base.resetSprite()
-    #    self.updateMainView()
+        self.lineedit_output_folder.setText(settings.get('savedefault', ''))
 
     def clickChangeOutputFolder(self):
         folder = QFileDialog.getExistingDirectory(
             self, "Select Output Directory")
         if folder:
-            self.lineeditOutputFolder.setText(folder)
-
-    def clickBoxColorPanel(self, state, color):
-        self.generator.selected_colors[color] = (
-            state == QtCore.Qt.Checked)
+            self.lineedit_output_folder.setText(folder)
 
     def clickBoxAutoNaming(self, state):
         self.generator.settings['autoNaming'] = (state == QtCore.Qt.Checked)
         if state == QtCore.Qt.Checked:
-            self.lineeditSuffix.show()
-            self.labelSuffix.show()
-            self.labelPrefix.setText('Prefix')
+            self.lineedit_suffix.show()
+            self.label_suffix.show()
+            self.label_prefix.setText('Prefix')
         else:
-            self.lineeditSuffix.hide()
-            self.lineeditSuffix.setText('')
-            self.labelSuffix.hide()
-            self.labelPrefix.setText('')
+            self.lineedit_suffix.hide()
+            self.lineedit_suffix.setText('')
+            self.label_suffix.hide()
+            self.label_prefix.setText('')
+            
         self.updateDisplayName()
 
     def clickGenerate(self):
-        self.labelGenerateReturn.setText('')
+        self.label_generate_return.setText('')
 
-        self.generator.setName(self.lineeditPrefix.text(),
-                               self.lineeditSuffix.text())
-        self.generator.settings['author'] = [
-            auth.strip() for auth in self.lineeditAuthor.text().split(',')]
-        self.generator.settings['author_id'] = self.lineeditAuthorID.text()
-        self.generator.settings['object_id'] = self.lineeditObjectID.text()
+        self.generator.setName(self.lineedit_prefix.text(),
+                               self.lineedit_suffix.text())
+        self.generator.settings['author'] = re.split('\,\s*', self.lineedit_author.text())
+        self.generator.settings['author_id'] = self.lineedit_author_id.text()
+        self.generator.settings['object_id'] = self.lineedit_object_id.text()
         self.generator.settings['raised'] = self.checkbox_raised.isChecked()
         self.generator.selected_templates = [
-            sel.text() for sel in self.listwidgetTemplateList.selectedItems()]
+            sel.text() for sel in self.listwidget_template_list.selectedItems()]
 
-        return_text = self.generator.generate(self.lineeditOutputFolder.text())
+        return_text = self.generator.generate(self.lineedit_output_folder.text())
 
-        self.labelGenerateReturn.setText(return_text)
+        self.label_generate_return.setText(return_text)
         self.updateMainView()
 
     def rotationChanged(self, item):
@@ -264,19 +230,18 @@ class PathGeneratorWidget(QWidget):
 
         if item == 0:
 
-            self.buttonAutoRotate1.setEnabled(False)
-            self.buttonAutoRotate2.setEnabled(False)
-            self.checkboxAllViews.setEnabled(False)
+            self.sprites_tab.button_auto_rotate1.setEnabled(False)
+            self.sprites_tab.button_auto_rotate2.setEnabled(False)
 
-            for widget in self.sprite_preview:
+            for widget in self.sprites_tab.sprite_preview:
                 widget.hide()
 
         else:
 
-            self.buttonAutoRotate1.setEnabled(True)
-            self.buttonAutoRotate2.setEnabled(True)
-            self.checkboxAllViews.setEnabled(True)
-            for widget in self.sprite_preview:
+            self.sprites_tab.button_auto_rotate1.setEnabled(True)
+            self.sprites_tab.button_auto_rotate2.setEnabled(True)
+
+            for widget in self.sprites_tab.sprite_preview:
                 widget.show()
 
         self.updateMainView()
@@ -303,91 +268,9 @@ class PathGeneratorWidget(QWidget):
             name = self.generator.loadTemplate(filepath)
 
             if name:
-                self.listwidgetTemplateList.addItem(name)
+                self.listwidget_template_list.addItem(name)
             else:
                 pass
-
-    def clickRemapTo(self):
-        color_remap = self.comboboxRemapToColor.currentText()
-
-        if self.checkboxAllViews.isChecked():
-            for base in self.generator.bases:
-                for color in self.colorSelectPanel.selectedColors():
-                    base.remapColor(color, color_remap)
-
-            self.updatePreview(0)
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
-
-        else:
-            for color in self.colorSelectPanel.selectedColors():
-                self.generator.base.remapColor(color, color_remap)
-
-        self.updateMainView()
-
-    def clickIncrBrightness(self):
-        if self.checkboxAllViews.isChecked():
-            for base in self.generator.bases:
-                for color in self.colorSelectPanel.selectedColors():
-                    base.changeBrightnessColor(1, color)
-
-            self.updatePreview(0)
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
-
-        else:
-            for color in self.colorSelectPanel.selectedColors():
-                self.generator.base.changeBrightnessColor(1, color)
-
-        self.updateMainView()
-
-    def clickDecrBrightness(self):
-        if self.checkboxAllViews.isChecked():
-            for base in self.generator.bases:
-                for color in self.colorSelectPanel.selectedColors():
-                    base.changeBrightnessColor(-1, color)
-
-            self.updatePreview(0)
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
-
-        else:
-            for color in self.colorSelectPanel.selectedColors():
-                self.generator.base.changeBrightnessColor(-1, color)
-
-        self.updateMainView()
-
-    def clickSpriteControl(self, direction: str):
-        if direction == 'left':
-            self.generator.base.x -= 1
-        elif direction == 'right':
-            self.generator.base.x += 1
-        elif direction == 'up':
-            self.generator.base.y -= 1
-        elif direction == 'down':
-            self.generator.base.y += 1
-        elif direction == 'leftright':
-            self.generator.base.image = self.generator.base.image.transpose(
-                Image.FLIP_LEFT_RIGHT)
-        elif direction == 'updown':
-            self.generator.base.image = self.generator.base.image.transpose(
-                Image.FLIP_TOP_BOTTOM)
-
-        self.updateMainView()
-
-    def previewClicked(self, rot):
-        old_rot = self.generator.current_rotation
-        self.sprite_preview[old_rot].setStyleSheet(
-            "background-color :  black; border:none;")
-        self.sprite_preview[rot].setStyleSheet(
-            "background-color :  black; border:2px outset green;")
-
-        self.generator.rotationChanged(rot)
-
-        self.updateMainView()
 
     def resetAllBases(self):
         self.generator.resetAllBases()
@@ -397,23 +280,6 @@ class PathGeneratorWidget(QWidget):
         self.updatePreview(2)
         self.updatePreview(3)
         self.previewClicked(0)
-
-    def importBase(self):
-        dialog = ImportSpriteUi()
-
-        if dialog.exec():
-            ret = dialog.ret
-            if isinstance(ret, Image.Image):
-                self.generator.importBases([ret])
-                self.comboboxRotation.setCurrentIndex(0)
-            elif isinstance(ret, list):
-                self.generator.importBases(ret)
-                self.comboboxRotation.setCurrentIndex(1)
-            self.previewClicked(0)
-
-            self.updatePreview(1)
-            self.updatePreview(2)
-            self.updatePreview(3)
 
     # Auxiliary functions
 
@@ -445,10 +311,10 @@ class PathGeneratorWidget(QWidget):
 
     def updateDisplayName(self):
         if self.generator.settings['autoNaming']:
-            self.labelDisplayName.setText(
-                self.lineeditPrefix.text() + ' Fulltile ' + self.lineeditSuffix.text())
+            self.label_display_name.setText(
+                self.lineedit_prefix.text() + ' Fulltile ' + self.lineedit_suffix.text())
         else:
-            self.labelDisplayName.setText(self.lineeditPrefix.text())
+            self.label_display_name.setText(self.lineedit_prefix.text())
 
     def loadFrame(self):
         img = QtGui.QImage(aux.resource_path("pathgenerator/res/frame.png"))
@@ -470,12 +336,141 @@ class PathGeneratorWidget(QWidget):
 
     def loadTemplates(self):
         for name in self.generator.templates.keys():
-            self.listwidgetTemplateList.addItem(name)
+            self.listwidget_template_list.addItem(name)
 
     # Events
 
     def mousePressEvent(self, e):
-        self.labelGenerateReturn.setText("")
+        self.label_generate_return.setText("")
+        
+class SpritesTab(QWidget):
+    def __init__(self, generator_tab: PathGeneratorTab):
+        super().__init__()
+        
+        self.generator_tab = generator_tab
+        self.main_window = generator_tab.main_window
+        
+    def initializeWidgets(self, view_width, view_height):
+        # Buttons load/reset
+        self.button_load_base = self.findChild(
+            QPushButton, "pushButton_loadImageButton")
+        self.button_import_texture = self.findChild(
+            QPushButton, "pushButton_importTexture")
+        self.button_fix_to_mask = self.findChild(
+            QPushButton, "pushButton_fixToMask")
+
+
+        self.button_load_base.clicked.connect(self.loadBase)
+        self.button_import_texture.clicked.connect(self.importBase)
+        self.button_fix_to_mask.clicked.connect(self.fixToMask)
+
+        self.button_cycle_rotation = self.findChild(
+            QPushButton, "pushButton_cycleRotation")
+
+        self.button_cycle_rotation.clicked.connect(self.cycleRotation)
+        
+        self.button_auto_rotate1 = self.findChild(
+            QPushButton, "pushButton_autoRotate1")
+        self.button_auto_rotate2 = self.findChild(
+            QPushButton, "pushButton_autoRotate2")
+        
+        self.button_auto_rotate1.clicked.connect(
+            lambda x: self.clickGenerateRotations(0))
+        self.button_auto_rotate2.clicked.connect(
+            lambda x: self.clickGenerateRotations(1))
+
+        # View main
+        self.sprite_view_main.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.sprite_view_main.customContextMenuRequested.connect(
+            self.showSpriteMenu)
+        self.sprite_view_main.setBackgroundBrush(
+            QtGui.QBrush(
+                QtGui.QColor(
+                    self.main_window.current_background_color[0],
+                    self.main_window.current_background_color[1],
+                    self.main_window.current_background_color[2])))
+
+        self.sprite_view_main_item = QGraphicsPixmapItem()
+        self.sprite_view_main_scene = QGraphicsScene()
+        self.sprite_view_main_scene.addItem(self.sprite_view_main_item)
+        self.sprite_view_main_scene.setSceneRect(0, 0, view_width, view_height)
+        self.sprite_view_main.setScene(self.sprite_view_main_scene)
+
+        # Previews
+        self.sprite_preview = [self.sprite_view_preview0, self.sprite_view_preview1,
+                               self.sprite_view_preview2, self.sprite_view_preview3]
+        for rot, widget in enumerate(self.sprite_preview):
+            self.sprite_preview[rot].mousePressEvent = (
+                lambda e, rot=rot: self.previewClicked(rot))
+            self.sprite_preview[rot].setStyleSheet(
+                f"background-color :  rgb{self.main_window.current_background_color};")
+
+        # Remap Color Buttons
+        self.button_first_remap = self.findChild(
+            QPushButton, 'pushButton_firstRemap')
+        self.button_first_remap.colorChanged.connect(
+            lambda color, remap="1st Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_first_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[0])
+
+        self.button_second_remap = self.findChild(
+            QPushButton, 'pushButton_secondRemap')
+        self.button_second_remap.colorChanged.connect(
+            lambda color, remap="2nd Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_second_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[1])
+
+        self.button_third_remap = self.findChild(
+            QPushButton, 'pushButton_thirdRemap')
+        self.button_third_remap.colorChanged.connect(
+            lambda color, remap="3rd Remap": self.clickChangeRemap(color, remap=remap))
+        self.button_third_remap.setColor(self.main_window.settings.get(
+            'default_remaps', ['NoColor', 'NoColor', 'NoColor'])[2])
+
+        self.button_first_remap.panelOpened.connect(
+            self.button_second_remap.hidePanel)
+        self.button_first_remap.panelOpened.connect(
+            self.button_third_remap.hidePanel)
+
+        self.button_second_remap.panelOpened.connect(
+            self.button_first_remap.hidePanel)
+        self.button_second_remap.panelOpened.connect(
+            self.button_third_remap.hidePanel)
+
+        self.button_third_remap.panelOpened.connect(
+            self.button_second_remap.hidePanel)
+        self.button_third_remap.panelOpened.connect(
+            self.button_first_remap.hidePanel)
+        
+    def loadBase(self):
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Open Base Image", "", "PNG Images (*.png);; BMP Images (*.bmp)")
+
+        if filepath:
+            self.generator.loadBase(filepath)
+
+        self.updateMainView()
+
+    def importBase(self):
+        dialog = ImportSpriteUi()
+
+        if dialog.exec():
+            ret = dialog.ret
+            if isinstance(ret, Image.Image):
+                self.generator.importBases([ret])
+                self.comboboxRotation.setCurrentIndex(0)
+            elif isinstance(ret, list):
+                self.generator.importBases(ret)
+                self.comboboxRotation.setCurrentIndex(1)
+            self.previewClicked(0)
+
+            self.updatePreview(1)
+            self.updatePreview(2)
+            self.updatePreview(3)
+
+    def fixToMask(self):
+        self.generator.fixBaseToMask()
+        self.updateMainView()
 
 
 class ImportSpriteUi(QDialog):

@@ -370,6 +370,7 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
             self.clearAllLanguages()
 
     def setDefaults(self):
+        super().setDefaults()
 
         settings_SS = self.main_window.settings['small_scenery_defaults']
 

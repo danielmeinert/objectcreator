@@ -739,14 +739,30 @@ class MainWindowUi(QMainWindow):
     def saveObject(self):
         widget = self.object_tabs.currentWidget()
 
-        if widget is not None:
+        if widget is not None and widget.isObject():
             widget.saveObject(get_path=False)
+        else:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Save Object")
+            msg.setText("The current tab is not an object and cannot be saved as one.")
+            msg.setStandardButtons(QMessageBox.Ok)
+
+            msg.exec_()
 
     def saveObjectAs(self):
         widget = self.object_tabs.currentWidget()
 
-        if widget is not None:
+        if widget is not None and widget.isObject():
             widget.saveObject(get_path=True)
+        else:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Save Object")
+            msg.setText("The current tab is not an object and cannot be saved as one.")
+            msg.setStandardButtons(QMessageBox.Ok)
+
+            msg.exec_()
 
     def spriteNew(self):
         name = f'Sprite {self.new_sprite_count}'
@@ -810,7 +826,9 @@ class MainWindowUi(QMainWindow):
         
     def openPathTileGenerator(self):
         widget = pg_wdg.PathGeneratorWidget(self)
-        widget.show()
+        
+        self.object_tabs.addTab(widget, "Path Tile Generator")
+        self.object_tabs.setCurrentWidget(widget)
 
 
     def aboutPage(self):

@@ -283,6 +283,8 @@ class SettingsTab(widgetsGeneric.SettingsTabAll):
         self.currentTileChanged(tile_index)
 
     def setDefaults(self):
+        super().setDefaults()
+        
         settings_LS = self.main_window.settings.get(
             'large_scenery_defaults', {})
 

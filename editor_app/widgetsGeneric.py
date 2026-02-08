@@ -197,7 +197,12 @@ class SettingsTabAll(QWidget):
         lang = list(cts.languages)[value]
         self.object_name_lang_field.setText(
             self.o['strings']['name'].get(lang, ''))
-
+        
+    def setDefaults(self):
+        settings = self.main_window.settings
+        
+        self.author_field.setText(settings.get('author', ''))
+        self.author_id_field.setText(settings.get('author_id', ''))
 
 class SpritesTabAll(QWidget):
     """Proxy Class for all object types. initializeWidgets should be called after all members have been set."""
@@ -484,47 +489,6 @@ class SpritesTabAll(QWidget):
         for rot in range(4):
             self.layers.item(original_row, rot).addSpriteToHistory()
             
-    def colorRemapToAll(self, row, color_remap, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        original_row = self.layers.originalRow(row)
-        for rot in range(4):
-            sprite = self.layers.item(original_row, rot).sprite
-            for color in selected_colors:
-                sprite.remapColor(color, color_remap)
-
-        self.updateAllViews()
-
-    def colorChangeBrightnessAll(self, row, step, selected_colors):
-        # row is the proxy model row
-        self.addSpriteToHistoryAllViews(row)
-
-        original_row = self.layers.originalRow(row)
-        for rot in range(4):
-            sprite = self.layers.item(original_row, rot).sprite
-            sprite.changeBrightnessColor(step, selected_colors)
-
-        self.updateAllViews()
-
-    def colorRemoveAll(self, row, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        original_row = self.layers.originalRow(row)
-        for rot in range(4):
-            sprite = self.layers.item(original_row, rot).sprite
-            sprite.removeColor(selected_colors)
-
-        self.updateAllViews()
-        
-    def colorInvertShadingAll(self, row, selected_colors):
-        self.addSpriteToHistoryAllViews(row)
-
-        original_row = self.layers.originalRow(row)
-        for rot in range(4):
-            sprite = self.layers.item(original_row, rot).sprite
-            sprite.invertShadingColor(selected_colors)
-
-        self.updateAllViews()
         
     def setCurrentLayers(self, layers, view=None):
         
