@@ -424,6 +424,41 @@ class SmallScenery(RCTObject):
                 for _, sprite in self.sprites.items():
                     sprite.overwriteOffsets(
                         int(sprite.x), int(sprite.y) - offset)
+                    
+    def convertTo(self, object_type: Type):
+        if object_type == Type.LARGE:
+            if not self.subtype == self.Subtype.SIMPLE:
+                raise RuntimeError('Only simple small scenery can be converted. Convert to simple first.')
+            
+            data = copy.deepcopy(cts.data_template_large)
+            
+            data['id'] = self.data.get('id', '').replace('small', 'large')
+            data['author'] = self.data.get('author', '')
+            
+            if self.data.get('strings', False):
+                data['strings'] = copy.deepcopy(self.data['strings'])
+                
+            data['properties']['cursor'] = self.data['properties'].get('cursor', 'CURSOR_ARROW')
+            data['properties']['price'] = self.data['properties'].get('price', 0)
+            data['properties']['removalPrice'] = self.data['properties'].get('removalPrice', 0)
+            data['properties']['tiles'][0]['clearance'] = self.data['properties'].get('height', 0)
+            data['properties']['tiles'][0]['hasSupports'] = not self.data['properties'].get('hasNoSupports', True)
+            data['properties']['tiles'][0]['allowSupportsAbove'] = self.data['properties'].get('allowSupportsAbove', False)
+
+            sprites = {}
+            for rot in range(4):
+                sprite = self.giveSprite(rotation=rot)
+                data['images'][rot+4] = {'path': f'images/{rot+4}.png', 'x': sprite.x, 'y': sprite.y+15}
+                sprites[f'images/{rot}.png'] = spr.Sprite(None)
+                sprites[f'images/{rot+4}.png'] = spr.Sprite.fromSprite(sprite, offset=(0, 15))
+            
+            o = LargeScenery(data=data, sprites=sprites)
+            o.createThumbnails()
+
+            return o
+        else:
+            raise NotImplementedError('Cannot convert to given type. Only large scenery supported.')
+
 
     def size(self):
         if self.shape == self.Shape.HALF:
@@ -1465,6 +1500,11 @@ class LargeScenery(RCTObject):
 
 def load(filepath: str, openpath=OPENRCTPATH):
     """Instantiates a new object from a .parkobj  or .dat file."""
+    if not exists(filepath):
+        raise RuntimeError(f'Could not find object file: \n \
+                           "{filepath}"')
+    
+    
     extension = splitext(filepath)[1].lower()
 
     if extension == '.parkobj':

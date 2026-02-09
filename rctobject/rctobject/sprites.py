@@ -61,6 +61,12 @@ class Sprite:
         return cls(
             image=image, coords=coords, palette=palette, dither=dither, transparent_color=transparent_color,
             selected_colors=selected_colors, alpha_threshold=alpha_threshold, auto_offset_mode=auto_offset_mode, offset=offset, already_palettized=already_palettized)
+        
+    @classmethod
+    def fromSprite(cls, sprite_in, offset: tuple = None):
+        """Instantiates a new Sprite from another Sprite."""
+        return cls(
+            image=copy(sprite_in.image), coords=(sprite_in.x + (offset[0] if offset else 0), sprite_in.y + (offset[1] if offset else 0)), palette=sprite_in.palette, already_palettized=True)
 
     def save(self, path: str, keep_palette: bool = False, index_color=False):
         # Sprites should always be saved in the orct palette so that they can be read properly by the game

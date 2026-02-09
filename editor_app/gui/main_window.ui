@@ -374,10 +374,19 @@ border: 1px solid darkgrey;}
      <addaction name="actionLargeScenery"/>
      <addaction name="actionWall"/>
     </widget>
+    <widget class="QMenu" name="menuConver_To">
+     <property name="title">
+      <string>Convert To</string>
+     </property>
+     <addaction name="actionConvertToSmallScenery"/>
+     <addaction name="actionConvertToLargeScenery"/>
+    </widget>
     <addaction name="menuNew_Object"/>
     <addaction name="menuLoad_Object_from"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveObjectAs"/>
+    <addaction name="separator"/>
+    <addaction name="menuConver_To"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -693,6 +702,16 @@ border: 1px solid darkgrey;}
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionConvertToSmallScenery">
+   <property name="text">
+    <string>Small Scenery</string>
+   </property>
+  </action>
+  <action name="actionConvertToLargeScenery">
+   <property name="text">
+    <string>Large Scenery</string>
    </property>
   </action>
  </widget>

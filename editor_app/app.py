@@ -137,8 +137,16 @@ class MainWindowUi(QMainWindow):
         self.actionOpenFile.triggered.connect(self.objectOpenFile)
         self.actionDATIdentifier.triggered.connect(
             self.objectOpenFileFromIdentifier)
-        self.actionSave.triggered.connect(self.saveObject)
-        self.actionSaveObjectAs.triggered.connect(self.saveObjectAs)
+        self.actionSave.triggered.connect(self.objectSave)
+        self.actionSaveObjectAs.triggered.connect(self.objectSaveAs)
+        
+        self.actionConvertTo = {
+            obj.Type.SMALL: self.actionConvertToSmallScenery,
+            obj.Type.LARGE: self.actionConvertToLargeScenery
+        }
+        
+        for obj_type, action in self.actionConvertTo.items():
+            action.triggered.connect(lambda _, t=obj_type: self.objectConvertTo(t))
 
         self.actionNewSprite.triggered.connect(self.spriteNew)
         self.actionLoadSprite.triggered.connect(self.spriteOpenFile)
@@ -532,7 +540,6 @@ class MainWindowUi(QMainWindow):
         self.sprite_tabs.addTab(sprite_tab, name)
         self.sprite_tabs.setCurrentWidget(sprite_tab)
             
-        
 
     # Tab actions
     def changeObjectTab(self, index):
@@ -550,6 +557,10 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(True)
                 self.button_push_sprite.setEnabled(True)
                 self.button_pull_new_sprite.setEnabled(True)
+                
+            for type, action in self.actionConvertTo.items():
+                action.setEnabled(type != object_tab.o.object_type)
+                
 
         sprite_tab = self.sprite_tabs.currentWidget()
         if sprite_tab:
@@ -559,6 +570,8 @@ class MainWindowUi(QMainWindow):
                 self.button_pull_sprite.setEnabled(True)
         else:
             self.button_pull_sprite.setEnabled(False)
+            
+
 
     def changeSpriteTab(self, index):
         sprite_tab = self.sprite_tabs.widget(index)
@@ -736,17 +749,46 @@ class MainWindowUi(QMainWindow):
         if ok and dat_id:
             self.loadObjectFromId(dat_id)
 
-    def saveObject(self):
+    def objectSave(self):
         widget = self.object_tabs.currentWidget()
 
         if widget is not None:
             widget.saveObject(get_path=False)
 
-    def saveObjectAs(self):
+    def objectSaveAs(self):
         widget = self.object_tabs.currentWidget()
 
         if widget is not None:
             widget.saveObject(get_path=True)
+            
+    def objectConvertTo(self, obj_type):
+        object_tab = self.object_tabs.currentWidget()
+
+        if object_tab is not None:
+            o = object_tab.o.convertTo(obj_type)
+            name = self.object_tabs.tabText(self.object_tabs.currentIndex()) + ' (converted)'
+            if not name:
+                if o.old_id:
+                    name = o.old_id
+                else:
+                    name = f'Object {self.new_object_count}'
+                    self.new_object_count += 1
+            
+            if not self.current_palette == pal.orct:
+                o.switchPalette(self.current_palette)
+
+            object_tab = wdg.ObjectTab(o, self, self.last_open_folder_objects)
+            object_tab.activeLayerRowChanged.connect(self.layer_widget.setActiveLayerRow)
+
+            sprite_tab = wdg.SpriteTab(self, object_tab)
+            sprite_tab.layersChanged.connect(self.layer_widget.updateList)
+            sprite_tab.dummyChanged.connect(self.layer_widget.setDummyControls)
+
+            self.object_tabs.addTab(object_tab, name)
+            self.object_tabs.setCurrentWidget(object_tab)
+            self.sprite_tabs.addTab(sprite_tab,  f"{name} (locked)")
+            self.sprite_tabs.setCurrentWidget(sprite_tab)
+            
 
     def spriteNew(self):
         name = f'Sprite {self.new_sprite_count}'
