@@ -18,7 +18,7 @@ To run the develop version with python you need to have python installed and add
 ```
 python -m pip install numpy
 python -m pip install pyqt5
-python -m pip install "Pillow<10"
+python -m pip install pillow
 python -m pip install requests
 ```
 
@@ -58,7 +58,7 @@ Now we know the python command, we need to install the app's dependencies. Just 
 ```
 python3 -m pip install numpy
 python3 -m pip install pyqt5
-python3 -m pip install Pillow<10
+python3 -m pip install pillow
 python3 -m pip install requests
 ```
 

@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout,
     QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 from copy import copy, deepcopy
 import re
 import os.path
@@ -148,7 +148,7 @@ class SettingsTabAll(QWidget):
         self.hasTertiaryColour.setEnabled(not bool(value))
 
     def authorChanged(self, value):
-        self.o['authors'] = re.split('\,\s*', value)
+        self.o['authors'] = re.split(r',\s*', value)
 
     def authorIdChanged(self, value):
         object_id = self.object_id_field.text()

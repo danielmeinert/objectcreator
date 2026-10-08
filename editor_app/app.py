@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWi
     QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog, qApp
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 import traceback
 import sys
 
