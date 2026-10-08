@@ -1,0 +1,56 @@
+name: Build macOS app
+
+# Builds the Apple Silicon and Intel disk images with build_files/build_mac.sh.
+# On a published release the .dmg files are attached to that release;
+# when run manually they are uploaded as workflow artifacts.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            python: cpython-3.13-macos-aarch64-none
+          # Built on the Apple Silicon runner with an x86_64 Python running via Rosetta
+          - arch: x86_64
+            python: cpython-3.13-macos-x86_64-none
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rosetta
+        if: matrix.arch == 'x86_64'
+        run: softwareupdate --install-rosetta --agree-to-license || true
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install Python
+        run: uv python install ${{ matrix.python }}
+
+      - name: Build app and disk image
+        run: PYTHON="$(uv python find ${{ matrix.python }})" ./build_files/build_mac.sh
+
+      - name: Check architecture
+        run: file "dist/${{ matrix.arch }}/Object Creator.app/Contents/MacOS/Object Creator" | grep -q "${{ matrix.arch }}"
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.dmg --clobber
+
+      - name: Upload artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Object-Creator-macOS-${{ matrix.arch }}
+          path: dist/*.dmg

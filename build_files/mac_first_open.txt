@@ -1,0 +1,39 @@
+OBJECT CREATOR FOR MAC - HOW TO INSTALL AND OPEN
+=================================================
+
+1. INSTALL
+   Drag the "Object Creator" icon onto the "Applications" folder icon
+   in this window. Then you can close this window.
+
+2. OPEN IT THE FIRST TIME
+   Object Creator is free community software and is not registered with
+   Apple, so the first time you open it your Mac will warn you.
+   You only have to do this once:
+
+   a) Open your Applications folder and double-click "Object Creator".
+      A message appears saying it can't be opened or Apple can't check it.
+      Click "Done" (or "OK" / "Cancel").
+
+   b) Open the Apple menu () > System Settings > Privacy & Security.
+      Scroll down. You will see a line saying "Object Creator" was blocked.
+      Click "Open Anyway" and enter your Mac password if asked.
+
+   c) Click "Open" (or "Open Anyway") in the message that appears.
+
+   On older Macs (macOS 14 Sonoma or earlier) you can instead
+   right-click (or Control-click) "Object Creator" in Applications,
+   choose "Open", then click "Open" again.
+
+   After this, Object Creator opens normally with a double-click.
+
+3. FIRST-TIME SETTINGS
+   The first time Object Creator starts it shows a Settings window.
+   The folders are already filled in for you - just type your name in
+   the "Author" box (the name you use in the RCT community) and click OK.
+
+   Your objects are saved to OpenRCT2's object folder:
+   ~/Library/Application Support/OpenRCT2/object
+   (In OpenRCT2 you can find it from the main menu: the toolbox button >
+   "Open custom content folder".)
+
+Help and feedback: https://github.com/danielmeinert/objectcreator

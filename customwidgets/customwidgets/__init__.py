@@ -14,13 +14,21 @@ from PyQt5.QtWidgets import QMainWindow, QFrame, QGridLayout, QVBoxLayout, QHBox
 from PyQt5 import uic, QtGui, QtCore
 
 from PIL import Image, ImageDraw
-from PIL.ImageQt import ImageQt
 
 from enum import Enum
 from pkgutil import get_data
 
 from rctobject import palette as pal
 from rctobject import constants as cts
+
+
+def ImageQt(im):
+    """Convert a PIL image to a QImage (Pillow >= 10 dropped PyQt5 support in PIL.ImageQt)."""
+    im = im.convert('RGBA')
+    data = im.tobytes('raw', 'RGBA')
+    qim = QtGui.QImage(data, im.width, im.height,
+                       4*im.width, QtGui.QImage.Format_RGBA8888)
+    return qim.copy()  # detach from the temporary bytes buffer
 
 
 class ToolCursors(QtGui.QCursor):
@@ -329,6 +337,8 @@ class ShadeButton(QPushButton):
         self.index = index
         self.setFixedSize(QtCore.QSize(13, 13))
         self.setCheckable(True)
+        # plain ints, numpy >= 2 would format as "np.uint8(..)" in the style sheet
+        shade = tuple(int(c) for c in shade)
         self.shade = shade
 
         self.setStyleSheet("QPushButton"

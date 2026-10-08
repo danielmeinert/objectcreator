@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWi
     QPushButton, QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog, QInputDialog, qApp
 from PyQt5 import uic, QtGui, QtCore, QtNetwork
 from PIL import Image
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 import traceback
 import sys
 
@@ -28,7 +28,7 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
 import io
 import os
 from os import getcwd
-from os.path import splitext, split, abspath, join, exists
+from os.path import splitext, split, abspath, join, exists, expanduser
 from json import load as jload
 from json import dump as jdump
 from enum import Enum
@@ -260,6 +260,22 @@ class MainWindowUi(QMainWindow):
         msg.setWindowTitle("New version available!")
         msg.setTextFormat(QtCore.Qt.RichText)
 
+        # The automatic updater only exists for the Windows installer
+        if sys.platform == 'darwin':
+            msg.setText(f"Object Creator {git_version} is now available! <br> \
+                    Your version: {VERSION} <br> <br> \
+                    Download the new .dmg from the release page and drag \
+                    Object Creator into Applications to replace this version.")
+            download_button = msg.addButton("Download", QMessageBox.AcceptRole)
+            msg.addButton("Later", QMessageBox.RejectRole)
+            msg.setDefaultButton(download_button)
+
+            msg.exec_()
+
+            if msg.clickedButton() is download_button:
+                QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+            return
+
         msg.setText(f"Object Creator {git_version} is now available! <br> \
                 Your version: {VERSION} <br> \
                 <a href='{url}'>Click here to go to download page. </a> <br> <br> \
@@ -285,13 +301,20 @@ class MainWindowUi(QMainWindow):
             self.settings = jload(fp=open(f'{path}/config.json'))
         except FileNotFoundError:
             self.settings = {}
+            if sys.platform == 'darwin':
+                # Pre-fill the usual OpenRCT2 locations on macOS
+                mac_object_folder = expanduser(
+                    '~/Library/Application Support/OpenRCT2/object')
+                self.settings['openpath'] = '/Applications'
+                self.settings['savedefault'] = mac_object_folder
+                self.settings['opendefault'] = mac_object_folder
             self.changeSettings(update_widgets=False)
 
             # If user refused to enter settings, use hard coded settings
-            if not self.settings:
-                self.settings['openpath'] = "%USERPROFILE%/Documents/OpenRCT2"
-                self.settings['savedefault'] = ''
-                self.settings['opendefault'] = "%USERPROFILE%/Documents/OpenRCT2/object"
+            if 'transparency_color' not in self.settings:
+                self.settings.setdefault('openpath', "%USERPROFILE%/Documents/OpenRCT2")
+                self.settings.setdefault('savedefault', '')
+                self.settings.setdefault('opendefault', "%USERPROFILE%/Documents/OpenRCT2/object")
                 self.settings['author'] = ''
                 self.settings['author_id'] = ''
 
@@ -934,6 +957,7 @@ def versionCheck(version):
 class SingleApplicationWithMessaging(QApplication):
     # from https://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
     messageAvailable = QtCore.pyqtSignal(object)
+    fileOpenRequested = QtCore.pyqtSignal(str)
 
     def __init__(self, argv, key):
         super().__init__(argv)
@@ -961,6 +985,14 @@ class SingleApplicationWithMessaging(QApplication):
 
     def isRunning(self):
         return self._running
+
+    def event(self, event):
+        # macOS delivers files opened from Finder as events instead of argv
+        if event.type() == QtCore.QEvent.FileOpen:
+            self.fileOpenRequested.emit(event.file())
+            return True
+
+        return super().event(event)
 
     def handleMessage(self):
         socket = self._server.nextPendingConnection()
@@ -1014,7 +1046,15 @@ def main():
         sys.exit(1)
 
     app.setApplicationName(myappname)
-    
+
+    if sys.platform == 'darwin':
+        # The native macOS style pads buttons too much for the fixed-size layouts
+        app.setStyle('Fusion')
+
+        # A macOS .app starts with "/" as working directory, which is not writable
+        if getattr(sys, 'frozen', False):
+            os.chdir(expanduser('~'))
+
 
     app_data_path = QtCore.QStandardPaths.writableLocation(
         QtCore.QStandardPaths.AppDataLocation)
@@ -1025,6 +1065,7 @@ def main():
     window = MainWindowUi(app_data_path=app_data_path,
                           opening_objects=sys.argv[1:],)
     app.messageAvailable.connect(window.handleMessage)
+    app.fileOpenRequested.connect(window.loadObjectFromPath)
     window.show()
     window.activateWindow()
 

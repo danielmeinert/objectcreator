@@ -11,11 +11,12 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QGroupBox, QToolButton, QComboBox, QPushButton, QLineEdit, QLabel, QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageEnhance
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 from customwidgets import ColorSelectWidget
 import sys
 import io
 from os import getcwd
+from os.path import join
 
 import pathgenerator.generator as gen
 import auxiliaries as aux
@@ -138,7 +139,7 @@ class PathGeneratorWidget(QWidget):
         self.labelSuffix.hide()
         self.labelPrefix.setText('')
 
-        self.lineeditOutputFolder.setText(f'{getcwd()}\\output')
+        self.lineeditOutputFolder.setText(join(getcwd(), 'output'))
 
         self.comboboxRemapToColor.addItems(
             list(self.generator.current_palette.color_dict))

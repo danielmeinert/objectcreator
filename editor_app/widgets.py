@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMenu, QGroupBox, QVBoxLayout,
     QListWidget, QListWidgetItem, QFileDialog, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PIL import Image, ImageGrab, ImageDraw
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 from copy import copy, deepcopy
 from json import dump, loads
 from json import load as jload

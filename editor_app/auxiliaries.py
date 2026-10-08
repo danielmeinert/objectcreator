@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QMessageBox, QWi
     QLineEdit, QLabel, QCheckBox, QDoubleSpinBox, QListWidget, QFileDialog
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 import sys
 import io
 from os.path import abspath, join, dirname

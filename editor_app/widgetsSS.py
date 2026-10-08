@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox, QMenu, QGroupBox,
     QListWidget, QFileDialog, QGraphicsPixmapItem, QGraphicsScene, QSlider, QTableWidgetItem
 from PyQt5 import uic, QtGui, QtCore
 from PIL import Image, ImageGrab, ImageDraw
-from PIL.ImageQt import ImageQt
+from customwidgets import ImageQt
 from copy import copy
 import io
 import os.path
